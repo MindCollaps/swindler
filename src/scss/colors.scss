@@ -1,0 +1,178 @@
+@use 'sass:color';@use 'sass:map';@use 'sass:string';@function toRawRGB($color) {
+    @return string.unquote(color.channel($color, "red") + ', ' + color.channel($color, "green") + ', ' + color.channel($color, "blue"));
+}
+$lightgray0Raw: toRawRGB(#F7F7FA);
+$lightgray0Orig: #F7F7FA;
+$lightgray50Raw: toRawRGB(#F2F2F7);
+$lightgray50Orig: #F2F2F7;
+$lightgray100Raw: toRawRGB(#EDEDF2);
+$lightgray100Orig: #EDEDF2;
+$lightgray125Raw: toRawRGB(#E6E6EB);
+$lightgray125Orig: #E6E6EB;
+$lightgray150Raw: toRawRGB(#DEDEE7);
+$lightgray150Orig: #DEDEE7;
+$lightgray200Raw: toRawRGB(#D5D5E4);
+$lightgray200Orig: #D5D5E4;
+$lightgray300Raw: toRawRGB(#bfbfc2);
+$lightgray300Orig: #bfbfc2;
+$lightgray400Raw: toRawRGB(#aaaaac);
+$lightgray400Orig: #aaaaac;
+$darkgray1000Raw: toRawRGB(#131316);
+$darkgray1000Orig: #131316;
+$darkgray950Raw: toRawRGB(#18181B);
+$darkgray950Orig: #18181B;
+$darkgray900Raw: toRawRGB(#202024);
+$darkgray900Orig: #202024;
+$darkgray875Raw: toRawRGB(#26262C);
+$darkgray875Orig: #26262C;
+$darkgray850Raw: toRawRGB(#2B2B33);
+$darkgray850Orig: #2B2B33;
+$darkgray800Raw: toRawRGB(#30303C);
+$darkgray800Orig: #30303C;
+$darkgray700Raw: toRawRGB(#3c3c3f);
+$darkgray700Orig: #3c3c3f;
+$darkgray600Raw: toRawRGB(#525255);
+$darkgray600Orig: #525255;
+$primary700Raw: toRawRGB(#512da8);
+$primary700Orig: #512da8;
+$primary600Raw: toRawRGB(#6743b2);
+$primary600Orig: #6743b2;
+$primary500Raw: toRawRGB(#7c59bc);
+$primary500Orig: #7c59bc;
+$primary400Raw: toRawRGB(#8f70c6);
+$primary400Orig: #8f70c6;
+$primary300Raw: toRawRGB(#a287d0);
+$primary300Orig: #a287d0;
+$success700Raw: toRawRGB(#46a92d);
+$success700Orig: #46a92d;
+$success600Raw: toRawRGB(#57b143);
+$success600Orig: #57b143;
+$success500Raw: toRawRGB(#66bb58);
+$success500Orig: #66bb58;
+$success400Raw: toRawRGB(#7dc671);
+$success400Orig: #7dc671;
+$success300Raw: toRawRGB(#90d086);
+$success300Orig: #90d086;
+$warning700Raw: toRawRGB(#a9902d);
+$warning700Orig: #a9902d;
+$warning600Raw: toRawRGB(#b19d43);
+$warning600Orig: #b19d43;
+$warning500Raw: toRawRGB(#bbad58);
+$warning500Orig: #bbad58;
+$warning400Raw: toRawRGB(#c6bb71);
+$warning400Orig: #c6bb71;
+$warning300Raw: toRawRGB(#d0c686);
+$warning300Orig: #d0c686;
+$error700Raw: toRawRGB(#a92d46);
+$error700Orig: #a92d46;
+$error600Raw: toRawRGB(#b14357);
+$error600Orig: #b14357;
+$error500Raw: toRawRGB(#bb5866);
+$error500Orig: #bb5866;
+$error400Raw: toRawRGB(#c6717d);
+$error400Orig: #c6717d;
+$error300Raw: toRawRGB(#d08690);
+$error300Orig: #d08690;
+$info700Raw: toRawRGB(#2da990);
+$info700Orig: #2da990;
+$info600Raw: toRawRGB(#43b19d);
+$info600Orig: #43b19d;
+$info500Raw: toRawRGB(#58bbad);
+$info500Orig: #58bbad;
+$info400Raw: toRawRGB(#71c6bb);
+$info400Orig: #71c6bb;
+$info300Raw: toRawRGB(#86d0c6);
+$info300Orig: #86d0c6;
+
+$colorsMap: (
+ilightgray0: var(--lightgray0, $lightgray0Raw),
+ilightgray50: var(--lightgray50, $lightgray50Raw),
+ilightgray100: var(--lightgray100, $lightgray100Raw),
+ilightgray125: var(--lightgray125, $lightgray125Raw),
+ilightgray150: var(--lightgray150, $lightgray150Raw),
+ilightgray200: var(--lightgray200, $lightgray200Raw),
+ilightgray300: var(--lightgray300, $lightgray300Raw),
+ilightgray400: var(--lightgray400, $lightgray400Raw),
+idarkgray1000: var(--darkgray1000, $darkgray1000Raw),
+idarkgray950: var(--darkgray950, $darkgray950Raw),
+idarkgray900: var(--darkgray900, $darkgray900Raw),
+idarkgray875: var(--darkgray875, $darkgray875Raw),
+idarkgray850: var(--darkgray850, $darkgray850Raw),
+idarkgray800: var(--darkgray800, $darkgray800Raw),
+idarkgray700: var(--darkgray700, $darkgray700Raw),
+idarkgray600: var(--darkgray600, $darkgray600Raw),
+iprimary700: var(--primary700, $primary700Raw),
+iprimary600: var(--primary600, $primary600Raw),
+iprimary500: var(--primary500, $primary500Raw),
+iprimary400: var(--primary400, $primary400Raw),
+iprimary300: var(--primary300, $primary300Raw),
+isuccess700: var(--success700, $success700Raw),
+isuccess600: var(--success600, $success600Raw),
+isuccess500: var(--success500, $success500Raw),
+isuccess400: var(--success400, $success400Raw),
+isuccess300: var(--success300, $success300Raw),
+iwarning700: var(--warning700, $warning700Raw),
+iwarning600: var(--warning600, $warning600Raw),
+iwarning500: var(--warning500, $warning500Raw),
+iwarning400: var(--warning400, $warning400Raw),
+iwarning300: var(--warning300, $warning300Raw),
+ierror700: var(--error700, $error700Raw),
+ierror600: var(--error600, $error600Raw),
+ierror500: var(--error500, $error500Raw),
+ierror400: var(--error400, $error400Raw),
+ierror300: var(--error300, $error300Raw),
+iinfo700: var(--info700, $info700Raw),
+iinfo600: var(--info600, $info600Raw),
+iinfo500: var(--info500, $info500Raw),
+iinfo400: var(--info400, $info400Raw),
+iinfo300: var(--info300, $info300Raw),
+);@function varToRgba($colorName, $opacity) {
+    @if (map.has-key($colorsMap, 'i#{$colorName}')) {
+        @return rgba(map.get($colorsMap, 'i#{$colorName}'), $opacity)
+    } 
+    @else {
+        @return rgba(var(--#{$colorName}), $opacity)
+    }
+}
+
+$lightgray0: rgb(map.get($colorsMap, ilightgray0));
+$lightgray50: rgb(map.get($colorsMap, ilightgray50));
+$lightgray100: rgb(map.get($colorsMap, ilightgray100));
+$lightgray125: rgb(map.get($colorsMap, ilightgray125));
+$lightgray150: rgb(map.get($colorsMap, ilightgray150));
+$lightgray200: rgb(map.get($colorsMap, ilightgray200));
+$lightgray300: rgb(map.get($colorsMap, ilightgray300));
+$lightgray400: rgb(map.get($colorsMap, ilightgray400));
+$darkgray1000: rgb(map.get($colorsMap, idarkgray1000));
+$darkgray950: rgb(map.get($colorsMap, idarkgray950));
+$darkgray900: rgb(map.get($colorsMap, idarkgray900));
+$darkgray875: rgb(map.get($colorsMap, idarkgray875));
+$darkgray850: rgb(map.get($colorsMap, idarkgray850));
+$darkgray800: rgb(map.get($colorsMap, idarkgray800));
+$darkgray700: rgb(map.get($colorsMap, idarkgray700));
+$darkgray600: rgb(map.get($colorsMap, idarkgray600));
+$primary700: rgb(map.get($colorsMap, iprimary700));
+$primary600: rgb(map.get($colorsMap, iprimary600));
+$primary500: rgb(map.get($colorsMap, iprimary500));
+$primary400: rgb(map.get($colorsMap, iprimary400));
+$primary300: rgb(map.get($colorsMap, iprimary300));
+$success700: rgb(map.get($colorsMap, isuccess700));
+$success600: rgb(map.get($colorsMap, isuccess600));
+$success500: rgb(map.get($colorsMap, isuccess500));
+$success400: rgb(map.get($colorsMap, isuccess400));
+$success300: rgb(map.get($colorsMap, isuccess300));
+$warning700: rgb(map.get($colorsMap, iwarning700));
+$warning600: rgb(map.get($colorsMap, iwarning600));
+$warning500: rgb(map.get($colorsMap, iwarning500));
+$warning400: rgb(map.get($colorsMap, iwarning400));
+$warning300: rgb(map.get($colorsMap, iwarning300));
+$error700: rgb(map.get($colorsMap, ierror700));
+$error600: rgb(map.get($colorsMap, ierror600));
+$error500: rgb(map.get($colorsMap, ierror500));
+$error400: rgb(map.get($colorsMap, ierror400));
+$error300: rgb(map.get($colorsMap, ierror300));
+$info700: rgb(map.get($colorsMap, iinfo700));
+$info600: rgb(map.get($colorsMap, iinfo600));
+$info500: rgb(map.get($colorsMap, iinfo500));
+$info400: rgb(map.get($colorsMap, iinfo400));
+$info300: rgb(map.get($colorsMap, iinfo300));
