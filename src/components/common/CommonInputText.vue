@@ -11,7 +11,7 @@
         </div>
         <div class="input_container">
             <label class="input__input">
-                <icon
+                <Icon
                     v-if="icon"
                     class="input__input_icon"
                     :name="icon"

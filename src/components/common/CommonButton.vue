@@ -25,7 +25,7 @@
         v-bind="getAttrs"
         @click="!disabled && $emit('click', $event)"
     >
-        <icon
+        <Icon
             v-if="icon"
             class="button_icon"
             :name="icon"

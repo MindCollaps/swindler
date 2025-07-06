@@ -5,7 +5,7 @@
         @click="checked = !checked"
     >
         <div class="checkbox_icon">
-            <icon name="material-symbols:check-rounded"/>
+            <Icon name="material-symbols:check-rounded"/>
         </div>
         <div class="checkbox_text">
             <slot/>

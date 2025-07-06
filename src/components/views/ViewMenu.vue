@@ -23,7 +23,7 @@
                         v-if="button.children"
                         class="header__menu_btn_children"
                     >
-                        <icon
+                        <Icon
                             class="header__menu_btn_children_icon"
                             name="material-symbols:arrow-drop-down-rounded"
                         />

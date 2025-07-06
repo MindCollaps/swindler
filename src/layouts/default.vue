@@ -8,7 +8,6 @@
             </div>
             <view-menu/>
             <view-login/>
-            <view-theme/>
         </div>
         <div class="app_content">
             <nuxt-loading-indicator :color="colorsList.primary300"/>
@@ -19,7 +18,6 @@
 
 <script setup lang="ts">
 import ViewMenu from '~/components/views/ViewMenu.vue';
-import ViewTheme from '~/components/views/ViewTheme.vue';
 import ViewLogin from '~/components/views/ViewLogin.vue';
 
 defineSlots<{ default: () => any }>();

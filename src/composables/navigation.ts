@@ -20,11 +20,6 @@ export const useHeaderMenu = () => computed<HeaderItem[]>(() => {
             path: '/',
             icon: 'material-symbols:other-houses',
         },
-        {
-            text: 'Dashboard',
-            path: '/dashboard',
-            hide: !loggedIn.value,
-        },
     ];
 
     return menu.filter(x => !x.hide).map(x => {

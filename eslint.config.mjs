@@ -128,6 +128,7 @@ export default withNuxt([
             'vue/component-name-in-template-casing': [
                 'error', 'kebab-case', {
                     registeredComponentsOnly: false,
+                    ignores: ['Icon'],
                 },
             ],
             'vue/script-indent': [
