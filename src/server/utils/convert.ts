@@ -1,18 +1,37 @@
-import type { Lobby } from "~/types/backend/db";
-import type { AsCreateDatabaseObject } from "~/types/backend/request";
-import { devGameRules } from "~/types/dev";
-import type { LobbyData } from "~/types/game";
+import type { Lobby, User } from '~/types/backend/db';
+import type { GameRuleData, LobbyData, UserData } from '~/types/game';
 
-export function convertLobby(lobby: AsCreateDatabaseObject<Lobby>): LobbyData {
-      return {
+export function convertLobby(lobby: Lobby, userId: number): LobbyData {
+    let gameRules: GameRuleData | undefined = undefined;
+
+    const players: UserData[] = [];
+
+    for (const p of lobby.players) {
+        players.push(convertUser(p));
+    }
+
+    if (lobby.gameRules) {
+        gameRules = {
+            ...lobby.gameRules,
+            editable: lobby.founder.id === userId,
+        };
+    }
+    return {
+        founder: lobby.founder.username,
         founded: lobby.founded,
-        founder: "Test",
-        gameRules: devGameRules,
         gameStarted: lobby.gameStarted,
+        id: lobby.id,
+        players: players,
         public: lobby.public,
         round: lobby.round,
         token: lobby.token,
-        wordLists: [{id: 0, public: true, shared: false, stars: [], system: true, words: [{id: 0, isCustom: false, word: 'Bär'}]}],
+        gameId: lobby.gameId,
+        gameRules,
+    };
+}
 
-    }
+export function convertUser(user: User): UserData {
+    return {
+        username: user.username,
+    };
 }

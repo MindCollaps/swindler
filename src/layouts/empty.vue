@@ -6,6 +6,8 @@
 </template>
 
 <script setup lang="ts">
+import { colorsList } from '#imports';
+
 defineSlots<{ default: () => any }>();
 
 useLayout();

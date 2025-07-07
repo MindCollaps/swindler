@@ -1,4 +1,4 @@
-import type { GameRules, Lobby, WordList } from './backend/db';
+import type { GameRules, Lobby } from './backend/db';
 
 export interface GameData {
     round: number;
@@ -8,12 +8,16 @@ export interface GameData {
     impostor: boolean;
 }
 
-export interface LobbyData extends Omit<Lobby, 'id' | 'gameEvents' | 'players' | 'founder' | 'gameRules' | 'game' | 'wordLists'> {
+export interface LobbyData extends Omit<Lobby, | 'gameEvents' | 'players' | 'founder' | 'gameRules' | 'game' | 'wordLists'> {
     gameRules?: GameRuleData;
     founder: string;
-    wordLists: WordList[];
+    players: UserData[];
 }
 
-export interface GameRuleData extends Omit<GameRules, 'id'> {
+export interface GameRuleData extends GameRules {
     editable: boolean;
+}
+
+export interface UserData {
+    username: string;
 }

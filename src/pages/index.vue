@@ -1,3 +1,3 @@
 <template>
-    <common-button href="/lobby">Create Lobby</common-button>
+    <common-button href="/lobby">Lobby</common-button>
 </template>

@@ -12,7 +12,6 @@ export interface HeaderItem {
 
 export const useHeaderMenu = () => computed<HeaderItem[]>(() => {
     const route = useRoute();
-    const { loggedIn } = useUserSession();
 
     const menu: HeaderItem[] = [
         {

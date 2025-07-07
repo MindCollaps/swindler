@@ -1,8 +1,11 @@
-import type { Lobby } from '~/types/backend/db';
-import type { AsCreateDatabaseObject } from '~/types/backend/request';
+import type { Game, Lobby, User } from '~/types/backend/db';
 
-const lobbies: AsCreateDatabaseObject<Lobby>[] = [];
+const lobbies: Lobby[] = [];
+const games: Game[] = [];
+const users: User[] = [];
 
 export const serverData = {
     lobbies,
+    games,
+    users,
 };

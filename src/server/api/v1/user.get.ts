@@ -5,10 +5,5 @@ export default defineEventHandler(async event => {
     if (!session) return;
 
 
-    await setUserSession(event, {
-        user: {
-            logon: new Date(),
-            userId: -1,
-        },
-    });
+    return 'ok';
 });

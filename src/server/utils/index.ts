@@ -1,7 +1,7 @@
 import type { H3Event } from 'h3';
-import type { UserSession, UserSessionRequired } from '#auth-utils';
+import type { UserSession } from '#auth-utils';
 
-export async function checkUserSession(event: H3Event, errorOnFail: boolean = true): Promise<UserSession | undefined> {
+export async function checkUserSession(event: H3Event, errorOnFail: boolean = true): Promise<UserSession | null> {
     const session = await getUserSession(event);
 
     if (!session && errorOnFail) {
@@ -9,9 +9,8 @@ export async function checkUserSession(event: H3Event, errorOnFail: boolean = tr
             statusCode: 401,
             statusMessage: 'Not Loggedin',
         });
-        return undefined;
+        return null;
     }
 
     return session;
 }
-

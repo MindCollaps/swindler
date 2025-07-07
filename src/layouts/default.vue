@@ -19,6 +19,7 @@
 <script setup lang="ts">
 import ViewMenu from '~/components/views/ViewMenu.vue';
 import ViewLogin from '~/components/views/ViewLogin.vue';
+import { colorsList } from '#imports';
 
 defineSlots<{ default: () => any }>();
 

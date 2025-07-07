@@ -11,7 +11,12 @@ export default defineNuxtConfig({
             ],
         },
     },
-    compatibilityDate: '2024-11-01',
+    nitro: {
+        experimental: {
+            websocket: true,
+        },
+    },
+    compatibilityDate: '2025-07-07',
     devtools: { enabled: true },
     srcDir: 'src/',
     modules: [
