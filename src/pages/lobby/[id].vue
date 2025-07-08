@@ -3,6 +3,10 @@
         <p>ID: {{ lobby.token }}</p>
         <p v-if="lobby.gameStarted">Game Started!</p>
         <common-button
+            v-if="!lobby.gameStarted"
+            @click="gameStart()"
+        >Start game</common-button>
+        <common-button
             v-if="lobby.gameStarted"
             @click="joinGame()"
         >Join game</common-button>
@@ -29,8 +33,29 @@ const loading = ref(true);
 
 const lobby: Ref<LobbyData | undefined> = ref();
 
+const { send } = useWebSocket(`/ws`, {
+    onMessage(ws, event) {
+        console.log(event.data);
+        const data = JSON.parse(event.data);
+        if (data.action === 'lobby') {
+            lobby.value = data.lobby as LobbyData;
+        }
+        else if (data.action === 'leave_lobby') {
+            store.lobbyCode = '';
+            router.replace('/lobby');
+        }
+        else if (data.action === 'game_start') {
+            router.replace('/game');
+        }
+    },
+});
+
 function joinGame() {
 
+}
+
+function gameStart() {
+    send(JSON.stringify({ topic: 'lobby', action: 'game_start' }));
 }
 
 onMounted(async () => {
@@ -47,23 +72,6 @@ onMounted(async () => {
     }
 
     if (lobbyId) {
-        const { send } = useWebSocket(`/ws`, {
-            onMessage(ws, event) {
-                console.log(event.data);
-                const data = JSON.parse(event.data);
-                if (data.action === 'lobby') {
-                    lobby.value = data.lobby as LobbyData;
-                }
-                else if (data.action === 'leave_lobby') {
-                    store.lobbyCode = '';
-                    router.replace('/lobby');
-                }
-                else if (data.action === 'game_start') {
-                    router.replace('/game/');
-                }
-            },
-        });
-
         send(JSON.stringify({ topic: 'lobby', action: 'join', data: { lobbyId: lobbyId } }));
     }
     else {

@@ -1,5 +1,5 @@
-import type { Lobby, User } from '~/types/backend/db';
-import type { GameRuleData, LobbyData, UserData } from '~/types/game';
+import type { Game, Lobby, User } from '~/types/backend/db';
+import type { GameData, GameRuleData, LobbyData, UserData } from '~/types/game';
 
 export function convertLobby(lobby: Lobby, userId: number): LobbyData {
     let gameRules: GameRuleData | undefined = undefined;
@@ -33,5 +33,15 @@ export function convertLobby(lobby: Lobby, userId: number): LobbyData {
 export function convertUser(user: User): UserData {
     return {
         username: user.username,
+    };
+}
+
+export function convertGame(game: Game, userId: number): GameData {
+    return {
+        impostor: game.imposter === userId,
+        round: game.round,
+        turn: 'User', // replace with username whos turn it actually is
+        yourTurn: game.turn === userId,
+        word: game.word?.word,
     };
 }

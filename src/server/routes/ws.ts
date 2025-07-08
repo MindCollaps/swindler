@@ -3,11 +3,10 @@ import type { Peer } from 'crossws';
 import type { Game, Lobby, User } from '~/types/backend/db';
 import type { AsCreateDatabaseObject } from '~/types/backend/request';
 import { serverData } from '~/utils/data';
-import { convertLobby } from '../utils/convert';
+import { convertGame, convertLobby } from '../utils/convert';
 import { createToken } from '~/utils';
 
-type Topic = 'lobby' | 'game';
-type LobbyAction = 'join' | 'create';
+type LobbyAction = 'join' | 'create' | 'game_start';
 type GameAction = 'join' | 'vote' | 'sendWord';
 
 type WSMessage =
@@ -63,6 +62,28 @@ export default defineWebSocketHandler({
         }
     },
     close(peer) {
+        let lobbyId: string | undefined;
+        // let gameId: string | undefined;
+
+        peer.topics.forEach(x => {
+            if (x.startsWith('lobby/')) {
+                lobbyId = x.substring(6);
+                peer.unsubscribe(x);
+            }
+            else if (x.startsWith('game/')) {
+                // gameId = x.substring(5);
+                peer.unsubscribe(x);
+            }
+        });
+
+        if (lobbyId) {
+            const lobby = serverData.lobbies.find(x => x.token === lobbyId);
+            if (lobby) {
+                // Todo: Make it right
+                lobby.players.pop();
+                peer.publish('lobby/' + lobbyId, JSON.stringify({ action: 'lobby', lobby: convertLobby(lobby, -1) }));
+            }
+        }
     },
 });
 
@@ -96,11 +117,38 @@ function handleLobbyMessage(peer: Peer, session: UserSession, message: WSLobbyMe
                 const sendData = JSON.stringify({ action: 'lobby', lobby: convertLobby(lobby, -1) });
 
                 peer.send(sendData);
-                peer.publish(message.data.lobbyId, sendData);
-                peer.subscribe(message.data.lobbyId);
+                peer.publish('lobby/' + message.data.lobbyId, sendData);
+                peer.subscribe('lobby/' + message.data.lobbyId);
             }
             else {
                 peer.send({ action: 'leave_lobby' });
+            }
+            break;
+        }
+        case 'game_start': {
+            let lobbyId: string | undefined;
+            peer.topics.forEach(x => x.startsWith('lobby/') ? lobbyId = x.substring(6) : '');
+
+            const lobby = serverData.lobbies.find(x => x.token === lobbyId);
+
+            if (lobbyId && lobby) {
+                const game: AsCreateDatabaseObject<Game> = {
+                    imposter: 0,
+                    lobbyId: lobby.id,
+                    round: 0,
+                    turn: 0,
+                    specialGameMode: 0,
+                    word: lobby.wordLists[0].words[0],
+                    id: undefined,
+                };
+
+                peer.peers.forEach(p => {
+                    const set: Set<string> = new Set();
+                    set.add('lobby/' + (lobbyId as string));
+                    if (set.isSubsetOf(p.topics)) {
+                        p.send(JSON.stringify({ action: 'game_start', game }));
+                    }
+                });
             }
             break;
         }
@@ -145,7 +193,24 @@ function handleLobbyMessage(peer: Peer, session: UserSession, message: WSLobbyMe
                 players: [],
                 public: false,
                 round: 0,
-                wordLists: [],
+                wordLists: [{
+                    id: undefined,
+                    public: true,
+                    shared: false,
+                    stars: [],
+                    system: true,
+                    usersWorldLists: [],
+                    words: [{
+                        flagged: [],
+                        games: [],
+                        id: undefined,
+                        isCustom: false,
+                        word: 'Bär',
+                        worldLists: [],
+                        fromUserId: undefined,
+                    }],
+                    founderId: -1,
+                }],
                 token,
             };
 
@@ -155,7 +220,7 @@ function handleLobbyMessage(peer: Peer, session: UserSession, message: WSLobbyMe
 
             const lobbyData = convertLobby(lobby as Lobby, session.user.userId);
 
-            peer.subscribe(token);
+            peer.subscribe('lobby/' + token);
             peer.send({ action: 'lobby', lobby: lobbyData });
             break;
         }
@@ -165,22 +230,33 @@ function handleLobbyMessage(peer: Peer, session: UserSession, message: WSLobbyMe
 function handleGameMessage(peer: Peer, session: UserSession, message: WSGameMessage) {
     switch (message.action) {
         case 'join': {
+            if (!session.user) {
+                throw createError({
+                    statusCode: 401,
+                    statusMessage: 'Unauthorized!',
+                });
+            }
+
             const lobbyId = message.data.lobbyId;
-            const game: AsCreateDatabaseObject<Game> = {
-                id: -1,
-                imposter: 0,
-                lobbyId: lobbyId,
-                round: 0,
-                specialGameMode: 0,
-                turn: 0,
+            const lobby = serverData.lobbies.find(x => x.token === lobbyId);
 
-            };
+            if (lobby) {
+                const game: AsCreateDatabaseObject<Game> = {
+                    id: -1,
+                    imposter: 0,
+                    lobbyId: lobbyId,
+                    round: 0,
+                    specialGameMode: 0,
+                    turn: 0,
+                };
 
-            // TODO: BACKEND!!!
-            serverData.games.push(game as Game);
+                // TODO: BACKEND!!!
+                serverData.games.push(game as Game);
 
-            peer.subscribe('game/' + lobbyId);
-            // peer.send({action: 'game', gameData});
+                peer.send(JSON.stringify({ action: 'game', game: convertGame(game as Game, session.user.userId) }));
+                peer.send(JSON.stringify({ action: 'lobby', lobby: convertLobby(lobby, session.user.userId) }));
+                peer.subscribe('game/' + lobbyId);
+            }
             break;
         }
         case 'sendWord': {

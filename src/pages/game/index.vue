@@ -22,46 +22,46 @@
 
 <script setup lang="ts">
 import type { GameData, LobbyData } from '~/types/game';
+import { useStore } from '~/store';
+import { useWebSocket } from '@vueuse/core';
 
-const route = useRoute();
+const store = useStore();
+const router = useRouter();
 
 const loading = ref(true);
 
 const lobby: Ref<LobbyData | undefined> = ref();
 const game: Ref<GameData | undefined> = ref();
 
-onMounted(async () => {
-    const lobbyId = route.query.id as string;
-    if (lobbyId) {
-        const { data, refresh: refreshLobby } = await useAsyncData(
-            'lobby',
-            () => $fetch<LobbyData>('/api/v1/lobby', { query: { id: lobbyId } }),
-            { immediate: true },
-        );
-
-        await refreshLobby();
-
-        if (data.value) {
-            lobby.value = data.value;
-
-            const { data: gameData, refresh: refreshGame } = await useAsyncData(
-                'game',
-                () => $fetch<GameData>('/api/v1/game', { query: { id: lobbyId } }),
-            );
-
-            await refreshGame();
-
-            if (gameData.value) {
-                game.value = gameData.value;
-            }
+const { send } = useWebSocket(`/ws`, {
+    onMessage(ws, event) {
+        console.log(event.data);
+        const data = JSON.parse(event.data);
+        if (data.action === 'lobby') {
+            lobby.value = data.lobby as LobbyData;
         }
+        else if (data.action === 'leave_lobby') {
+            store.lobbyCode = '';
+            router.replace('/lobby');
+        }
+        else if (data.action === 'game') {
+            game.value = data.game as GameData;
+        }
+    },
+});
+
+onMounted(async () => {
+    if (store.lobbyCode) {
+        send(JSON.stringify({ topic: 'game', action: 'join', data: { lobbyId: store.lobbyCode } }));
+    }
+    else {
+        router.replace('/lobby');
     }
 
     loading.value = false;
 });
 
 async function vote(up: boolean) {
-    //TODO Make Websocket
-    $fetch('/api/v1/game/vote', { query: { up } });
+    // TODO Make Websocket
 }
 </script>
