@@ -1,0 +1,150 @@
+datasource db {
+  provider = "postgres"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id              Int           @id @default(autoincrement())
+  username        String
+  password        String
+  email           String
+  emailVerified   Boolean       @default(false)
+  xp              Int?          @default(0)
+  level           Int?          @default(0)
+  gamesPlayed     Int?          @default(0)
+  userFriends     UserFriends[] @relation("UserAsUser")
+  friendOf        UserFriends[] @relation("UserAsFriend")
+  admin           Boolean       @default(false)
+  playedWords     Word[]
+  staredWordLists StarredList[]
+  foundedLobbies  Lobby[]
+  flaggedWords    FlaggedWord[]
+  ownedWordLists  WorldList[]
+
+  initiatedEvents GameEvent[] @relation("GameEventInitiator")
+  receivedEvents  GameEvent[] @relation("GameEventReceiver")
+}
+
+model StarredList {
+  wordlistId Int
+  userId     Int
+  wordList   WorldList @relation(fields: [wordlistId], references: [id], onDelete: Cascade)
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([wordlistId, userId])
+}
+
+model UserFriends {
+  userId    Int
+  friendId  Int
+  createdAt DateTime @default(now())
+  status    String   @default("pending") // "pending", "accepted"
+
+  user   User @relation("UserAsUser", fields: [userId], references: [id], onDelete: Cascade)
+  friend User @relation("UserAsFriend", fields: [friendId], references: [id], onDelete: Cascade)
+
+  @@id([userId, friendId])
+}
+
+model Word {
+  id         Int           @id @default(autoincrement())
+  word       String
+  isCustom   Boolean?      @default(false)
+  fromUserId Int?
+  from       User?         @relation(fields: [fromUserId], references: [id])
+  worldLists WorldList[]
+  flagged    FlaggedWord[]
+  games      Game[]
+}
+
+model FlaggedWord {
+  id             Int     @id @default(autoincrement())
+  reporter       Int
+  wordId         Int
+  word           Word    @relation(fields: [wordId], references: [id])
+  reason         Int
+  message        String?
+  reporterUserId Int?
+  reporterUser   User?   @relation(fields: [reporterUserId], references: [id], onDelete: Cascade)
+}
+
+model WorldList {
+  id              Int           @id @default(autoincrement())
+  from            Int?
+  words           Word[]
+  shared          Boolean
+  public          Boolean
+  system          Boolean
+  stars           StarredList[]
+  usersWorldLists User[]
+}
+
+model Lobby {
+  id          Int      @id @default(autoincrement())
+  founderId   Int
+  founded     DateTime @default(now())
+  players     Int[]
+  token       String
+  public      Boolean
+  gameStarted Boolean
+  gameId      Int?
+  round       Int
+
+  founder    User        @relation(fields: [founderId], references: [id])
+  gameRules  GameRules?
+  game       Game?
+  gameEvents GameEvent[]
+}
+
+model GameRules {
+  id                           Int     @id @default(autoincrement())
+  maxRounds                    Int     @default(4)
+  rounds                       Int     @default(4)
+  maxPlayers                   Int     @default(4)
+  timeLimited                  Boolean
+  timeLimit                    Int
+  allowSpecialGameMode         Boolean
+  membersCanAddWordLists       Boolean @default(false)
+  membersCanAddCustomWordLists Boolean @default(false)
+  lobbyId                      Int     @unique
+
+  lobby Lobby @relation(fields: [lobbyId], references: [id])
+}
+
+model Game {
+  id              Int @id @default(autoincrement())
+  lobbyId         Int @unique
+  round           Int
+  turn            Int
+  wordId          Int
+  imposter        Int
+  specialGameMode Int
+
+  lobby Lobby @relation(fields: [lobbyId], references: [id])
+  word  Word  @relation(fields: [wordId], references: [id])
+}
+
+enum GameEventType {
+  VotedCorrectly
+  VotedIncorrectly
+  VotedAbstain
+  ReceivedUpVote
+  ReceivedDownVote
+}
+
+model GameEvent {
+  id          Int           @id @default(autoincrement())
+  initiatorId Int
+  receiverId  Int?
+  triggered   DateTime      @default(now())
+  type        GameEventType
+  lobbyId     Int
+
+  initiator User  @relation("GameEventInitiator", fields: [initiatorId], references: [id])
+  receiver  User? @relation("GameEventReceiver", fields: [receiverId], references: [id])
+  lobby     Lobby @relation(fields: [lobbyId], references: [id])
+}

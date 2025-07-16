@@ -27,3 +27,9 @@ logs
 # Dev
 /db
 /lib
+
+.todo.md
+
+
+priv.pem
+pub.pem

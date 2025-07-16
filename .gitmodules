@@ -1,3 +1,0 @@
-[submodule "src/types/backend"]
-	path = src/types/backend
-	url = https://github.com/MindCollaps/swindler-api-types

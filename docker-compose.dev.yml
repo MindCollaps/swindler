@@ -1,0 +1,17 @@
+services:
+  swindler-db:
+    image: 'postgres:latest'
+    container_name: swindler-db
+    env_file:
+      - .env
+    ports:
+      - 127.0.0.1:15432:5432
+    volumes:
+      - ${PWD}/db/:/var/lib/postgresql/data/
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - 'pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}'
+      interval: 5s
+      timeout: 20s
+      retries: 10

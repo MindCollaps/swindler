@@ -25,7 +25,7 @@ export default defineNuxtConfig({
         '@nuxtjs/stylelint-module',
         '@pinia/nuxt',
         'nuxt-auth-utils',
-        // '@prisma/nuxt',
+        '@prisma/nuxt',
         '@nuxt/image',
         '@vueuse/motion/nuxt',
         '@nuxt/icon',
