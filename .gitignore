@@ -31,5 +31,4 @@ logs
 .todo.md
 
 
-priv.pem
-pub.pem
+*.pem

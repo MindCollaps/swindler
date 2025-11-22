@@ -89,7 +89,7 @@ export default defineNuxtModule((_, nuxt) => {
     });
 
     const resolver = createResolver(import.meta.url);
-    const path = resolver.resolve('../../.nuxt/page/colors.ts');
+    const path = resolver.resolve('../.nuxt/page/colors.ts');
     addImports([
         {
             name: 'pageColors',
