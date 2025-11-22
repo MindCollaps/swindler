@@ -1,7 +1,7 @@
 // TODO: implement this
 // TODO: protect this endpoint with an auth middleware
 
-import { requireJWT } from '~/server/utils/requireAuth';
+import { requireJWT } from '~~/server/utils/requireAuth';
 
 export default defineEventHandler(async event => {
     await requireJWT(event);

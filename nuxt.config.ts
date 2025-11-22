@@ -18,7 +18,6 @@ export default defineNuxtConfig({
     },
     compatibilityDate: '2025-07-07',
     devtools: { enabled: true },
-    srcDir: 'src/',
     modules: [
         '@nuxt/devtools',
         '@nuxt/eslint',
@@ -38,7 +37,7 @@ export default defineNuxtConfig({
         },
     },
     stylelint: {
-        files: ['src/**/*.scss', 'src/**/*.css', 'src/**/*.vue'],
+        files: ['app/**/*.scss', 'app/**/*.css', 'app/**/*.vue'],
         emitError: true,
         emitWarning: true,
         failOnWarning: false,
@@ -57,7 +56,6 @@ export default defineNuxtConfig({
             preprocessorMaxWorkers: true,
             preprocessorOptions: {
                 scss: {
-                    api: 'modern-compiler',
                     additionalData: `@use "~/scss/colors.scss" as *;@use "~/scss/variables.scss" as *;`,
                 },
             },

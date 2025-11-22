@@ -1,4 +1,4 @@
-import type { PartialRecord } from '~/types';
+import type { PartialRecord } from '../../types';
 
 export const colorsList = {
     lightgray0: '#F7F7FA',

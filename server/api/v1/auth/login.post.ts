@@ -1,14 +1,14 @@
-import { sendApiDataResponse } from '~/server/utils/apiResponses';
-import { generateJWT } from '~/server/utils/crypto/jwt';
-import { checkPassword } from '~/server/utils/crypto/password';
-import { prisma } from '~/server/utils/prisma';
+import { sendApiDataResponse } from '~~/server/utils/apiResponses';
+import { generateJWT } from '~~/server/utils/crypto/jwt';
+import { checkPassword } from '~~/server/utils/crypto/password';
+import { prisma } from '~~/server/utils/prisma';
 
 export default defineEventHandler(async event => {
     const body = await readBody(event);
 
     const validationResult = loginSchema.safeParse(body);
     if (!validationResult.success) {
-        throw createApiError('Invalid input', 400, validationResult.error.errors);
+        throw createApiError('Invalid input', 400);
     }
 
     const { username, password } = validationResult.data;

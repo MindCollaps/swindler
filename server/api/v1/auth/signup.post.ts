@@ -1,12 +1,12 @@
-import { hashPassword } from '~/server/utils/crypto/password';
-import { createApiError, sendApiResponse } from '~/server/utils/apiResponses';
+import { hashPassword } from '~~/server/utils/crypto/password';
+import { createApiError, sendApiResponse } from '~~/server/utils/apiResponses';
 
 export default defineEventHandler(async event => {
     const body = await readBody(event);
 
     const validationResult = signupSchema.safeParse(body);
     if (!validationResult.success) {
-        throw createApiError('Invalid input', 400, validationResult.error.errors);
+        throw createApiError('Invalid input', 400, validationResult.error);
     }
 
     const { username, password, passwordRepeated, email } = validationResult.data;
