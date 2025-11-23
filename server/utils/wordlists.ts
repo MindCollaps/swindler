@@ -1,21 +1,28 @@
 import { prisma } from '~~/server/utils/prisma';
 
-interface ImportWordListResult {
+export interface ImportWordListResult {
     success: boolean;
-    error?: 'ALREADY_EXISTS' | 'NO_WORDS' | 'NO_NEW_WORDS';
-    data?: { id: number };
+    error?: 'ALREADY_EXISTS' | 'NO_WORDS' | 'NO_NEW_WORDS' | 'GENERIC_ERROR' | 'DATABASE_ERROR';
+    id?: number;
 }
 
-export async function importWordList(
+export async function createWordList(
     name: string,
     description: string,
     words: string[],
-    userId: number | null,
-    options: { requireNewWords?: boolean } = {},
+    userId: number,
+    needsNewWords: boolean = true,
+    isCustom: boolean = false,
+    isShared: boolean = false,
+    isPublic: boolean = false,
+    isSystem: boolean = false,
+
 ): Promise<ImportWordListResult> {
     // check if wordlist with same name exists
     const existingWordlist = await prisma.wordList.findFirst({
-        where: { name },
+        where: {
+            name: name,
+        },
     });
 
     if (existingWordlist) {
@@ -32,11 +39,14 @@ export async function importWordList(
         where: { word: { in: uniqueWords } },
     });
 
-    const existingMap = new Set(existingWords.map(w => w.word));
+    if (!existingWords) {
+        return { success: false, error: 'DATABASE_ERROR' };
+    }
+
+    const existingMap = new Map(existingWords.map(w => [w.word, w.id]));
     const missingWords = uniqueWords.filter(w => !existingMap.has(w));
 
-    // Optional check: enforce that at least one new word is added (logic from your original endpoint)
-    if (options.requireNewWords && missingWords.length < 1) {
+    if (missingWords.length < 1 && needsNewWords) {
         return { success: false, error: 'NO_NEW_WORDS' };
     }
 
@@ -44,11 +54,15 @@ export async function importWordList(
     const createdWords = await prisma.word.createManyAndReturn({
         data: missingWords.map(word => ({
             word,
-            isCustom: false,
+            isCustom: isCustom,
             fromUserId: userId,
         })),
         select: { id: true },
     });
+
+    if (!createdWords) {
+        return { success: false, error: 'DATABASE_ERROR' };
+    }
 
     // all word ids to be associated with the wordlist
     const allWordIds = [
@@ -60,10 +74,10 @@ export async function importWordList(
         data: {
             name,
             description,
-            from: userId,
-            shared: false,
-            public: false,
-            system: true,
+            fromUserId: userId,
+            shared: isShared,
+            public: isPublic,
+            system: isSystem,
             words: {
                 connect: allWordIds,
             },
@@ -71,5 +85,9 @@ export async function importWordList(
         select: { id: true },
     });
 
-    return { success: true, data: wordList };
+    if (!wordList) {
+        return { success: false, error: 'DATABASE_ERROR' };
+    }
+
+    return { success: true, id: wordList.id };
 }

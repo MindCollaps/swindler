@@ -8,22 +8,24 @@ generator client {
 }
 
 model User {
-  id              Int           @id @default(autoincrement())
-  username        String
-  password        String
-  email           String
-  emailVerified   Boolean       @default(false)
-  xp              Int?          @default(0)
-  level           Int?          @default(0)
-  gamesPlayed     Int?          @default(0)
-  userFriends     UserFriends[] @relation("UserAsUser")
-  friendOf        UserFriends[] @relation("UserAsFriend")
-  admin           Boolean       @default(false)
-  playedWords     Word[]
-  staredWordLists StarredList[]
-  foundedLobbies  Lobby[]
-  flaggedWords    FlaggedWord[]
-  ownedWordLists  WordList[]
+  id                  Int           @id @default(autoincrement())
+  username            String
+  password            String
+  email               String
+  emailVerified       Boolean       @default(false)
+  disabled            Boolean       @default(false)
+  xp                  Int?          @default(0)
+  level               Int?          @default(0)
+  gamesPlayed         Int?          @default(0)
+  userFriends         UserFriends[] @relation("UserAsUser")
+  friendOf            UserFriends[] @relation("UserAsFriend")
+  admin               Boolean       @default(false)
+  playedWords         Word[]
+  staredWordLists     StarredList[]
+  shareWordListsOwned SharedLists[]
+  foundedLobbies      Lobby[]
+  flaggedWords        FlaggedWord[]
+  ownedWordLists      WordList[]
 
   initiatedEvents GameEvent[] @relation("GameEventInitiator")
   receivedEvents  GameEvent[] @relation("GameEventReceiver")
@@ -33,7 +35,16 @@ model StarredList {
   wordlistId Int
   userId     Int
   wordList   WordList @relation(fields: [wordlistId], references: [id], onDelete: Cascade)
-  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([wordlistId, userId])
+}
+
+model SharedLists {
+  wordlistId Int
+  userId     Int
+  wordList   WordList @relation(fields: [wordlistId], references: [id], onDelete: Cascade)
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@id([wordlistId, userId])
 }
@@ -56,7 +67,7 @@ model Word {
   isCustom   Boolean?      @default(false)
   fromUserId Int?
   from       User?         @relation(fields: [fromUserId], references: [id])
-  WordLists WordList[]
+  WordLists  WordList[]
   flagged    FlaggedWord[]
   games      Game[]
 }
@@ -73,16 +84,17 @@ model FlaggedWord {
 }
 
 model WordList {
-  id              Int           @id @default(autoincrement())
-  from            Int?
-  name            String
-  description     String
-  words           Word[]
-  shared          Boolean
-  public          Boolean
-  system          Boolean
-  stars           StarredList[]
-  usersWordLists User[]
+  id          Int           @id @default(autoincrement())
+  name        String
+  description String
+  words       Word[]
+  shared      Boolean
+  public      Boolean
+  system      Boolean
+  stars       StarredList[]
+  sharedLists SharedLists[]
+  fromUserId  Int?
+  from        User?         @relation(fields: [fromUserId], references: [id])
 }
 
 model Lobby {

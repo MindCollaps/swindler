@@ -19,7 +19,7 @@ export default defineEventHandler(async event => {
         switch (result.error) {
             case 'ALREADY_EXISTS':
                 return sendApiResponse(event, 'User already exists', 400);
-            case 'GENERAL_ERROR':
+            case 'DATABASE_ERROR':
                 return sendApiResponse(event, 'Internal server error', 500);
         }
     }

@@ -1,29 +1,48 @@
 <template>
-    <div v-if="lobby">
-        {{ lobby.token }}
+    <div>
+        {{ lobby?.token }}
+        {{ lobby?.founder.username }}
+        <div>
+            <div
+                v-for="wordList in wordLists"
+                :key="wordList.name"
+            >
+                {{ wordList.name }}
+            </div>
+        </div>
+        <common-button>Start Game</common-button>
     </div>
 </template>
 
 <script setup lang="ts">
-import type { FetchingLobby } from '~~/types';
+import { io } from 'socket.io-client';
+import type { FetchingLobby, FetchingWordList } from '~~/types/fetch';
+import { socket } from '~/components/socket';
 
+const lobby = shallowRef<FetchingLobby>();
+const wordLists = shallowRef<FetchingWordList[]>();
+// const players = shallowRef<>();
 const route = useRoute();
+const router = useRouter();
+const lobbyId = route.params.id;
 
-const lobbyId = route.params.id as string;
+socket.on('lobby', data => {
+    const lobbySoc = io(`/lobby-${ data }`, { path: '/socket.io' });
 
-const lobby = shallowRef<FetchingLobby | undefined>();
+    lobbySoc.on('wordLists', data => {
+        wordLists.value = data;
+    });
+    lobbySoc.on('lobby', data => {
+        lobby.value = data;
+    });
+    lobbySoc.on('redirect', data => {
+        router.push(data);
+    });
+});
 
-async function fetchLobby(lobbyId: string) {
-    const data = await $fetch<FetchingLobby>(`/api/v1/lobby/${ lobbyId }`);
+// socket.on('players', data => players.value = data);
 
-    if (!data) {
-        return;
-    }
-
-    lobby.value = data;
-}
-
-onMounted(async () => {
-    await fetchLobby(lobbyId);
+onMounted(() => {
+    socket.emit('lobby', lobbyId);
 });
 </script>

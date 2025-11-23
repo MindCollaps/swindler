@@ -7,6 +7,7 @@
                 Swindler
             </div>
             <view-menu/>
+            <connection-client/>
             <view-login/>
         </div>
         <div class="app_content">
@@ -35,7 +36,7 @@ useLayout();
     position: sticky;
 
     display: grid;
-    grid-template-columns: 0.5fr 2fr 0.3fr 0.3fr;
+    grid-template-columns: 0.5fr 2fr 15px 0.3fr;
     gap: 12px;
     align-items: center;
 

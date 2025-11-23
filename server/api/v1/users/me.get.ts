@@ -1,12 +1,14 @@
 // TODO: implement this
-// TODO: protect this endpoint with an auth middleware
 
-import { requireAuth } from '~~/server/utils/requireAuth';
+import { requireAuth } from '~~/server/utils/auth';
 
 export default defineEventHandler(async event => {
     await requireAuth(event);
 
     const user = event.context.user;
+    if (!user) {
+        return createApiError('Unauthorized', 401);
+    }
 
     return {
         secret: 'stuff',

@@ -8,7 +8,7 @@ import type { User } from '@prisma/client';
 let privKey: KeyObject | null = null;
 let pubKey: KeyObject | null = null;
 
-export function initJWT() {
+export function initJWTSecret() {
     const privKeyPath = process.env.NITRO_JWT_PRIVATE_KEY_PATH || './priv-key.pem';
     const pubKeyPath = process.env.NITRO_JWT_PUBLIC_KEY_PATH || './pub-key.pem';
 

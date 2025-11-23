@@ -23,6 +23,10 @@ export default defineEventHandler(async event => {
             return sendApiResponse(event, 'Wrong username or password', 400);
         }
 
+        if (user.disabled) {
+            return sendApiResponse(event, 'Wrong username or password', 400);
+        }
+
         const passwordCorrect = await checkPassword(password, user.password);
         if (passwordCorrect) {
             const jwt = generateJWT(user);

@@ -10,6 +10,12 @@ export default defineEventHandler(async event => {
         throw createApiError('Invalid input', 400, validationResult.error);
     }
 
+    const userId = event.context.user?.id;
+
+    if (!userId) {
+        throw createApiError('Invalid Token', 401, validationResult.error);
+    }
+
     const token = createToken(8);
 
     const createdLobby = await prisma.lobby.create({
@@ -21,7 +27,7 @@ export default defineEventHandler(async event => {
             founded: new Date(),
             founder: {
                 connect: {
-                    id: event.context.user.id,
+                    id: userId,
                 },
             },
             gameRules: {

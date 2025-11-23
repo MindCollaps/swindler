@@ -1,3 +1,5 @@
+import type { H3Event } from 'h3';
+
 export function createApiError(message: string, statusCode: number = 500, data?: any) {
     return createError({
         statusCode,
@@ -6,7 +8,7 @@ export function createApiError(message: string, statusCode: number = 500, data?:
     });
 }
 
-export function sendApiResponse(event: any, message: string, statusCode: number = 500) {
+export function sendApiResponse(event: H3Event, message: string, statusCode: number = 500) {
     event.node.res.statusCode = statusCode;
 
     let response = {
@@ -23,7 +25,7 @@ export function sendApiResponse(event: any, message: string, statusCode: number 
     return response;
 }
 
-export function sendApiDataResponse(event: any, data: any, statusCode: number = 200) {
+export function sendApiDataResponse(event: H3Event, data: Record<string, any>, statusCode: number = 200) {
     event.node.res.statusCode = statusCode;
 
     let response = {

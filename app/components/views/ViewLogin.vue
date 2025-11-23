@@ -27,7 +27,7 @@ import CommonLoader from '../common/CommonLoader.vue';
 
 const ready = ref(false);
 
-const { loggedIn } = useUserSession();
+const loggedIn = ref(false);
 
 onMounted(() => {
     ready.value = true;

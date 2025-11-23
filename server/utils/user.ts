@@ -1,10 +1,11 @@
 import { prisma } from '~~/server/utils/prisma';
 import { hashPassword } from '~~/server/utils/crypto/password';
+import type { User } from '@prisma/client';
 
 interface CreateUserResult {
     success: boolean;
-    user?: any;
-    error?: string;
+    user?: User;
+    error?: 'ALREADY_EXISTS' | 'DATABASE_ERROR';
 }
 
 export async function createUser(
@@ -12,6 +13,7 @@ export async function createUser(
     email: string,
     password: string,
     admin: boolean = false,
+    disabled: boolean = false,
 ): Promise<CreateUserResult> {
     // check if the username or mail already exists
     const existingUser = await prisma.user.findFirst({
@@ -24,12 +26,12 @@ export async function createUser(
     });
 
     if (existingUser) {
-        return { success: false, error: 'ALREADY_EXISTS' };
+        return { success: false, error: 'ALREADY_EXISTS', user: existingUser };
     }
 
     const hashedPW = await hashPassword(password);
     if (!hashedPW) {
-        return { success: false, error: 'GENERIC_ERROR' };
+        return { success: false, error: 'DATABASE_ERROR' };
     }
 
     try {
@@ -39,16 +41,17 @@ export async function createUser(
                 password: hashedPW,
                 email,
                 admin,
+                disabled,
             },
         });
 
         if (!newUser) {
-            return { success: false, error: 'GENERIC_ERROR' };
+            return { success: false, error: 'DATABASE_ERROR' };
         }
 
         return { success: true, user: newUser };
     }
     catch {
-        return { success: false, error: 'GENERIC_ERROR' };
+        return { success: false, error: 'DATABASE_ERROR' };
     }
 }
