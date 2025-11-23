@@ -81,18 +81,21 @@ export function verifyJWT(jwtToken: string): JwtPayload | null {
     if (!pubKey) {
         throw new Error('JWT private key not initialized');
     }
+
     const decoded = decodeJWT(jwtToken);
     if (!decoded) {
         throw createApiError('Invalid JWT', 400);
     }
 
     try {
-        return jsonwebtoken.verify(jwtToken, pubKey, {
+        const payload = jsonwebtoken.verify(jwtToken, pubKey, {
             issuer: 'Swindler Corp',
             audience: 'Swindler Users',
             algorithms: ['RS256'],
-            complete: true,
-        });
+            complete: false,
+        }) as JwtPayload;
+
+        return payload;
     }
     catch {
         return null;

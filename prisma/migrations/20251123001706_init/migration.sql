@@ -57,14 +57,16 @@ CREATE TABLE "FlaggedWord" (
 );
 
 -- CreateTable
-CREATE TABLE "WorldList" (
+CREATE TABLE "WordList" (
     "id" SERIAL NOT NULL,
     "from" INTEGER,
+    "name" TEXT NOT NULL,
+    "description" TEXT NOT NULL,
     "shared" BOOLEAN NOT NULL,
     "public" BOOLEAN NOT NULL,
     "system" BOOLEAN NOT NULL,
 
-    CONSTRAINT "WorldList_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "WordList_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -124,20 +126,23 @@ CREATE TABLE "GameEvent" (
 );
 
 -- CreateTable
-CREATE TABLE "_UserToWorldList" (
+CREATE TABLE "_UserToWordList" (
     "A" INTEGER NOT NULL,
     "B" INTEGER NOT NULL,
 
-    CONSTRAINT "_UserToWorldList_AB_pkey" PRIMARY KEY ("A","B")
+    CONSTRAINT "_UserToWordList_AB_pkey" PRIMARY KEY ("A","B")
 );
 
 -- CreateTable
-CREATE TABLE "_WordToWorldList" (
+CREATE TABLE "_WordToWordList" (
     "A" INTEGER NOT NULL,
     "B" INTEGER NOT NULL,
 
-    CONSTRAINT "_WordToWorldList_AB_pkey" PRIMARY KEY ("A","B")
+    CONSTRAINT "_WordToWordList_AB_pkey" PRIMARY KEY ("A","B")
 );
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Lobby_token_key" ON "Lobby"("token");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "GameRules_lobbyId_key" ON "GameRules"("lobbyId");
@@ -146,13 +151,13 @@ CREATE UNIQUE INDEX "GameRules_lobbyId_key" ON "GameRules"("lobbyId");
 CREATE UNIQUE INDEX "Game_lobbyId_key" ON "Game"("lobbyId");
 
 -- CreateIndex
-CREATE INDEX "_UserToWorldList_B_index" ON "_UserToWorldList"("B");
+CREATE INDEX "_UserToWordList_B_index" ON "_UserToWordList"("B");
 
 -- CreateIndex
-CREATE INDEX "_WordToWorldList_B_index" ON "_WordToWorldList"("B");
+CREATE INDEX "_WordToWordList_B_index" ON "_WordToWordList"("B");
 
 -- AddForeignKey
-ALTER TABLE "StarredList" ADD CONSTRAINT "StarredList_wordlistId_fkey" FOREIGN KEY ("wordlistId") REFERENCES "WorldList"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "StarredList" ADD CONSTRAINT "StarredList_wordlistId_fkey" FOREIGN KEY ("wordlistId") REFERENCES "WordList"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "StarredList" ADD CONSTRAINT "StarredList_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -194,13 +199,13 @@ ALTER TABLE "GameEvent" ADD CONSTRAINT "GameEvent_receiverId_fkey" FOREIGN KEY (
 ALTER TABLE "GameEvent" ADD CONSTRAINT "GameEvent_lobbyId_fkey" FOREIGN KEY ("lobbyId") REFERENCES "Lobby"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "_UserToWorldList" ADD CONSTRAINT "_UserToWorldList_A_fkey" FOREIGN KEY ("A") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "_UserToWordList" ADD CONSTRAINT "_UserToWordList_A_fkey" FOREIGN KEY ("A") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "_UserToWorldList" ADD CONSTRAINT "_UserToWorldList_B_fkey" FOREIGN KEY ("B") REFERENCES "WorldList"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "_UserToWordList" ADD CONSTRAINT "_UserToWordList_B_fkey" FOREIGN KEY ("B") REFERENCES "WordList"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "_WordToWorldList" ADD CONSTRAINT "_WordToWorldList_A_fkey" FOREIGN KEY ("A") REFERENCES "Word"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "_WordToWordList" ADD CONSTRAINT "_WordToWordList_A_fkey" FOREIGN KEY ("A") REFERENCES "Word"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "_WordToWorldList" ADD CONSTRAINT "_WordToWorldList_B_fkey" FOREIGN KEY ("B") REFERENCES "WorldList"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "_WordToWordList" ADD CONSTRAINT "_WordToWordList_B_fkey" FOREIGN KEY ("B") REFERENCES "WordList"("id") ON DELETE CASCADE ON UPDATE CASCADE;

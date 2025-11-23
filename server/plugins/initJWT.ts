@@ -1,4 +1,4 @@
-import { defineNitroPlugin } from 'nitropack/runtime'
+import { defineNitroPlugin } from 'nitropack/runtime';
 
 export default defineNitroPlugin(nitroApp => {
     const jwtInitialized = initJWT();

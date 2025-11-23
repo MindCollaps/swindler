@@ -1,16 +1,14 @@
 import { verifyJWT } from './crypto/jwt';
 
 export async function requireAuth(event: any) {
-    const authHeader = getRequestHeader(event, 'authorization');
+    const authCookie = getCookie(event, 'auth');
 
-    if (!authHeader) {
-        throw createApiError('Authorization header missing or invalid', 401);
+    if (!authCookie) {
+        throw createApiError('Authorization cookie missing or invalid', 401);
     }
 
-    const token = authHeader;
-
     try {
-        const jwt = verifyJWT(token);
+        const jwt = verifyJWT(authCookie);
         if (!jwt) {
             throw createApiError('Forbidden', 403);
         }
@@ -44,13 +42,17 @@ export async function requireAuth(event: any) {
     }
 }
 
-export async function requireJWT(event: any) {
-    await requireAuth(event);
-}
-
 export async function requireAdminAuth(event: any) {
     await requireAuth(event);
-    const user = event.context.user;
+    const userId = event.context.user.id;
+
+    const user = await prisma.user.findFirst({
+        where: { id: userId },
+    });
+
+    if (!user) {
+        throw createApiError('Invalid or expired token', 401);
+    }
 
     if (!user.admin) {
         throw createApiError('Forbidden', 403);

@@ -23,7 +23,7 @@ model User {
   staredWordLists StarredList[]
   foundedLobbies  Lobby[]
   flaggedWords    FlaggedWord[]
-  ownedWordLists  WorldList[]
+  ownedWordLists  WordList[]
 
   initiatedEvents GameEvent[] @relation("GameEventInitiator")
   receivedEvents  GameEvent[] @relation("GameEventReceiver")
@@ -32,7 +32,7 @@ model User {
 model StarredList {
   wordlistId Int
   userId     Int
-  wordList   WorldList @relation(fields: [wordlistId], references: [id], onDelete: Cascade)
+  wordList   WordList @relation(fields: [wordlistId], references: [id], onDelete: Cascade)
   user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@id([wordlistId, userId])
@@ -56,7 +56,7 @@ model Word {
   isCustom   Boolean?      @default(false)
   fromUserId Int?
   from       User?         @relation(fields: [fromUserId], references: [id])
-  worldLists WorldList[]
+  WordLists WordList[]
   flagged    FlaggedWord[]
   games      Game[]
 }
@@ -72,15 +72,17 @@ model FlaggedWord {
   reporterUser   User?   @relation(fields: [reporterUserId], references: [id], onDelete: Cascade)
 }
 
-model WorldList {
+model WordList {
   id              Int           @id @default(autoincrement())
   from            Int?
+  name            String
+  description     String
   words           Word[]
   shared          Boolean
   public          Boolean
   system          Boolean
   stars           StarredList[]
-  usersWorldLists User[]
+  usersWordLists User[]
 }
 
 model Lobby {
@@ -88,7 +90,7 @@ model Lobby {
   founderId   Int
   founded     DateTime @default(now())
   players     Int[]
-  token       String
+  token       String   @unique
   public      Boolean
   gameStarted Boolean
   gameId      Int?

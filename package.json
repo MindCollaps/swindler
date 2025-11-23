@@ -33,7 +33,6 @@
     "dotenv": "^17.2.0",
     "jsonwebtoken": "^9.0.2",
     "nuxt": "^4.1.2",
-    "nuxt-auth-utils": "^0.5.20",
     "pinia": "^3.0.3",
     "vite-svg-loader": "^5.1.0",
     "vite-tsconfig-paths": "^5.1.4",

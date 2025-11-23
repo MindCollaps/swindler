@@ -5,7 +5,10 @@
         @click="checked = !checked"
     >
         <div class="checkbox_icon">
-            <Icon name="material-symbols:check-rounded"/>
+            <Icon
+                v-if="checked"
+                name="material-symbols:check-rounded"
+            />
         </div>
         <div class="checkbox_text">
             <slot/>
