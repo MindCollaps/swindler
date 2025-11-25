@@ -3,7 +3,7 @@ import IORedis from 'ioredis';
 export function getRedis() {
     return new IORedis({
         host: process.env.REDIS_HOST,
-        password: 'SWINDLER',
+        password: process.env.REDIS_PASSWORD,
         port: 6379,
         family: 4,
         db: 0,
@@ -12,10 +12,10 @@ export function getRedis() {
     });
 }
 
-export const defaultRedis = getRedis();
+export const redisClient = getRedis();
 
 export function getRedisSync(key: string) {
-    return new Promise<string | null | undefined>((resolve, reject) => defaultRedis.get(key, (err, result) => {
+    return new Promise<string | null | undefined>((resolve, reject) => redisClient.get(key, (err, result) => {
         if (err) return reject(err);
         resolve(result);
     }));
@@ -40,14 +40,14 @@ export type RedisDataGet<T extends Record<string, any> | any[], D extends T | nu
 // }
 
 export function setRedisSync(key: string, data: string, expireIn: number) {
-    return new Promise<void>((resolve, reject) => defaultRedis.set(key, data, 'PX', expireIn, (err, result) => {
+    return new Promise<void>((resolve, reject) => redisClient.set(key, data, 'PX', expireIn, (err, result) => {
         if (err) return reject(err);
         resolve();
     }));
 }
 
 export function unsetRedisSync(key: string) {
-    return new Promise<void>((resolve, reject) => defaultRedis.del(key, (err, result) => {
+    return new Promise<void>((resolve, reject) => redisClient.del(key, (err, result) => {
         if (err) return reject(err);
         resolve();
     }));

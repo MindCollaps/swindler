@@ -6571,6 +6571,11 @@ redis@*:
     "@redis/search" "5.10.0"
     "@redis/time-series" "5.10.0"
 
+redlock-universal@^0.7.3:
+  version "0.7.3"
+  resolved "https://registry.yarnpkg.com/redlock-universal/-/redlock-universal-0.7.3.tgz#55f3df68973d1fbd2d5b578cb848ae599a56becb"
+  integrity sha512-avt3PsqL9PXRdepAoEp11ng1o1Xgd5hzrHd4+FQXk6clIQOPDP3B9iYvlOgYlS46LaVszHBGbo+42rn0H/eReQ==
+
 refa@^0.12.0, refa@^0.12.1:
   version "0.12.1"
   resolved "https://registry.yarnpkg.com/refa/-/refa-0.12.1.tgz#dac13c4782dc22b6bae6cce81a2b863888ea39c6"

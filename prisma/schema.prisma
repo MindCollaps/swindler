@@ -101,7 +101,6 @@ model Lobby {
   id          Int      @id @default(autoincrement())
   founderId   Int
   founded     DateTime @default(now())
-  players     Int[]
   token       String   @unique
   public      Boolean
   gameStarted Boolean

@@ -141,6 +141,7 @@ async function initializeWordlists(): Promise<boolean> {
             adminUser.id,
             false, // Words may already exist but not the standard wordlist itself
             false,
+            false, // not shared
             true, // default wordlists are public
             true, // default wordlist
         );

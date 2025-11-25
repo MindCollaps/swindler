@@ -91,3 +91,37 @@ export async function createWordList(
 
     return { success: true, id: wordList.id };
 }
+
+export async function deleteUnusedWords(wordIds: number[]): Promise<number> {
+    const unusedWords = await prisma.word.findMany({
+        where: {
+            id: {in: wordIds },
+            WordLists: {
+                none: {}
+            },
+            games: {
+                none: {}
+            },
+        },
+        select: { id: true }
+    })
+    console.log("Unused words: " + unusedWords.length);
+
+    const wordIdsToDelete = unusedWords.map(w => w.id)
+    console.log("wordIdsToDelete: ", wordIdsToDelete.length);
+
+    var deleted = 0;
+    if (wordIdsToDelete.length > 0) {
+        const result = await prisma.word.deleteMany({
+            where: {
+                id: { in: wordIdsToDelete }
+            }
+        })
+
+        console.log("deletion result: " + result);
+        console.log(result.count);
+        deleted = result.count;
+    }
+
+    return deleted;
+}

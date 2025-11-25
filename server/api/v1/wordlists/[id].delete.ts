@@ -1,3 +1,5 @@
+import { deleteUnusedWords } from "~~/server/utils/backend/wordlists";
+
 export default defineEventHandler(async event => {
     await requireAuth(event);
 
@@ -17,42 +19,47 @@ export default defineEventHandler(async event => {
     }
 
     // get the details of the requested wordlist
-    const meta = await prisma.wordList.findUnique({
+    const wordList = await prisma.wordList.findUnique({
         where: {
             id: wordlistId,
         },
-        select: {
-            public: true,
-            system: true,
-            from: true,
-        },
+        include: { words: { select: { id: true } } }
     });
 
-    if (!meta) {
+    if (!wordList) {
         return createApiError('Wordlist does not exist', 400);
     }
 
     // Check the permissions
     // to delete a wordlist from the systen, you have to be an admin
-    if (meta.system) {
+    if (wordList.system) {
         if (!currentUser.admin) {
             return createApiError('Not enough permissions to delete this ressource', 403);
         }
     }
 
-    if (meta.from?.id != currentUser.userId) {
+    if (wordList.fromUserId != currentUser.userId) {
         if (!currentUser.admin) {
             return createApiError('Not enough permissions to delete this ressource', 403);
         }
     }
+
+    const wordIds = wordList.words.map(w => w.id) || [];
 
     // TODO: handle shared playlists
-    // TODO: delete associated words if not used elsewhere
+    // TODO: make sure the wordlist isn't currently in use by any game lobby
     const deleted = await prisma.wordList.delete({
         where: {
             id: wordlistId,
         },
     });
+
+    // do it after the wordlist was deleted, because otherwise the words are still linked to it
+    let deletedWords = 0; 
+    if (wordIds.length > 0) {
+        deletedWords = await deleteUnusedWords(wordIds);
+        console.log(`Deleted ${deletedWords} linked words that weren't in any other wordlist`);
+    }
 
     if (!deleted) {
         return createApiError('Could not delete wordlist', 500);

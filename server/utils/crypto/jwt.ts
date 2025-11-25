@@ -62,12 +62,13 @@ export function initJWTSecret() {
     }
 }
 
-export function generateJWT(user: User, random: string): string {
+export function generateJWT(user: User, random: string, iat: number): string {
     if (!privKey) {
         throw new Error('JWT private key not initialized');
     }
 
     const payload: JwtPayload = {
+        iat,
         random,
     };
 
@@ -96,6 +97,7 @@ export function verifyJWT(jwtToken: string): JwtPayload | null {
             audience: 'Swindler Users',
             algorithms: ['RS256'],
             complete: false,
+            ignoreExpiration: false,
         }) as JwtPayload;
 
         return payload;

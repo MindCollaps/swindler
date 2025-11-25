@@ -18,28 +18,31 @@ declare module 'h3' {
 
 export async function makeUserSession(user: User, event: H3Event<EventHandlerRequest>) {
     let random = createToken(8);
-    let found = await getRedisSync(`user-${ random }`);
+    let found = await getRedisSync(`user-${random}`);
 
     while (found) {
         random = createToken(8);
-        found = await getRedisSync(`user-${ random }`);
+        found = await getRedisSync(`user-${random}`);
     }
 
-    const jwt = generateJWT(user, random);
+    const iat = Math.floor(Date.now() / 1000);
+    const jwt = generateJWT(user, random, iat);
+
     const data: UserSession = {
         admin: user.admin,
         username: user.username,
         userId: user.id,
+        timeStamp: iat,
     };
 
-    await setRedisSync(`user-${ random }`, JSON.stringify(data), userSessionAvailableMS);
+    await setRedisSync(`user-${random}`, JSON.stringify(data), userSessionAvailableMS);
     setAuthCookie(event, jwt);
 }
 
 export function invalidateUserSession(event: H3Event<EventHandlerRequest>) {
     removeAuthCookie(event);
     if (event.context.user?.userId) {
-        unsetRedisSync(`user-${ event.context.user.random }`);
+        unsetRedisSync(`user-${event.context.user.random}`);
     }
 }
 
@@ -55,7 +58,7 @@ async function checkJwt(authCookie: string): Promise<H3EventContext['user'] | un
         }
 
         // check if the user still exists
-        const userSession = await getRedisSync(`user-${ jwt.random }`);
+        const userSession = await getRedisSync(`user-${jwt.random}`);
         if (!userSession) {
             throw new Error('Invalid or expired token');
         }
@@ -66,11 +69,16 @@ async function checkJwt(authCookie: string): Promise<H3EventContext['user'] | un
             throw new Error('Invalid or expired token');
         }
 
+        if (user.timeStamp != jwt.iat) {
+            throw new Error('Invalid or expired token');
+        }
+
         return {
             userId: user.userId,
             username: user.username,
             admin: user.admin,
             random: jwt.random,
+            timeStamp: jwt.iat ?? 0,
         };
     }
     catch (error: any) {
@@ -118,6 +126,6 @@ export async function requireAdminAuth(event: H3Event) {
     const admin = event.context.user?.admin;
 
     if (!admin) {
-        throw createApiError('Invalid or expired token', 401);
+        throw createApiError('Forbidden', 403);
     }
 }
