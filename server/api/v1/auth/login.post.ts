@@ -1,4 +1,4 @@
-import { generateJWT } from '~~/server/utils/crypto/jwt';
+import { makeUserSession } from '~~/server/utils/auth';
 import { checkPassword } from '~~/server/utils/crypto/password';
 import { prisma } from '~~/server/utils/prisma';
 
@@ -29,8 +29,7 @@ export default defineEventHandler(async event => {
 
         const passwordCorrect = await checkPassword(password, user.password);
         if (passwordCorrect) {
-            const jwt = generateJWT(user);
-            setCookie(event, 'auth', jwt, { httpOnly: true, sameSite: 'strict', secure: true, expires: new Date(Date.now() + (5 * 24 * 60 * 60 * 1000)) });
+            await makeUserSession(user, event);
             return { redirect: '/dashboard' };
         }
         else {

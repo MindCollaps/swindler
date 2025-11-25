@@ -1,8 +1,8 @@
 import { defineNitroPlugin } from 'nitropack/runtime';
-import { createUser } from '../../server/utils/user';
+import { createUser } from '../../server/utils/backend/user';
 import { initJWTSecret } from '../../server/utils/crypto/jwt';
-import { createWordList } from '../../server/utils/wordlists';
-import type { ImportWordListResult } from '../../server/utils/wordlists';
+import { createWordList } from '../../server/utils/backend/wordlists';
+import type { ImportWordListResult } from '../../server/utils/backend/wordlists';
 import { prisma } from '../../server/utils/prisma';
 import fs from 'fs';
 import path from 'path';

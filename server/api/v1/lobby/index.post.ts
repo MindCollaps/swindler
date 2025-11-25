@@ -1,5 +1,5 @@
-import { lobbyCreationResponseSchema } from '~~/server/utils/validation';
-import { createToken } from '~/utils/index';
+import { lobbyCreationResponseSchema } from '~~/server/utils/backend/validation';
+import { createToken } from '~~/server/utils/crypto';
 
 export default defineEventHandler(async event => {
     await requireAuth(event);
@@ -10,7 +10,7 @@ export default defineEventHandler(async event => {
         throw createApiError('Invalid input', 400, validationResult.error);
     }
 
-    const userId = event.context.user?.id;
+    const userId = event.context.user?.userId;
 
     if (!userId) {
         throw createApiError('Invalid Token', 401, validationResult.error);

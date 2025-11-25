@@ -4,25 +4,30 @@ import { Server as Engine } from 'engine.io';
 import type { Socket, Namespace } from 'socket.io';
 import { Server } from 'socket.io';
 import { defineEventHandler } from 'h3';
-import { parse as parseCookie } from 'cookie';
+import type { MeUserObject } from '../../types/socket';
+import type { UserSession } from '../../types/data';
 
 import { parseSocketCookie } from '../utils/auth';
 
 import lobbyHandler from '../socket.io/lobby';
 
-const handlers = {
+// const handlers = {
 
-};
+// };
 
 declare module 'socket.io' {
     interface Socket {
-        user?: { id: number; username: string; admin: boolean };
+        user?: UserSession;
     }
 }
 
 export default defineNitroPlugin((nitroApp: NitroApp) => {
     const engine = new Engine();
-    const io = new Server();
+    const io = new Server({
+        cleanupEmptyChildNamespaces: true,
+        pingInterval: 25000,
+        pingTimeout: 60000,
+    });
 
     const namespaces: Record<string, Namespace> = {};
 
@@ -58,6 +63,17 @@ export default defineNitroPlugin((nitroApp: NitroApp) => {
 
             socket.emit('lobby', value);
         });
+
+        socket.on('me', () => {
+            const loggedIn = !!socket.user;
+            const data: MeUserObject = {
+                loggedIn,
+                admin: socket.user?.admin ?? false,
+                username: socket.user?.username ?? '',
+            };
+
+            socket.emit('me', data);
+        });
     });
 
     nitroApp.router.use('/socket.io', defineEventHandler({
@@ -77,31 +93,16 @@ export default defineNitroPlugin((nitroApp: NitroApp) => {
     }));
 });
 
-async function checkCookies(socket: Socket, next: (err?: Error) => void) {
-    try {
-        const cookiesStr = socket.request.headers.cookie || '';
-        const cookies = parseCookie(cookiesStr);
-        const token = cookies['auth'];
-
-        if (!token) {
-            return next();
-        }
-
-        const user = await parseSocketCookie(socket);
-        if (!user) {
-            return next();
-        }
-
+function checkCookies(socket: Socket, next: (err?: Error) => void) {
+    parseSocketCookie(socket).then(user => {
+        if (!user) return next();
         socket.user = user;
         next();
-    }
-    catch (err) {
-        next(err instanceof Error ? err : new Error('Authentication error'));
-    }
+    }).catch(err => next());
 }
 
 function requireAuth(socket: Socket, next: (err?: Error) => void) {
-    if (!socket.user?.id) {
+    if (!socket.user?.userId) {
         next(new Error('Unauthorized'));
     }
     else {

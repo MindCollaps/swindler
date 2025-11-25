@@ -8,6 +8,12 @@ import type { User } from '@prisma/client';
 let privKey: KeyObject | null = null;
 let pubKey: KeyObject | null = null;
 
+declare module 'jsonwebtoken' {
+    interface JwtPayload {
+        random: string;
+    }
+}
+
 export function initJWTSecret() {
     const privKeyPath = process.env.NITRO_JWT_PRIVATE_KEY_PATH || './priv-key.pem';
     const pubKeyPath = process.env.NITRO_JWT_PUBLIC_KEY_PATH || './pub-key.pem';
@@ -51,21 +57,18 @@ export function initJWTSecret() {
             return true;
         }
         catch (error: any) {
-            console.error('JWT initialization failed:', error);
-            return false;
+            console.error('JWT initialization failed:', error); return false;
         }
     }
 }
 
-export function generateJWT(user: User): string {
+export function generateJWT(user: User, random: string): string {
     if (!privKey) {
         throw new Error('JWT private key not initialized');
     }
 
-    const payload = {
-        userId: user.id.toString(),
-        username: user.username,
-        admin: user.admin,
+    const payload: JwtPayload = {
+        random,
     };
 
     return jsonwebtoken.sign(payload, privKey, {

@@ -1,4 +1,5 @@
 import { useStore } from '~/store';
+import { setupSocket } from '~/components/socket';
 
 export const useLayout = () => {
     const store = useStore();
@@ -13,6 +14,8 @@ export const useLayout = () => {
 
     // Reactive theme reference
     store.theme = themeCookie.value ?? 'default';
+    store.setup();
+    setupSocket();
 
     useHead(() => {
         const theme = store.theme ?? 'default';

@@ -6,7 +6,7 @@
 import { socket } from './socket';
 
 const isConnected = ref(false);
-const setup = ref(false);
+const setup = ref(true);
 
 function updateConnectionStatus() {
     isConnected.value = socket.connected;

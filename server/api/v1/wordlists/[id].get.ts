@@ -39,7 +39,7 @@ export default defineEventHandler(async event => {
     // however admins can access everything
     // TODO: handle shared playlists
     if (!meta.public && !meta.system) {
-        if (meta.from?.id != currentUser.id) {
+        if (meta.from?.id != currentUser.userId) {
             if (!currentUser.admin) {
                 return createApiError('Not enough permissions to access this ressource', 403);
             }

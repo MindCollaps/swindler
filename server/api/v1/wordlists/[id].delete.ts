@@ -40,7 +40,7 @@ export default defineEventHandler(async event => {
         }
     }
 
-    if (meta.from?.id != currentUser.id) {
+    if (meta.from?.id != currentUser.userId) {
         if (!currentUser.admin) {
             return createApiError('Not enough permissions to delete this ressource', 403);
         }

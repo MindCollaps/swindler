@@ -15,13 +15,17 @@ services:
       interval: 5s
       timeout: 20s
       retries: 10
-  redis:
+  swindler-redis:
     image: 'redis:latest'
     container_name: swindler-redis
+    environment:
+      - REDIS_APPLICATION_MODE=master
     ports:
       - 127.0.0.1:6379:6379
     volumes:
       - redis-data:/data
+      - ./.config/redis.conf:/usr/local/etc/redis/redis.conf
+    command: redis-server /usr/local/etc/redis/redis.conf --requirepass SWINDLER
     healthcheck:
       test: ['CMD', 'redis-cli', 'ping']
       interval: 5s

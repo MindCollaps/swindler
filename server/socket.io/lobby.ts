@@ -3,7 +3,7 @@ import { prisma } from '../utils/prisma';
 import { LobbyFetchSelect, LobbysWordListSelect } from '../../types/fetch';
 
 export default async function lobbyHandler(namespace: Namespace, socket: Socket, id: string) {
-    const userId = socket.user?.id;
+    const userId = socket.user?.userId;
 
     if (!userId) {
         // TODO handle error

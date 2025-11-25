@@ -1,18 +1,18 @@
 <template>
     <template v-if="ready">
         <common-button
-            v-if="!loggedIn"
-            href="/login"
+            v-if="!store.me?.loggedIn"
+            to="/login"
         >Login</common-button>
         <common-button
-            v-else-if="loggedIn"
-            href="/profile"
+            v-else-if="store.me?.loggedIn"
             icon-width="45px"
+            to="/profile"
             type="transparent"
         >
             <template #default>
                 <div class="loggedin-view">
-                    USERNAME
+                    {{ store.me?.username }}
                 </div>
             </template>
         </common-button>
@@ -23,11 +23,12 @@
 </template>
 
 <script setup lang="ts">
+import { useStore } from '~/store';
 import CommonLoader from '../common/CommonLoader.vue';
 
-const ready = ref(false);
+const store = useStore();
 
-const loggedIn = ref(false);
+const ready = ref(false);
 
 onMounted(() => {
     ready.value = true;
@@ -53,6 +54,7 @@ onMounted(() => {
     display: flex;
     flex-direction: row;
     gap: 16px;
-    align-items: center
+    align-items: center;
+    justify-content: center;
 }
 </style>
