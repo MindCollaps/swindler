@@ -18,11 +18,11 @@ declare module 'h3' {
 
 export async function makeUserSession(user: User, event: H3Event<EventHandlerRequest>) {
     let random = createToken(8);
-    let found = await getRedisSync(`user-${random}`);
+    let found = await getRedisSync(`user-${ random }`);
 
     while (found) {
         random = createToken(8);
-        found = await getRedisSync(`user-${random}`);
+        found = await getRedisSync(`user-${ random }`);
     }
 
     const iat = Math.floor(Date.now() / 1000);
@@ -35,14 +35,14 @@ export async function makeUserSession(user: User, event: H3Event<EventHandlerReq
         timeStamp: iat,
     };
 
-    await setRedisSync(`user-${random}`, JSON.stringify(data), userSessionAvailableMS);
+    await setRedisSync(`user-${ random }`, JSON.stringify(data), userSessionAvailableMS);
     setAuthCookie(event, jwt);
 }
 
 export function invalidateUserSession(event: H3Event<EventHandlerRequest>) {
     removeAuthCookie(event);
     if (event.context.user?.userId) {
-        unsetRedisSync(`user-${event.context.user.random}`);
+        unsetRedisSync(`user-${ event.context.user.random }`);
     }
 }
 
@@ -58,7 +58,7 @@ async function checkJwt(authCookie: string): Promise<H3EventContext['user'] | un
         }
 
         // check if the user still exists
-        const userSession = await getRedisSync(`user-${jwt.random}`);
+        const userSession = await getRedisSync(`user-${ jwt.random }`);
         if (!userSession) {
             throw new Error('Invalid or expired token');
         }
@@ -98,6 +98,7 @@ export async function requireAuth(event: H3Event) {
     }
     catch (err) {
         invalidateUserSession(event);
+        console.log(err);
         throw createApiError('Invalid or expired token', 401);
     }
 }

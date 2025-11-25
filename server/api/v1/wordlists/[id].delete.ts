@@ -1,4 +1,4 @@
-import { deleteUnusedWords } from "~~/server/utils/backend/wordlists";
+import { deleteUnusedWords } from '~~/server/utils/backend/wordlists';
 
 export default defineEventHandler(async event => {
     await requireAuth(event);
@@ -23,7 +23,7 @@ export default defineEventHandler(async event => {
         where: {
             id: wordlistId,
         },
-        include: { words: { select: { id: true } } }
+        include: { words: { select: { id: true } } },
     });
 
     if (!wordList) {
@@ -55,10 +55,10 @@ export default defineEventHandler(async event => {
     });
 
     // do it after the wordlist was deleted, because otherwise the words are still linked to it
-    let deletedWords = 0; 
+    let deletedWords = 0;
     if (wordIds.length > 0) {
         deletedWords = await deleteUnusedWords(wordIds);
-        console.log(`Deleted ${deletedWords} linked words that weren't in any other wordlist`);
+        console.log(`Deleted ${ deletedWords } linked words that weren't in any other wordlist`);
     }
 
     if (!deleted) {

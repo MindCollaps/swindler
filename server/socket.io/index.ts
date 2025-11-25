@@ -2,7 +2,7 @@ import type { MeUserObject } from '../../types/socket';
 import lobbyHandler from '../socket.io/lobby';
 import { parseSocketCookie } from '../utils/auth';
 import type { Socket, Namespace, Server, DefaultEventsMap } from 'socket.io';
-import { UserSession } from '../../types/data'
+import type { UserSession } from '../../types/data';
 
 // const handlers = {
 
@@ -32,7 +32,7 @@ export function initSocket(io: Server<DefaultEventsMap, DefaultEventsMap, Defaul
     io.on('connection', socket => {
         socket.on('lobby', async value => {
             if (!namespaces[value]) {
-                const namespace = io.of(`/lobby-${value}`);
+                const namespace = io.of(`/lobby-${ value }`);
 
                 namespace.use(checkCookies);
                 namespace.use(requireAuth);
@@ -42,7 +42,7 @@ export function initSocket(io: Server<DefaultEventsMap, DefaultEventsMap, Defaul
                 });
 
                 namespaces[value] = namespace;
-                console.log(`Namespace /lobby-${value} created`);
+                console.log(`Namespace /lobby-${ value } created`);
             }
 
             socket.emit('lobby', value);

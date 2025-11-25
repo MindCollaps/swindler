@@ -1,9 +1,9 @@
 import type { Namespace, Socket, DefaultEventsMap } from 'socket.io';
 import { prisma } from '../utils/prisma';
-import { FetchingLobby, LobbyFetchSelect, LobbysWordListSelect } from '../../types/fetch';
+import { LobbyFetchSelect, LobbysWordListSelect } from '../../types/fetch';
 import { getRedisSync, redisClient, setRedisSync } from '../utils/backend/redis';
 import { createLock, IoredisAdapter } from 'redlock-universal';
-import { RedisLobby } from '../../types/redis'
+import type { RedisLobby } from '../../types/redis';
 
 export default async function lobbyHandler(namespace: Namespace, socket: Socket, id: string) {
     const userId = socket.user?.userId;
@@ -13,7 +13,7 @@ export default async function lobbyHandler(namespace: Namespace, socket: Socket,
         return;
     }
 
-    const resource = `locks:lobby-${id}`;
+    const resource = `locks:lobby-${ id }`;
 
     const lock = createLock({
         adapter: new IoredisAdapter(redisClient),
@@ -26,7 +26,7 @@ export default async function lobbyHandler(namespace: Namespace, socket: Socket,
     try {
         const handle = await lock.acquire();
 
-        const cachedLobby = await getRedisSync(`lobby-${id}`);
+        const cachedLobby = await getRedisSync(`lobby-${ id }`);
 
         if (!cachedLobby) {
             const lobby = await prisma.lobby.findUnique({
@@ -43,10 +43,11 @@ export default async function lobbyHandler(namespace: Namespace, socket: Socket,
             const redisLobby: RedisLobby = {
                 ...lobby,
                 players: [],
-            }
+            };
 
             lobbyData = redisLobby;
-        } else {
+        }
+        else {
             lobbyData = JSON.parse(cachedLobby);
         }
 
@@ -56,11 +57,12 @@ export default async function lobbyHandler(namespace: Namespace, socket: Socket,
             username: socket.user?.username ?? 'Anonymous',
         });
 
-        setRedisSync(`lobby-${id}`, JSON.stringify(lobbyData), 5 * 60 * 60 * 1000);
+        setRedisSync(`lobby-${ id }`, JSON.stringify(lobbyData), 5 * 60 * 60 * 1000);
         await lock.release(handle);
 
         namespace.emit('lobby', lobbyData);
-    } catch (e) {
+    }
+    catch (e) {
         console.error('Failed to acquire lock for lobby update', e);
     }
 
@@ -78,12 +80,12 @@ export default async function lobbyHandler(namespace: Namespace, socket: Socket,
     socket.on('start', () => lobbyStart(socket, id));
 
     socket.on('disconnect', async () => {
-        const cachedLobby = await getRedisSync(`lobby-${id}`);
+        const cachedLobby = await getRedisSync(`lobby-${ id }`);
         if (!cachedLobby || !socket.user) return;
         const lobbyData: RedisLobby = JSON.parse(cachedLobby);
 
         lobbyData.players = lobbyData.players.filter(e => e.id != userId);
-        setRedisSync(`lobby-${id}`, JSON.stringify(lobbyData), 5 * 60 * 60 * 1000);
+        setRedisSync(`lobby-${ id }`, JSON.stringify(lobbyData), 5 * 60 * 60 * 1000);
 
         namespace.emit('lobby', lobbyData);
     });
@@ -92,8 +94,7 @@ export default async function lobbyHandler(namespace: Namespace, socket: Socket,
 }
 
 async function lobbyStart(socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>, id: string) {
-    const cachedLobby = await getRedisSync(`lobby-${id}`);
-    console.log(cachedLobby);
+    const cachedLobby = await getRedisSync(`lobby-${ id }`);
     if (!cachedLobby || !socket.user) return;
     const lobbyData: RedisLobby = JSON.parse(cachedLobby);
 

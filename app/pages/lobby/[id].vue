@@ -29,7 +29,8 @@
 </template>
 
 <script setup lang="ts">
-import { io, Socket } from 'socket.io-client';
+import type { Socket } from 'socket.io-client';
+import { io } from 'socket.io-client';
 import type { FetchingWordList } from '~~/types/fetch';
 import { socket } from '~/components/socket';
 import type { RedisLobby } from '~~/types/redis';
@@ -56,7 +57,7 @@ socket.on('lobby', data => {
         router.push(data);
     });
     lobbySoc.on('start', () => {
-         router.push(`/game/${lobbyId}`);
+        router.push(`/game/${ lobbyId }`);
     });
 });
 
@@ -72,5 +73,5 @@ onMounted(() => {
 
 onUnmounted(() => {
     socket.off('lobby');
-})
+});
 </script>

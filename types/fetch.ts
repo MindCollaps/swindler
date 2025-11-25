@@ -5,7 +5,7 @@ export const LobbyFetchSelect = {
     founder: {
         select: {
             username: true,
-            id: true
+            id: true,
         },
     },
     gameStarted: true,

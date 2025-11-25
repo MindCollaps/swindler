@@ -1,4 +1,4 @@
-import type{ FetchingLobby } from "./fetch";
+import type { FetchingLobby } from './fetch';
 
 export interface RedisLobby extends FetchingLobby {
     players: ReidsLobbyPlayer[];
