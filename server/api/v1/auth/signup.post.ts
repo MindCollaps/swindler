@@ -1,5 +1,6 @@
 import { createApiError, sendApiResponse } from '~~/server/utils/apiResponses';
 import { makeUserSession } from '~~/server/utils/auth';
+import { createUser } from '~~/server/utils/backend/user';
 
 export default defineEventHandler(async event => {
     const body = await readBody(event);

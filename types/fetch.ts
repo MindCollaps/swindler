@@ -1,29 +1,5 @@
 import type { Prisma } from '@prisma/client';
 
-export const LobbyFetchSelect = {
-    token: true,
-    founder: {
-        select: {
-            username: true,
-            id: true,
-        },
-    },
-    gameStarted: true,
-    public: true,
-    gameRules: {
-        include: {
-            lobby: true,
-        },
-        omit: {
-            id: true,
-        },
-    },
-} as const;
-
-export type FetchingLobby = Prisma.LobbyGetPayload<{
-    select: typeof LobbyFetchSelect;
-}>;
-
 export const LobbysWordListSelect = {
     name: true,
     system: true,
@@ -53,6 +29,8 @@ export const WordListFetchSelect = {
             isCustom: true,
         },
     },
+    public: true,
+    system: true
 };
 
 export type FetchingWordList = Prisma.WordListGetPayload<{

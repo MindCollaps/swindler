@@ -99,9 +99,10 @@ export async function deleteUnusedWords(wordIds: number[]): Promise<number> {
             WordLists: {
                 none: {},
             },
-            games: {
+            // skip and preserve flagged words
+            flagged : {
                 none: {},
-            },
+            }
         },
         select: { id: true },
     });

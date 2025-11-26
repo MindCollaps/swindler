@@ -29,43 +29,21 @@
 </template>
 
 <script setup lang="ts">
-import type { Socket } from 'socket.io-client';
-import { io } from 'socket.io-client';
-import type { FetchingWordList } from '~~/types/fetch';
 import { socket } from '~/components/socket';
-import type { RedisLobby } from '~~/types/redis';
+import { useLobbySocket } from '~/composables/sockets/lobby';
 
-const lobby = shallowRef<RedisLobby>();
-const wordLists = shallowRef<FetchingWordList[]>();
-// const players = shallowRef<>();
 const route = useRoute();
-const router = useRouter();
-const lobbyId = route.params.id;
+const lobbyId: string = route.params.id as string;
 
-let lobbySoc: Socket;
+const {lobbySoc, lobby, wordLists, reconnect} = useLobbySocket(lobbyId);
 
-socket.on('lobby', data => {
-    lobbySoc = io(`/lobby-${ data }`, { path: '/socket.io' });
-
-    lobbySoc.on('wordLists', data => {
-        wordLists.value = data;
-    });
-    lobbySoc.on('lobby', data => {
-        lobby.value = data;
-    });
-    lobbySoc.on('redirect', data => {
-        router.push(data);
-    });
-    lobbySoc.on('start', () => {
-        router.push(`/game/${ lobbyId }`);
-    });
-});
+socket.once('lobby', () => {
+    reconnect();
+})
 
 function startGame() {
     lobbySoc.emit('start');
 }
-
-// socket.on('players', data => players.value = data);
 
 onMounted(() => {
     socket.emit('lobby', lobbyId);

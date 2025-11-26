@@ -1,5 +1,6 @@
 import { lobbyCreationResponseSchema } from '~~/server/utils/backend/validation';
 import { createToken } from '~~/server/utils/crypto';
+import type { Lobby } from '~~/types/redis';
 
 export default defineEventHandler(async event => {
     await requireAuth(event);
@@ -11,45 +12,40 @@ export default defineEventHandler(async event => {
     }
 
     const userId = event.context.user?.userId;
+    const username = event.context.user?.username;
 
-    if (!userId) {
+    if (!userId || !username) {
         throw createApiError('Invalid Token', 401, validationResult.error);
     }
 
     const token = createToken(8);
 
-    const createdLobby = await prisma.lobby.create({
-        data: {
-            gameStarted: false,
-            public: validationResult.data.public,
-            round: validationResult.data.rounds,
-            token: token,
-            founded: new Date(),
-            founder: {
-                connect: {
-                    id: userId,
-                },
-            },
-            gameRules: {
-                create: {
-                    allowSpecialGameMode: false,
-                    timeLimit: validationResult.data.timeLimit,
-                    timeLimited: validationResult.data.timeLimited,
-                    membersCanAddCustomWordLists: validationResult.data.membersCanAddCustomWordLists,
-                    membersCanAddWordLists: validationResult.data.membersCanAddWordLists,
-                    maxPlayers: validationResult.data.maxPlayers,
-                    maxRounds: validationResult.data.maxRounds,
-                    rounds: validationResult.data.rounds,
-                },
-            },
+    const redisLobby: Lobby = {
+        founded: new Date(),
+        gameStarted: false,
+        public: false,
+        round: 0,
+        token: token,
+        founder: {
+            id: userId,
+            username
         },
-    });
+        gameRules: {
+            maxPlayers: 4,
+            allowSpecialGameMode: false,
+            maxRounds: 4,
+            membersCanAddCustomWordLists: false,
+            membersCanAddWordLists: false,
+            rounds: 4,
+            timeLimit: 0,
+            timeLimited: false,
+        },
+        players: [],
+    };
 
-    if (!createdLobby) {
-        return createApiError('Failed to create lobby', 500);
-    }
+    setRedisSync(`lobby-${token}`, JSON.stringify(redisLobby), 5 * 60 * 60 * 1000);
 
     return {
-        redirect: `/lobby/${ token }`,
+        redirect: `/lobby/${token}`,
     };
 });

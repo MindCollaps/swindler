@@ -23,7 +23,6 @@ export default defineNuxtConfig({
         '@nuxt/eslint',
         '@nuxtjs/stylelint-module',
         '@pinia/nuxt',
-        '@prisma/nuxt',
         '@nuxt/image',
         '@vueuse/motion/nuxt',
         '@nuxt/icon',

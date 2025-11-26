@@ -57,5 +57,5 @@ export default defineEventHandler(async event => {
         return createApiError('Database Error', 400);
     }
 
-    return wordlist;
+    return sendApiDataResponse(event, wordlist, 200);
 });

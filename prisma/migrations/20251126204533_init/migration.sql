@@ -1,6 +1,3 @@
--- CreateEnum
-CREATE TYPE "GameEventType" AS ENUM ('VotedCorrectly', 'VotedIncorrectly', 'VotedAbstain', 'ReceivedUpVote', 'ReceivedDownVote');
-
 -- CreateTable
 CREATE TABLE "User" (
     "id" SERIAL NOT NULL,
@@ -79,77 +76,12 @@ CREATE TABLE "WordList" (
 );
 
 -- CreateTable
-CREATE TABLE "Lobby" (
-    "id" SERIAL NOT NULL,
-    "founderId" INTEGER NOT NULL,
-    "founded" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "players" INTEGER[],
-    "token" TEXT NOT NULL,
-    "public" BOOLEAN NOT NULL,
-    "gameStarted" BOOLEAN NOT NULL,
-    "gameId" INTEGER,
-    "round" INTEGER NOT NULL,
-
-    CONSTRAINT "Lobby_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "GameRules" (
-    "id" SERIAL NOT NULL,
-    "maxRounds" INTEGER NOT NULL DEFAULT 4,
-    "rounds" INTEGER NOT NULL DEFAULT 4,
-    "maxPlayers" INTEGER NOT NULL DEFAULT 4,
-    "timeLimited" BOOLEAN NOT NULL,
-    "timeLimit" INTEGER NOT NULL,
-    "allowSpecialGameMode" BOOLEAN NOT NULL,
-    "membersCanAddWordLists" BOOLEAN NOT NULL DEFAULT false,
-    "membersCanAddCustomWordLists" BOOLEAN NOT NULL DEFAULT false,
-    "lobbyId" INTEGER NOT NULL,
-
-    CONSTRAINT "GameRules_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "Game" (
-    "id" SERIAL NOT NULL,
-    "lobbyId" INTEGER NOT NULL,
-    "round" INTEGER NOT NULL,
-    "turn" INTEGER NOT NULL,
-    "wordId" INTEGER NOT NULL,
-    "imposter" INTEGER NOT NULL,
-    "specialGameMode" INTEGER NOT NULL,
-
-    CONSTRAINT "Game_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "GameEvent" (
-    "id" SERIAL NOT NULL,
-    "initiatorId" INTEGER NOT NULL,
-    "receiverId" INTEGER,
-    "triggered" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "type" "GameEventType" NOT NULL,
-    "lobbyId" INTEGER NOT NULL,
-
-    CONSTRAINT "GameEvent_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
 CREATE TABLE "_WordToWordList" (
     "A" INTEGER NOT NULL,
     "B" INTEGER NOT NULL,
 
     CONSTRAINT "_WordToWordList_AB_pkey" PRIMARY KEY ("A","B")
 );
-
--- CreateIndex
-CREATE UNIQUE INDEX "Lobby_token_key" ON "Lobby"("token");
-
--- CreateIndex
-CREATE UNIQUE INDEX "GameRules_lobbyId_key" ON "GameRules"("lobbyId");
-
--- CreateIndex
-CREATE UNIQUE INDEX "Game_lobbyId_key" ON "Game"("lobbyId");
 
 -- CreateIndex
 CREATE INDEX "_WordToWordList_B_index" ON "_WordToWordList"("B");
@@ -183,27 +115,6 @@ ALTER TABLE "FlaggedWord" ADD CONSTRAINT "FlaggedWord_reporterUserId_fkey" FOREI
 
 -- AddForeignKey
 ALTER TABLE "WordList" ADD CONSTRAINT "WordList_fromUserId_fkey" FOREIGN KEY ("fromUserId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "Lobby" ADD CONSTRAINT "Lobby_founderId_fkey" FOREIGN KEY ("founderId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "GameRules" ADD CONSTRAINT "GameRules_lobbyId_fkey" FOREIGN KEY ("lobbyId") REFERENCES "Lobby"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "Game" ADD CONSTRAINT "Game_lobbyId_fkey" FOREIGN KEY ("lobbyId") REFERENCES "Lobby"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "Game" ADD CONSTRAINT "Game_wordId_fkey" FOREIGN KEY ("wordId") REFERENCES "Word"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "GameEvent" ADD CONSTRAINT "GameEvent_initiatorId_fkey" FOREIGN KEY ("initiatorId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "GameEvent" ADD CONSTRAINT "GameEvent_receiverId_fkey" FOREIGN KEY ("receiverId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "GameEvent" ADD CONSTRAINT "GameEvent_lobbyId_fkey" FOREIGN KEY ("lobbyId") REFERENCES "Lobby"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "_WordToWordList" ADD CONSTRAINT "_WordToWordList_A_fkey" FOREIGN KEY ("A") REFERENCES "Word"("id") ON DELETE CASCADE ON UPDATE CASCADE;

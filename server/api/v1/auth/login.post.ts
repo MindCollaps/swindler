@@ -15,7 +15,7 @@ export default defineEventHandler(async event => {
     try {
         const user = await prisma.user.findFirst({
             where: {
-                username: username,
+                username: username.toLowerCase(), // always use the lowercase username!!
             },
         });
 
