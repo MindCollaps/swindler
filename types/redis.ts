@@ -8,6 +8,7 @@ export interface Lobby {
     game?: Game;
     round: number;
     gameRules: GameRules;
+    wordLists: number[];
 }
 
 export interface ReidsLobbyPlayer {
@@ -20,7 +21,7 @@ export interface GameRules {
     rounds: number;
     maxPlayers: number;
     timeLimited: boolean;
-    timeLimit: number
+    timeLimit: number;
     allowSpecialGameMode: boolean;
     membersCanAddWordLists: boolean;
     membersCanAddCustomWordLists: boolean;
@@ -29,10 +30,29 @@ export interface GameRules {
 export interface Game {
     round: number;
     turn: number;
-    wordId: number;
+    word: LobbyWord;
     imposter: number;
     specialGameMode: number;
+    turnOrder: number[];
 }
+
+export interface LobbyWord {
+    id: number;
+    word: string;
+}
+
+export interface LobbyWordList {
+    id: number;
+    name: string;
+    description: string;
+    words: LobbyWord[];
+}
+
+export interface LobbyGame extends Omit<Game, 'imposter' | 'specialGameMode' | 'word' | 'turnOrder'> {
+    word?: LobbyWord;
+    imposter: boolean;
+}
+
 
 // enum GameEventType {
 //   VotedCorrectly

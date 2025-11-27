@@ -100,9 +100,9 @@ export async function deleteUnusedWords(wordIds: number[]): Promise<number> {
                 none: {},
             },
             // skip and preserve flagged words
-            flagged : {
+            flagged: {
                 none: {},
-            }
+            },
         },
         select: { id: true },
     });

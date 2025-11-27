@@ -15,7 +15,6 @@ export async function createUser(
     admin: boolean = false,
     disabled: boolean = false,
 ): Promise<CreateUserResult> {
-    
     username = username.toLowerCase(); // always use the lowercase username!!
 
     // check if the username or mail already exists

@@ -26,9 +26,10 @@ export default defineEventHandler(async event => {
         public: false,
         round: 0,
         token: token,
+        wordLists: [],
         founder: {
             id: userId,
-            username
+            username,
         },
         gameRules: {
             maxPlayers: 4,
@@ -43,9 +44,9 @@ export default defineEventHandler(async event => {
         players: [],
     };
 
-    setRedisSync(`lobby-${token}`, JSON.stringify(redisLobby), 5 * 60 * 60 * 1000);
+    setRedisSync(`lobby-${ token }`, JSON.stringify(redisLobby), 5 * 60 * 60 * 1000);
 
     return {
-        redirect: `/lobby/${token}`,
+        redirect: `/lobby/${ token }`,
     };
 });

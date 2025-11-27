@@ -11,24 +11,26 @@ export default defineEventHandler(async event => {
     let wordlists;
     if (!currentUser.admin) {
         wordlists = await prisma.wordList.findMany({
-            where: { OR: [
-                { public: true },
-                { system: true },
-                { fromUserId: currentUser.userId },
-                { shared: true, sharedLists: { some: { userId: currentUser.userId } } },
-            ]  },
+            where: {
+                OR: [
+                    { public: true },
+                    { system: true },
+                    { fromUserId: currentUser.userId },
+                    { shared: true, sharedLists: { some: { userId: currentUser.userId } } },
+                ],
+            },
             select: WordListFetchSelect,
-        })
-    } else {
+        });
+    }
+    else {
         wordlists = await prisma.wordList.findMany({
             select: WordListFetchSelect,
         });
     }
 
     if (!wordlists) {
-        return createApiError("Database Error", 500);
+        return createApiError('Database Error', 500);
     }
 
     return sendApiDataResponse(event, wordlists, 200);
-
 });

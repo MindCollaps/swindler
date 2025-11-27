@@ -1,89 +1,82 @@
-import { io, Socket } from "socket.io-client";
-import { useRouter } from "vue-router";
-import type { FetchingWordList } from "~~/types/fetch";
-import type { Lobby } from "~~/types/redis";
+import type { Socket } from 'socket.io-client';
+import { io } from 'socket.io-client';
+import { useRouter } from 'vue-router';
+import type { FetchingWordList } from '~~/types/fetch';
+import type { Lobby, LobbyGame } from '~~/types/redis';
 
-let lobbySoc: Socket;
+export let lobbySocket: Socket;
 
 export function useLobbySocket(lobbyId: string) {
     const lobby: Ref<Lobby | null> = ref(null);
     const wordLists: Ref<FetchingWordList[] | null> = ref(null);
+    const game: Ref<LobbyGame | null> = ref(null);
+    const connected: Ref<boolean> = ref(false);
+
     const router = useRouter();
 
-    const connect = () => {
-        console.log('connect')
-        lobbySoc = io(`/lobby-${lobbyId}`, { path: "/socket.io" });
-        lobbySoc.connect();
+    lobbySocket = io(`/lobby-${ lobbyId }`, { path: '/socket.io', autoConnect: false });
 
-        lobbySoc.on("lobby", (data) => {
+
+    const connect = () => {
+        if (lobbySocket.connected) return;
+        console.log('lobby socket connected');
+        lobbySocket.on('connect', () => {
+            connected.value = true;
+        });
+
+        lobbySocket.on('disconnect', () => {
+            connected.value = false;
+        });
+
+        lobbySocket.on('lobby', data => {
             lobby.value = data;
         });
-        lobbySoc.on('wordLists', data => {
+        lobbySocket.on('wordLists', data => {
             wordLists.value = data;
         });
-        lobbySoc.on('lobby', data => {
+        lobbySocket.on('lobbyWordLists', data => {
+            if (lobby.value?.wordLists) {
+                lobby.value.wordLists = data;
+            }
+        });
+        lobbySocket.on('lobby', data => {
             lobby.value = data;
         });
-        lobbySoc.on('redirect', data => {
+        lobbySocket.on('redirect', data => {
             router.push(data);
         });
-        lobbySoc.on('start', () => {
-            router.push(`/game/${lobbyId}`);
+        lobbySocket.on('start', () => {
+            router.push(`/game/${ lobbyId }`);
         });
-        lobbySoc.on('players', value => {
+        lobbySocket.on('players', value => {
             if (lobby.value?.players) {
                 lobby.value.players = value;
             }
         });
-    }
+        lobbySocket.on('game', value => {
+            game.value = value;
+            console.log(game.value);
+        });
+
+        lobbySocket.connect();
+    };
 
     const disconnect = () => {
-        if (lobbySoc) {
-            lobbySoc.disconnect();
+        if (lobbySocket) {
+            lobbySocket.disconnect();
+            lobbySocket.off();
+            console.log('lobby socket disconnected');
         }
     };
 
     const reconnect = () => {
-        if (lobbySoc) {
-            lobbySoc.connect();
-        }
-    }
-
-    onMounted(() => {
-        connect();
-    });
-
-    onUnmounted(() => {
-        disconnect();
-    });
-
-    return { lobbySoc, lobby, wordLists, disconnect, reconnect };
-}
-
-export function useGameSocket(lobbyId: string) {
-    const {lobby, lobbySoc, disconnect: lobbyDisconnect} = useLobbySocket(lobbyId);
-
-    const connect = () => {
-        lobbySoc.off('start');
-        lobbySoc.off('wordLists');
-        lobbySoc.on('game', value => {
-            
-        })
-    }
-
-    const disconnect = () => {
-        if (lobbySoc) {
-            lobbyDisconnect();
+        if (lobbySocket) {
+            lobbySocket.connect();
         }
     };
 
-    onMounted(() => {
-        connect();
-    });
+    onMounted(connect);
+    // onUnmounted(disconnect);
 
-    onUnmounted(() => {
-        disconnect();
-    });
-
-    return { lobbySoc, lobby, disconnect };
+    return { game, lobby, wordLists, disconnect, reconnect, connected };
 }

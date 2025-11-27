@@ -19,9 +19,9 @@ export function useSocket() {
         socket.on('redirect', value => {
             router.push(value);
         });
-    })
+    });
 
     onUnmounted(() => {
         socket.disconnect();
-    })
+    });
 }

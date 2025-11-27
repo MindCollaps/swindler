@@ -1,7 +1,18 @@
 <template>
     <div>
-        Info
+        Round: {{ game?.round }}
+        <div v-if="myTurn">
+            Your Turn
+        </div>
+        <div v-else>
+            {{ turnName }}'s turn
+        </div>
         <br>
+        Imposter: {{ game?.imposter ? 'yes' : 'no' }}
+        <br>
+        <div v-if="!game?.imposter">
+            Word: {{ game?.word }}
+        </div>
         <br>
         Players
         <div>
@@ -12,27 +23,39 @@
                 {{ player.username }}
             </div>
         </div>
-        <br>
+        {{ connected }}
     </div>
 </template>
 
 <script setup lang="ts">
-import { socket } from '~/components/socket';
 import type { Lobby } from '~~/types/redis';
+import { useLobbySocket, lobbySocket } from '../../composables/sockets/lobby';
+import { useStore } from '~/store';
 
 const lobby = shallowRef<Lobby>();
-// const players = shallowRef<>();
 const route = useRoute();
-const router = useRouter();
-const lobbyId = route.params.id;
+const store = useStore();
+const lobbyId = route.params.id as string;
 
+const { game, connected } = useLobbySocket(lobbyId);
 
+const myTurn: ComputedRef<boolean> = computed(() => {
+    if (!store.me?.userid || !game.value?.turn) {
+        return false;
+    }
 
-onMounted(() => {
-    socket.emit('lobby', lobbyId);
+    return store.me.userid == game.value.turn;
 });
 
-onUnmounted(() => {
-    socket.off('lobby');
+const turnName: ComputedRef<string> = computed(() => {
+    if (!game.value?.turn || !lobby.value?.players) {
+        return '';
+    }
+
+    return lobby.value.players.find(x => x.id == game.value?.turn)?.username ?? '';
+});
+
+onMounted(() => {
+    lobbySocket.emit('game');
 });
 </script>

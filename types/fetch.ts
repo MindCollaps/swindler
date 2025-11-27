@@ -1,6 +1,7 @@
 import type { Prisma } from '@prisma/client';
 
 export const LobbysWordListSelect = {
+    id: true,
     name: true,
     system: true,
     description: true,
@@ -20,6 +21,7 @@ export const LobbysPlayerSelect = {
 };
 
 export const WordListFetchSelect = {
+    id: true,
     name: true,
     description: true,
     words: {
@@ -30,7 +32,7 @@ export const WordListFetchSelect = {
         },
     },
     public: true,
-    system: true
+    system: true,
 };
 
 export type FetchingWordList = Prisma.WordListGetPayload<{

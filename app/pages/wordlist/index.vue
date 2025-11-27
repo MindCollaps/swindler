@@ -14,10 +14,10 @@
 
         <div>
             <common-input-text
-            v-model="name"
-            input-type="string"
+                v-model="name"
+                input-type="string"
             >
-            Name
+                Name
             </common-input-text>
         </div>
 
@@ -32,15 +32,15 @@
                 value="false"
             >Default</common-checkbox>
             <common-checkbox
-            v-model="isPublic"
-            value="false"
+                v-model="isPublic"
+                value="false"
             >Public</common-checkbox>
         </div>
 
         <div v-else>
             <common-checkbox
-            v-model="isPublic"
-            value="false"
+                v-model="isPublic"
+                value="false"
             >Public</common-checkbox>
         </div>
     </div>
@@ -54,16 +54,16 @@ const store = await useStore();
 
 const isAdmin = computed(() => store.me?.admin);
 
-let wordLists = ref<FetchingWordList[]>();
+const wordLists = ref<FetchingWordList[]>();
 
 const name = ref<string>();
-const description = ref<string>();
-let isPublic = ref<boolean>(false);
+// const description = ref<string>();
+const isPublic = ref<boolean>(false);
 const isCustom = ref<boolean>(false);
-let isSystem = ref<boolean>(false);
+const isSystem = ref<boolean>(false);
 
 interface Response {
-    data?: FetchingWordList[]
+    data?: FetchingWordList[];
 }
 
 async function getWordlists() {
@@ -83,5 +83,4 @@ async function getWordlists() {
 onMounted(() => {
     getWordlists();
 });
-
 </script>
