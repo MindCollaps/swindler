@@ -1328,7 +1328,7 @@
     unctx "^2.4.1"
     untyped "^2.0.0"
 
-"@nuxt/kit@^3.13.0", "@nuxt/kit@^3.15.4", "@nuxt/kit@^3.16.0", "@nuxt/kit@^3.17.3", "@nuxt/kit@^3.18.0", "@nuxt/kit@^3.19.3":
+"@nuxt/kit@^3.13.0", "@nuxt/kit@^3.15.4", "@nuxt/kit@^3.16.0", "@nuxt/kit@^3.16.1", "@nuxt/kit@^3.16.2", "@nuxt/kit@^3.17.3", "@nuxt/kit@^3.18.0", "@nuxt/kit@^3.19.3":
   version "3.20.1"
   resolved "https://registry.yarnpkg.com/@nuxt/kit/-/kit-3.20.1.tgz#0cf6d00b1fda03408d9e2ab3048b8cad73abb2e9"
   integrity sha512-TIslaylfI5kd3AxX5qts0qyrIQ9Uq3HAA1bgIIJ+c+zpDfK338YS+YrCWxBBzDMECRCbAS58mqAd2MtJfG1ENA==
@@ -2969,6 +2969,11 @@ alien-signals@^3.0.0:
   version "3.1.1"
   resolved "https://registry.yarnpkg.com/alien-signals/-/alien-signals-3.1.1.tgz#90d7dd34be9e321547b03908ddba21b3f765e3f6"
   integrity sha512-ogkIWbVrLwKtHY6oOAXaYkAxP+cTH7V5FZ5+Tm4NZFd8VDZ6uNMDrfzqctTZ42eTMCSR3ne3otpcxmqSnFfPYA==
+
+animejs@^4.0.1:
+  version "4.2.2"
+  resolved "https://registry.yarnpkg.com/animejs/-/animejs-4.2.2.tgz#75f2529cb8a5b837109f94591e1f28a0e50f2e09"
+  integrity sha512-Ys3RuvLdAeI14fsdKCQy7ytu4057QX6Bb7m4jwmfd6iKmUmLquTwk1ut0e4NtRQgCeq/s2Lv5+oMBjz6c7ZuIg==
 
 ansi-regex@^5.0.1:
   version "5.0.1"
@@ -5611,6 +5616,11 @@ long@^5.2.1:
   resolved "https://registry.yarnpkg.com/long/-/long-5.3.2.tgz#1d84463095999262d7d7b7f8bfd4a8cc55167f83"
   integrity sha512-mNAgZ1GmyNhD7AuqnTG3/VQ26o760+ZYBPKjPvugO8+nLbYfX6TVpJPseBvopbdY+qpZ/lKUnmEc1LeZYS3QAA==
 
+lottie-web@^5.12.2:
+  version "5.13.0"
+  resolved "https://registry.yarnpkg.com/lottie-web/-/lottie-web-5.13.0.tgz#441d3df217cc8ba302338c3f168e1a3af0f221d3"
+  integrity sha512-+gfBXl6sxXMPe8tKQm7qzLnUy5DUPJPKIyRHwtpCpyUEYjHYRJC/5gjUvdkuO2c3JllrPtHXH5UJJK8LRYl5yQ==
+
 lru-cache@^10.2.0, lru-cache@^10.4.3:
   version "10.4.3"
   resolved "https://registry.yarnpkg.com/lru-cache/-/lru-cache-10.4.3.tgz#410fc8a17b70e598013df257c2446b7f3383f119"
@@ -6090,6 +6100,22 @@ nth-check@^2.0.1, nth-check@^2.1.1:
   integrity sha512-lqjrjmaOoAnWfMmBPL+XNnynZh2+swxiX3WUE0s4yEHI6m+AwrK2UZOimIRl3X/4QctVqS8AiZjFqyOGrMXb/w==
   dependencies:
     boolbase "^1.0.0"
+
+nuxt-anime@^0.1.13:
+  version "0.1.13"
+  resolved "https://registry.yarnpkg.com/nuxt-anime/-/nuxt-anime-0.1.13.tgz#e9d7d3b97a3bcb56c8b41129312af46097544c0c"
+  integrity sha512-WzWEjnfuRoXssPsy0cgacZrADmGPwhZpSbry7lxtAecro1Hgq6yZ93RyqKx70WzuB8cXT3jPYZVWuSu+UGMNAA==
+  dependencies:
+    "@nuxt/kit" "^3.16.2"
+    animejs "^4.0.1"
+
+nuxt-lottie@^1.0.8:
+  version "1.0.8"
+  resolved "https://registry.yarnpkg.com/nuxt-lottie/-/nuxt-lottie-1.0.8.tgz#785a33570dbb07272fb14ab31f504fd371fb9015"
+  integrity sha512-ajPx0+z8dmGG9EDB43vOOdm/QG02QHntpXs7eW3+OaOq3QBf7YU9wQx3LDOvQ9Uh7/MYRJrkrH9FSR336Zi5/Q==
+  dependencies:
+    "@nuxt/kit" "^3.16.1"
+    lottie-web "^5.12.2"
 
 nuxt@^4.1.2:
   version "4.2.1"

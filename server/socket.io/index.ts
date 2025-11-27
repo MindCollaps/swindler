@@ -3,6 +3,7 @@ import lobbyHandler from '../socket.io/lobby';
 import { parseSocketCookie } from '../utils/auth';
 import type { Socket, Namespace, Server, DefaultEventsMap } from 'socket.io';
 import type { UserSession } from '../../types/data';
+import { socketServer } from '../plugins/socket.io.server';
 
 // const handlers = {
 
@@ -30,24 +31,6 @@ export function initSocket(io: Server<DefaultEventsMap, DefaultEventsMap, Defaul
     io.use(checkCookies);
 
     io.on('connection', socket => {
-        socket.on('lobby', async value => {
-            if (!namespaces[value]) {
-                const namespace = io.of(`/lobby-${ value }`);
-
-                namespace.use(checkCookies);
-                namespace.use(requireAuth);
-
-                namespace.on('connection', nsSocket => {
-                    lobbyHandler(namespace, nsSocket, value);
-                });
-
-                namespaces[value] = namespace;
-                console.log(`Namespace /lobby-${ value } created`);
-            }
-
-            socket.emit('lobby', value);
-        });
-
         socket.on('me', () => {
             const loggedIn = !!socket.user;
             const data: MeUserObject = {
@@ -60,6 +43,22 @@ export function initSocket(io: Server<DefaultEventsMap, DefaultEventsMap, Defaul
             socket.emit('me', data);
         });
     });
+}
+
+export function registerLobby(token: string) {
+    if (!namespaces[token]) {
+        const namespace = socketServer.of(`/lobby-${ token }`);
+
+        namespace.use(checkCookies);
+        namespace.use(requireAuth);
+
+        namespace.on('connection', nsSocket => {
+            lobbyHandler(namespace, nsSocket, token);
+        });
+
+        namespaces[token] = namespace;
+        console.log(`Namespace /lobby-${ token } created`);
+    }
 }
 
 function checkCookies(socket: Socket, next: (err?: Error) => void) {

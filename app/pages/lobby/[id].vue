@@ -1,6 +1,10 @@
 <template>
-    <div>
+    <div v-if="connected">
         Info
+        <br>
+        Round {{ lobby?.round }}<br>
+        Started {{ lobby?.gameStarted }}<br>
+        Running {{ lobby?.gameRunning }}<br>
         <br>
         {{ lobby?.token }}
         {{ lobby?.founder.username }}
@@ -47,11 +51,13 @@
             @click="startGame()"
         >Start Game</common-button>
     </div>
+    <div v-else>
+        Loading
+    </div>
 </template>
 
 <script setup lang="ts">
-import { socket } from '~/components/socket';
-import { useLobbySocket, lobbySocket } from '~/composables/sockets/lobby';
+import { useLobbySocket } from '~/composables/sockets/lobby';
 import { useStore } from '~/store';
 
 const store = useStore();
@@ -59,7 +65,7 @@ const store = useStore();
 const route = useRoute();
 const lobbyId: string = route.params.id as string;
 
-const { lobby, wordLists, reconnect } = useLobbySocket(lobbyId);
+const { lobbySocket, lobby, wordLists, connected } = useLobbySocket(lobbyId);
 
 const owner: ComputedRef<boolean> = computed(() => {
     if (!lobby.value?.founder.id || !store.me?.userid) {
@@ -68,8 +74,10 @@ const owner: ComputedRef<boolean> = computed(() => {
     return lobby.value?.founder.id == store.me?.userid;
 });
 
-socket.once('lobby', () => {
-    reconnect();
+onMounted(() => {
+    if (!lobby.value) {
+        lobbySocket.emit('lobby');
+    }
 });
 
 function startGame() {
@@ -83,12 +91,4 @@ function addWordList(id: number) {
 function removeWordList(id: number) {
     lobbySocket.emit('removeWord', id);
 }
-
-onMounted(() => {
-    socket.emit('lobby', lobbyId);
-});
-
-onUnmounted(() => {
-    socket.off('lobby');
-});
 </script>

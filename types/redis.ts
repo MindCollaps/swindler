@@ -5,6 +5,7 @@ export interface Lobby {
     token: string;
     public: boolean;
     gameStarted: boolean;
+    gameRunning: boolean;
     game?: Game;
     round: number;
     gameRules: GameRules;
@@ -17,8 +18,8 @@ export interface ReidsLobbyPlayer {
 }
 
 export interface GameRules {
-    maxRounds: number;
-    rounds: number;
+    rounds: number; // rounds in a game, one round = every player made his turn
+    games: number; // one word = one round
     maxPlayers: number;
     timeLimited: boolean;
     timeLimit: number;
@@ -51,6 +52,11 @@ export interface LobbyWordList {
 export interface LobbyGame extends Omit<Game, 'imposter' | 'specialGameMode' | 'word' | 'turnOrder'> {
     word?: LobbyWord;
     imposter: boolean;
+}
+
+export interface GivingClue {
+    clue: string;
+    player: ReidsLobbyPlayer;
 }
 
 

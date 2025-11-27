@@ -2,20 +2,23 @@ import type { NitroApp } from 'nitropack';
 import { defineNitroPlugin } from 'nitropack/runtime';
 import { Server as Engine } from 'engine.io';
 import { Server } from 'socket.io';
+import type { DefaultEventsMap } from 'socket.io';
 import { defineEventHandler } from 'h3';
 import { initSocket } from '../socket.io';
 
+export let socketServer: Server<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>;
+
 export default defineNitroPlugin((nitroApp: NitroApp) => {
     const engine = new Engine();
-    const io = new Server({
+    socketServer = new Server({
         cleanupEmptyChildNamespaces: true,
         pingInterval: 25000,
         pingTimeout: 60000,
     });
 
-    io.bind(engine);
+    socketServer.bind(engine);
 
-    initSocket(io);
+    initSocket(socketServer);
 
     nitroApp.router.use('/socket.io', defineEventHandler({
         handler(event) {

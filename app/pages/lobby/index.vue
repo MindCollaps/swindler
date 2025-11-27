@@ -5,13 +5,13 @@
             value="false"
         >Public</common-checkbox>
         <common-input-number
-            v-model="maxRounds"
+            v-model="games"
             min="1"
-        >Play Rounds</common-input-number>
+        >Games</common-input-number>
         <common-input-number
             v-model="rounds"
             min="1"
-        >Word Rounds</common-input-number>
+        >Rounds</common-input-number>
         <common-input-number
             v-model="maxPlayers"
             min="1"
@@ -39,7 +39,8 @@
 
 <script lang="ts" setup>
 const publicV = ref(false);
-const maxRounds: Ref<number> = ref(4);
+const router = useRouter();
+const games: Ref<number> = ref(4);
 const rounds: Ref<number> = ref(4);
 const maxPlayers: Ref<number> = ref(4);
 const timeLimited = ref(false);
@@ -55,7 +56,7 @@ interface Response {
 async function create() {
     const payload = {
         public: publicV.value,
-        maxRounds: maxRounds.value,
+        games: games.value,
         rounds: rounds.value,
         maxPlayers: maxPlayers.value,
         timeLimited: timeLimited.value,
@@ -70,7 +71,7 @@ async function create() {
             body: payload,
         });
         if (response.redirect) {
-            await navigateTo(response.redirect);
+            router.push(response.redirect);
         }
     }
     catch (e) {

@@ -4,22 +4,20 @@ import { useRouter } from 'vue-router';
 import type { FetchingWordList } from '~~/types/fetch';
 import type { Lobby, LobbyGame } from '~~/types/redis';
 
-export let lobbySocket: Socket;
+let lobbySocket: Socket;
+const lobby: Ref<Lobby | null> = ref(null);
+const wordLists: Ref<FetchingWordList[] | null> = ref(null);
+const game: Ref<LobbyGame | null> = ref(null);
+const connected: Ref<boolean> = ref(false);
 
 export function useLobbySocket(lobbyId: string) {
-    const lobby: Ref<Lobby | null> = ref(null);
-    const wordLists: Ref<FetchingWordList[] | null> = ref(null);
-    const game: Ref<LobbyGame | null> = ref(null);
-    const connected: Ref<boolean> = ref(false);
-
     const router = useRouter();
 
-    lobbySocket = io(`/lobby-${ lobbyId }`, { path: '/socket.io', autoConnect: false });
-
+    if (!lobbySocket) lobbySocket = io(`/lobby-${ lobbyId }`, { path: '/socket.io', autoConnect: false });
 
     const connect = () => {
-        if (lobbySocket.connected) return;
-        console.log('lobby socket connected');
+        if (lobbySocket?.connected) return;
+
         lobbySocket.on('connect', () => {
             connected.value = true;
         });
@@ -69,14 +67,17 @@ export function useLobbySocket(lobbyId: string) {
         }
     };
 
-    const reconnect = () => {
-        if (lobbySocket) {
-            lobbySocket.connect();
-        }
-    };
-
     onMounted(connect);
-    // onUnmounted(disconnect);
+    onBeforeRouteLeave((to, from, next) => {
+        const allowedPrefixes = ['/game/', '/lobby/'];
 
-    return { game, lobby, wordLists, disconnect, reconnect, connected };
+        const goingOutsideGame = !allowedPrefixes.some(prefix => to.path.startsWith(prefix));
+
+        if (goingOutsideGame) {
+            disconnect();
+        }
+        next();
+    });
+
+    return { lobbySocket, game, lobby, wordLists, disconnect, connected };
 }

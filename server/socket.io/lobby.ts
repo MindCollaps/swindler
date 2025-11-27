@@ -3,7 +3,7 @@ import { prisma } from '../utils/prisma';
 import { LobbysWordListSelect } from '../../types/fetch';
 import { getRedisSync, redisClient, setRedisSync } from '../utils/backend/redis';
 import { createLock, IoredisAdapter } from 'redlock-universal';
-import type { Lobby, Game, ReidsLobbyPlayer, LobbyWordList, LobbyWord, LobbyGame } from '../../types/redis';
+import type { Lobby, Game, ReidsLobbyPlayer, LobbyWordList, LobbyWord, LobbyGame, GivingClue } from '../../types/redis';
 
 export default async function lobbyHandler(namespace: Namespace, socket: Socket, id: string) {
     const userId = socket.user?.userId;
@@ -56,6 +56,7 @@ export default async function lobbyHandler(namespace: Namespace, socket: Socket,
     socket.on('start', () => lobbyStart(socket, id));
     socket.on('addWord', value => addWord(socket, id, value));
     socket.on('removeWord', value => removeWord(socket, id, value));
+    socket.on('giveClue', value => giveClue(socket, id, value));
 
     socket.on('game', () => sendGame(socket, id));
 
@@ -88,6 +89,57 @@ export default async function lobbyHandler(namespace: Namespace, socket: Socket,
     asyncWordlist();
 }
 
+async function giveClue(socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>, id: string, value: any) {
+    const resource = `locks:lobby-${ id }`;
+    const lock = createLock({
+        adapter: new IoredisAdapter(redisClient),
+        key: resource,
+        ttl: 20000,
+    });
+
+    const handle = await lock.acquire();
+
+    try {
+        const gameData = await getRedisSync(`game-${ id }`) as string;
+        const lobbyData = await getRedisSync(`lobby-${ id }`) as string;
+
+        if (!lobbyData || !socket.user || !gameData) return;
+
+        const lobby: Lobby = JSON.parse(lobbyData);
+        const game: Game = JSON.parse(gameData);
+
+        const player = lobby.players.find(x => x.id == socket.user?.userId);
+
+        if (!player) return;
+
+        if (isTurn(game, socket.user.userId)) {
+            const clue: GivingClue = {
+                clue: value,
+                player: player,
+            };
+
+            socket.emit('givingClue', clue);
+            socket.broadcast.emit('givingClue', clue);
+        }
+        else return;
+
+        if (isRoundOver(game)) {
+            game.round += 1;
+            if (game.round >= lobby.gameRules.rounds) {
+                socket.broadcast.emit('roundEnd');
+                socket.emit('roundEnd');
+                return;
+            }
+        }
+
+        game.turn = nextPlayer(game, lobby);
+        setRedisSync(`game-${ lobby.token }`, JSON.stringify(game), 5 * 60 * 60 * 1000);
+    }
+    finally {
+        await lock.release(handle);
+    }
+}
+
 async function lobbyStart(socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>, id: string) {
     const lobbyData = await getRedisSync(`lobby-${ id }`);
     if (!lobbyData || !socket.user) return;
@@ -103,14 +155,23 @@ async function lobbyStart(socket: Socket<DefaultEventsMap, DefaultEventsMap, Def
 
 async function sendGame(socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>, id: string) {
     const gameData = await getRedisSync(`game-${ id }`) as string;
+    const lobbyData = await getRedisSync(`lobby-${ id }`) as string;
+
+    if (!lobbyData || !socket.user || !gameData) return;
+
+    const lobby: Lobby = JSON.parse(lobbyData);
     const game: Game = JSON.parse(gameData);
+
+    const isImposter = socket.user?.userId == game.imposter;
     const lobbyGame: LobbyGame = {
         round: game.round,
         turn: game.turn,
-        word: game.word,
-        imposter: socket.user?.userId == game.imposter,
+        word: isImposter ? undefined : game.word,
+        imposter: isImposter,
     };
+
     socket.emit('game', lobbyGame);
+    socket.emit('lobby', lobby);
 }
 
 async function addWord(socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>, id: string, value: any) {
@@ -144,10 +205,6 @@ async function removeWord(socket: Socket<DefaultEventsMap, DefaultEventsMap, Def
     }
 }
 
-function isOwner(lobby: Lobby, userId: number) {
-    return lobby.founder.id == userId;
-}
-
 async function createGame(lobby: Lobby) {
     const turnOrder = makeTurnOrder(lobby.players);
     const randomWord = await chooseRandomWord(lobby.wordLists);
@@ -155,9 +212,9 @@ async function createGame(lobby: Lobby) {
     const game: Game = {
         specialGameMode: 0,
         imposter: chooseImposter(lobby.players),
-        round: 0,
+        round: 1,
         turnOrder: turnOrder,
-        turn: turnOrder[0],
+        turn: turnOrder[0]!,
         word: randomWord,
     };
 
@@ -170,9 +227,9 @@ function chooseImposter(players: ReidsLobbyPlayer[]): number {
     // Create a Uint32Array of length 1 for the random index
     const randomIndexArray = new Uint32Array(1);
     crypto.getRandomValues(randomIndexArray);
-    const randomIndex = randomIndexArray[0] % players.length;
+    const randomIndex = randomIndexArray[0]! % players.length;
 
-    return players[randomIndex].id;
+    return players[randomIndex]!.id;
 }
 
 function makeTurnOrder(players: ReidsLobbyPlayer[]): number[] {
@@ -181,22 +238,50 @@ function makeTurnOrder(players: ReidsLobbyPlayer[]): number[] {
     // Fisher-Yates shuffle
     for (let i = ids.length - 1; i > 0; i--) {
         const array = new Uint32Array(1);
+
         crypto.getRandomValues(array);
-        const j = array[0] % (i + 1);
+        const array0 = array[0];
+        if (!array0) throw new Error('empty array');
+        const j = array0 % (i + 1);
 
         // Swap ids[i] and ids[j]
-        [ids[i], ids[j]] = [ids[j], ids[i]];
+        [ids[i]!, ids[j]!] = [ids[j]!, ids[i]!];
     }
 
     return ids;
 }
 
+function nextPlayer(game: Game, lobby: Lobby): number {
+    if (!game.turnOrder || game.turnOrder.length === 0) {
+        throw new Error('Game is corrupted');
+    }
+    const currentIndex = game.turnOrder.indexOf(game.turn);
+    if (currentIndex === -1) {
+        throw new Error('Game is corrupted');
+    }
+    // next index, wrap around to 0 if at the end
+    const nextIndex = (currentIndex + 1) % game.turnOrder.length;
+    const nextPlayer = game.turnOrder[nextIndex];
+    if (!nextPlayer) throw new Error('Game is corrupted');
+    return nextPlayer;
+}
+
+function isRoundOver(game: Game): boolean {
+    if (!game.turnOrder || game.turnOrder.length === 0) {
+        throw new Error('Game is corrupted');
+    }
+
+    const currentIndex = game.turnOrder.indexOf(game.turn);
+    // round over if current turn is last in turn order
+    return currentIndex === (game.turnOrder.length - 1);
+}
+
 async function chooseRandomWord(wordLists: number[]): Promise<LobbyWord> {
-    if (wordLists.length === 0) throw new Error('wordlist cant be empty');
+    if (!wordLists || wordLists.length === 0) throw new Error('wordlist cant be empty');
 
     // Select random LobbyWordList
     const listIndex = Math.floor(Math.random() * wordLists.length);
-    const wordListIndex = wordLists[listIndex];
+    const wordListIndex = wordLists[listIndex] ?? -1;
 
     const wordList = await getCachedWordList(wordListIndex);
 
@@ -204,7 +289,9 @@ async function chooseRandomWord(wordLists: number[]): Promise<LobbyWord> {
 
     // Select random LobbyWord from chosen list
     const wordIndex = Math.floor(Math.random() * wordList.words.length);
-    return wordList.words[wordIndex];
+    const word = wordList.words[wordIndex];
+    if (!word) throw new Error('selected word empty');
+    return word;
 }
 
 async function getCachedWordList(id: number): Promise<LobbyWordList> {
@@ -215,7 +302,10 @@ async function getCachedWordList(id: number): Promise<LobbyWordList> {
         if (!wordList) {
             throw new Error('Wordlist id not found');
         }
-        return wordList[0];
+
+        const returnWortlist = wordList[0];
+        if (!returnWortlist) throw new Error('wordlist is empty');
+        return returnWortlist;
     }
 
     const wordList: LobbyWordList = JSON.parse(wordListData);
@@ -270,4 +360,12 @@ async function cacheWordLists(wordLists: number[], skipSearch: boolean = false):
     }
 
     return dbWordLists;
+}
+
+function isOwner(lobby: Lobby, userId: number) {
+    return lobby.founder.id == userId;
+}
+
+function isTurn(game: Game, userId: number) {
+    return game.turn == userId;
 }

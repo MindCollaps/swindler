@@ -1,6 +1,7 @@
 import { lobbyCreationResponseSchema } from '~~/server/utils/backend/validation';
 import { createToken } from '~~/server/utils/crypto';
 import type { Lobby } from '~~/types/redis';
+import { registerLobby } from '~~/server/socket.io/index';
 
 export default defineEventHandler(async event => {
     await requireAuth(event);
@@ -23,8 +24,9 @@ export default defineEventHandler(async event => {
     const redisLobby: Lobby = {
         founded: new Date(),
         gameStarted: false,
+        gameRunning: false,
         public: false,
-        round: 0,
+        round: 1,
         token: token,
         wordLists: [],
         founder: {
@@ -34,7 +36,7 @@ export default defineEventHandler(async event => {
         gameRules: {
             maxPlayers: 4,
             allowSpecialGameMode: false,
-            maxRounds: 4,
+            games: 4,
             membersCanAddCustomWordLists: false,
             membersCanAddWordLists: false,
             rounds: 4,
@@ -45,6 +47,7 @@ export default defineEventHandler(async event => {
     };
 
     setRedisSync(`lobby-${ token }`, JSON.stringify(redisLobby), 5 * 60 * 60 * 1000);
+    registerLobby(token);
 
     return {
         redirect: `/lobby/${ token }`,

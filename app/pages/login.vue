@@ -15,9 +15,8 @@
 
 <script setup lang="ts">
 import { socket } from '~/components/socket';
-import { useStore } from '~/store';
 
-const store = useStore();
+const router = useRouter();
 const username = ref<string>();
 const password = ref<string>();
 
@@ -40,8 +39,8 @@ async function login() {
             socket.disconnect();
             socket.connect();
 
-            store.fetchMe();
-            await navigateTo(response.redirect);
+            socket.emit('me');
+            router.push(response.redirect);
         }
     }
     catch (error) {

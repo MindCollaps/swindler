@@ -1,24 +1,31 @@
 <template>
     <div>
-        <common-input-text v-model="username">Username</common-input-text>
-        <common-input-text v-model="email">E-Mail</common-input-text>
+        <common-input-text
+            v-model="username"
+            @keyup.enter="signup"
+        >Username</common-input-text>
+        <common-input-text
+            v-model="email"
+            @keyup.enter="signup"
+        >E-Mail</common-input-text>
         <common-input-text
             v-model="password"
             input-type="password"
+            @keyup.enter="signup"
         >Password</common-input-text>
         <common-input-text
             v-model="passwordre"
             input-type="password"
+            @keyup.enter="signup"
         >Repeat Password</common-input-text>
         <common-button @click="signup">Signup</common-button>
     </div>
 </template>
 
 <script setup lang="ts">
-import { useStore } from '~/store';
 import { socket } from '~/components/socket';
 
-const store = useStore();
+const router = useRouter();
 
 const username = ref<string>();
 const password = ref<string>();
@@ -45,8 +52,8 @@ async function signup() {
             socket.disconnect();
             socket.connect();
 
-            store.fetchMe();
-            await navigateTo(response.redirect);
+            socket.emit('me');
+            router.push(response.redirect);
         }
     }
     catch (error) {

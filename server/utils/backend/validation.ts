@@ -23,7 +23,7 @@ export const WordlistCreationSchema = z.object({
 
 export const lobbyCreationResponseSchema = z.object({
     public: z.boolean(),
-    maxRounds: z.number().int().min(1).max(10),
+    games: z.number().int().min(1).max(10),
     rounds: z.number().int().min(1).max(10),
     maxPlayers: z.number().int().min(1).max(10),
     timeLimited: z.boolean(),

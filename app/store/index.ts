@@ -1,5 +1,4 @@
 import type { MeUserObject } from '~~/types/socket';
-import { socket } from '~/components/socket';
 import { defineStore } from 'pinia';
 
 export const useStore = defineStore('index', {
@@ -11,11 +10,5 @@ export const useStore = defineStore('index', {
         setupDone: false,
     }),
     actions: {
-        setup() {
-            this.fetchMe();
-        },
-        fetchMe() {
-            socket.emit('me');
-        },
     },
 });
