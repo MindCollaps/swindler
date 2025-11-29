@@ -50,6 +50,9 @@ export default defineNuxtConfig({
         typeCheck: true,
     },
     vite: {
+        define: {
+            global: 'globalThis',
+        },
         css: {
             preprocessorMaxWorkers: true,
             preprocessorOptions: {

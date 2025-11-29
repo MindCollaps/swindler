@@ -7,14 +7,18 @@ export interface Lobby {
     gameStarted: boolean;
     gameRunning: boolean;
     game?: Game;
+    gameNumber: number;
     round: number;
     gameRules: GameRules;
     wordLists: number[];
+    gameEvents: GameEvent[];
+    playedGames: PlayedGame[];
 }
 
 export interface ReidsLobbyPlayer {
     id: number;
     username: string;
+    ready: boolean;
 }
 
 export interface GameRules {
@@ -57,6 +61,29 @@ export interface LobbyGame extends Omit<Game, 'imposter' | 'specialGameMode' | '
 export interface GivingClue {
     clue: string;
     player: ReidsLobbyPlayer;
+}
+
+export interface PlayedGame extends Omit<Game, 'round' | 'turn'> {
+    roundsPlayed: number;
+}
+
+export interface GameEvent {
+    initiatorId: number;
+    receiverId?: number;
+    triggered: Date;
+    type: GameEventType;
+    round: number;
+    turn: number;
+    gameNumber: number;
+}
+
+export enum GameEventType {
+    VotedCorrectly,
+    VotedIncorrectly,
+    VotedAbstain,
+    SaysImposer,
+    ReceivedUpVote,
+    ReceivedDownVote,
 }
 
 

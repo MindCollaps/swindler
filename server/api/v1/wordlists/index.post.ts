@@ -36,6 +36,10 @@ export default defineEventHandler(async event => {
         return createApiError('Default wordlists have to be public!', 400);
     }
 
+    if (isSystem && isCustom) {
+        return createApiError('Default wordlists cannot be custom!', 400);
+    }
+
     const result: ImportWordListResult = await createWordList(
         name,
         description,

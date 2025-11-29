@@ -9,13 +9,14 @@
         {{ lobby?.token }}
         {{ lobby?.founder.username }}
         <br>
-        Players
+        Players {{ lobby?.players.filter(x => x.ready).length }} / {{ lobby?.players.length }} Ready
         <div>
             <div
-                v-for="player in lobby?.players"
+                v-for="player in lobby?.players.filter(x => x.id !== store.me?.userid)"
                 :key="player.id"
             >
                 {{ player.username }}
+                {{ player.ready }}
             </div>
         </div>
         <br>
@@ -46,8 +47,9 @@
                 {{ wordLists?.find(x => x.id === wordList)?.name }}
             </div>
         </div>
+        <common-button @click="emitReady">{{ ready ? 'Unready' : 'Ready' }}</common-button>
         <common-button
-            v-if="owner"
+            v-if="owner && ready && allReady"
             @click="startGame()"
         >Start Game</common-button>
     </div>
@@ -74,11 +76,35 @@ const owner: ComputedRef<boolean> = computed(() => {
     return lobby.value?.founder.id == store.me?.userid;
 });
 
+const ready: ComputedRef<boolean> = computed(() => {
+    if (!lobby.value?.players) {
+        return false;
+    }
+
+    const me = lobby.value.players.find(x => x.id == store.me?.userid);
+    if (!me) {
+        return false;
+    }
+
+    return me.ready;
+});
+
+const allReady: ComputedRef<boolean> = computed(() => {
+    return lobby.value?.players.filter(x => x.ready).length == lobby.value?.players.length;
+});
+
 onMounted(() => {
     if (!lobby.value) {
         lobbySocket.emit('lobby');
     }
 });
+
+function emitReady() {
+    lobbySocket.emit('ready', !ready.value);
+
+    const me = lobby.value?.players.find(x => x.id == store.me?.userid);
+    if (me) me.ready = !ready.value;
+}
 
 function startGame() {
     lobbySocket.emit('start');

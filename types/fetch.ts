@@ -24,6 +24,21 @@ export const WordListFetchSelect = {
     id: true,
     name: true,
     description: true,
+    // words: {
+    //     select: {
+    //         id: true,
+    //         word: true,
+    //         isCustom: true,
+    //     },
+    // },
+    public: true,
+    system: true,
+};
+
+export const SingleWordListFetchSelect = {
+    id: true,
+    name: true,
+    description: true,
     words: {
         select: {
             id: true,
@@ -37,4 +52,8 @@ export const WordListFetchSelect = {
 
 export type FetchingWordList = Prisma.WordListGetPayload<{
     select: typeof WordListFetchSelect;
+}>;
+
+export type FetchingSingleWordList = Prisma.WordListGetPayload<{
+    select: typeof SingleWordListFetchSelect;
 }>;

@@ -2,12 +2,11 @@ import type { Socket } from 'socket.io-client';
 import { io } from 'socket.io-client';
 import { useRouter } from 'vue-router';
 import type { FetchingWordList } from '~~/types/fetch';
-import type { Lobby, LobbyGame } from '~~/types/redis';
+import type { Lobby } from '~~/types/redis';
 
-let lobbySocket: Socket;
+let lobbySocket: Socket | undefined;
 const lobby: Ref<Lobby | null> = ref(null);
 const wordLists: Ref<FetchingWordList[] | null> = ref(null);
-const game: Ref<LobbyGame | null> = ref(null);
 const connected: Ref<boolean> = ref(false);
 
 export function useLobbySocket(lobbyId: string) {
@@ -16,7 +15,7 @@ export function useLobbySocket(lobbyId: string) {
     if (!lobbySocket) lobbySocket = io(`/lobby-${ lobbyId }`, { path: '/socket.io', autoConnect: false });
 
     const connect = () => {
-        if (lobbySocket?.connected) return;
+        if (!lobbySocket || lobbySocket?.connected) return;
 
         lobbySocket.on('connect', () => {
             connected.value = true;
@@ -51,10 +50,6 @@ export function useLobbySocket(lobbyId: string) {
                 lobby.value.players = value;
             }
         });
-        lobbySocket.on('game', value => {
-            game.value = value;
-            console.log(game.value);
-        });
 
         lobbySocket.connect();
     };
@@ -75,9 +70,10 @@ export function useLobbySocket(lobbyId: string) {
 
         if (goingOutsideGame) {
             disconnect();
+            lobbySocket = undefined;
         }
         next();
     });
 
-    return { lobbySocket, game, lobby, wordLists, disconnect, connected };
+    return { lobbySocket, lobby, wordLists, disconnect, connected };
 }

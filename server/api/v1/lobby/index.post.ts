@@ -29,9 +29,13 @@ export default defineEventHandler(async event => {
         round: 1,
         token: token,
         wordLists: [],
+        gameEvents: [],
+        playedGames: [],
+        gameNumber: 1,
         founder: {
             id: userId,
             username,
+            ready: false,
         },
         gameRules: {
             maxPlayers: 4,
