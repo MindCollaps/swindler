@@ -4,26 +4,15 @@
             <h2>Name: {{ wordlist.name }}</h2>
             <p>Description</p>
 
-            <textarea
-                v-model="description"
-                cols="50"
-                name="Description"
-                rows="4"
-            />
+            <textarea v-model="description" cols="50" name="Description" rows="4" />
 
             <p>Words</p>
-            <common-input-text
-                v-model="newWord"
-                input-type="string"
-            />
+            <common-input-text v-model="newWord" input-type="string" @keyup.enter="addWord" />
             <common-button @click="addWord">Add new word</common-button>
 
-            <div
-                v-for="word in wordlist.words"
-                :key="word.id"
-                style="display: flex; align-items: end; justify-content: space-between; margin-bottom: 2px;"
-            >
-                {{ word.word }}
+            <div v-for="word in wordlist.words" :key="word.id"
+                style="display: flex; align-items: end; justify-content: space-between; margin-bottom: 2px;">
+                {{ word.word }} {{ word.id == -1 ? ' | Unsafed' : '' }}
                 <common-button @click="deleteWord(word.word)">Delete</common-button>
             </div>
         </div>
@@ -31,10 +20,10 @@
 </template>
 
 <script setup lang="ts">
-import type { FetchingSingleWordList } from '~~/types/fetch';
+import type { FetchingWordListWithWords } from '~~/types/fetch';
 
 interface Response {
-    data?: FetchingSingleWordList;
+    data?: FetchingWordListWithWords;
 }
 
 interface Word {
@@ -46,15 +35,13 @@ interface Word {
 const route = useRoute();
 const wordlistId: string = route.params.id as string;
 
-const wordlist = ref<FetchingSingleWordList>();
-const description = ref<string>();
-const newWord = ref<string>();
+const wordlist = ref<FetchingWordListWithWords | null>(null);
+const description = ref<string>('');
+const newWord = ref<string>('');
 
 async function getWordlist(id: string) {
     try {
-        const response = await $fetch<Response>(`/api/v1/wordlists/${ id }`, {
-            method: 'GET',
-        });
+        const response = await $fetch<Response>(`/api/v1/wordlists/${id}`);
         if (response.data) {
             wordlist.value = response.data;
             description.value = wordlist.value.description;
@@ -78,14 +65,14 @@ async function addWord() {
         return;
     }
 
-    // TODO: check if the word is already in the array
-
-    const word: Word = {
-        id: -1,
-        word: newWord.value,
-        isCustom: true,
-    };
-    wordlist.value.words.unshift(word);
+    if (!wordlist.value.words.find(x => x.word == newWord.value)) {
+        const word: Word = {
+            id: -1,
+            word: newWord.value,
+            isCustom: true,
+        };
+        wordlist.value.words.unshift(word);
+    }
 }
 
 onMounted(() => {

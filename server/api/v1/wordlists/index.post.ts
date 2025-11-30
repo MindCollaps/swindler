@@ -20,36 +20,36 @@ export default defineEventHandler(async event => {
         throw createApiError('Invalid input', 400, validationResult.error);
     }
 
-    let { name, words, description, isCustom, isPublic, isSystem } = validationResult.data;
+    const data = validationResult.data;
 
     const isShared = false; // defaults to false and can be changed later when the sharing is triggered
 
     // only admins can create default system wordlists
-    if (isSystem) {
+    if (data.isSystem) {
         await requireAdminAuth(event);
     }
     else {
-        isCustom = true; // all created wordlists are custom by default, but admins can change this
+        data.isCustom = true; // all created wordlists are custom by default, but admins can change this
     }
 
-    if (isSystem && !isPublic) {
+    if (data.isSystem && !data.isPublic) {
         return createApiError('Default wordlists have to be public!', 400);
     }
 
-    if (isSystem && isCustom) {
+    if (data.isSystem && data.isCustom) {
         return createApiError('Default wordlists cannot be custom!', 400);
     }
 
     const result: ImportWordListResult = await createWordList(
-        name,
-        description,
-        words,
+        data.name,
+        data.description,
+        data.words,
         currentUser.userId,
         false, // Words may already exist but not the standard wordlist itself
-        isCustom,
+        data.isCustom,
         isShared,
-        isPublic, // choice of the creator, but default wordlists should be public
-        isSystem, // default wordlist
+        data.isPublic, // choice of the creator, but default wordlists should be public
+        data.isSystem, // default wordlist
     );
 
     if (!result.success) {

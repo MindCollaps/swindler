@@ -1,4 +1,4 @@
-import { SingleWordListFetchSelect } from '~~/types/fetch';
+import { WordListFetchSelectIncludeWords } from '~~/types/fetch';
 
 export default defineEventHandler(async event => {
     await requireAuth(event);
@@ -50,7 +50,7 @@ export default defineEventHandler(async event => {
         where: {
             id: wordlistId,
         },
-        select: SingleWordListFetchSelect,
+        select: WordListFetchSelectIncludeWords,
     });
 
     if (!wordlist) {

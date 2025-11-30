@@ -62,6 +62,8 @@ export default async function lobbyHandler(namespace: Namespace, socket: Socket,
     socket.on('vote', value => vote(socket, id, value));
     socket.on('ready', value => ready(socket, id, value));
 
+    // TODO: imposter can guess what the word is
+
     socket.on('game', () => sendGame(socket, id));
 
     socket.on('disconnect', async () => {

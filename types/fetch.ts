@@ -16,10 +16,6 @@ export type LobbysWordList = Prisma.WordListGetPayload<{
     select: typeof LobbysWordListSelect;
 }>;
 
-export const LobbysPlayerSelect = {
-
-};
-
 export const WordListFetchSelect = {
     id: true,
     name: true,
@@ -35,7 +31,7 @@ export const WordListFetchSelect = {
     system: true,
 };
 
-export const SingleWordListFetchSelect = {
+export const WordListFetchSelectIncludeWords = {
     id: true,
     name: true,
     description: true,
@@ -54,6 +50,6 @@ export type FetchingWordList = Prisma.WordListGetPayload<{
     select: typeof WordListFetchSelect;
 }>;
 
-export type FetchingSingleWordList = Prisma.WordListGetPayload<{
-    select: typeof SingleWordListFetchSelect;
+export type FetchingWordListWithWords = Prisma.WordListGetPayload<{
+    select: typeof WordListFetchSelectIncludeWords;
 }>;

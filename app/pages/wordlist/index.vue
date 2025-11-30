@@ -20,7 +20,6 @@
         <div>
             <common-input-text
                 v-model="name"
-                input-type="string"
             >
                 Name
             </common-input-text>
@@ -29,32 +28,27 @@
         <div>
             <common-input-text
                 v-model="description"
-                input-type="string"
             >
                 Description
             </common-input-text>
         </div>
 
-        <div v-if="isAdmin">
+        <div v-if="store.me?.admin">
             <common-checkbox
                 v-model="isCustom"
-                value="false"
             >Custom</common-checkbox>
 
             <common-checkbox
                 v-model="isSystem"
-                value="false"
             >Default</common-checkbox>
             <common-checkbox
                 v-model="isPublic"
-                value="false"
             >Public</common-checkbox>
         </div>
 
         <div v-else>
             <common-checkbox
                 v-model="isPublic"
-                value="false"
             >Public</common-checkbox>
         </div>
 
@@ -77,9 +71,7 @@
 import type { FetchingWordList } from '~~/types/fetch';
 import { useStore } from '~/store';
 
-const store = await useStore();
-
-const isAdmin = computed(() => store.me?.admin);
+const store = useStore();
 
 const wordLists = ref<FetchingWordList[]>();
 
