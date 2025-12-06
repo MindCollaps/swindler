@@ -34,21 +34,23 @@
         <br>
         <div>
             <common-button
-                :disabled="myTurn"
-                @click="vote(1)"
-            >😖 {{ voted?.down === 0 || !voted?.down ? undefined :
-                voted.down }}</common-button>
+                :disabled="myTurn || voted?.down.voted"
+                @click="addVote(1, true)"
+            >😖 {{ voted?.down.num === 0 || !voted?.down ? undefined :
+                voted.down.num }}</common-button>
             <common-button
-                :disabled="myTurn"
-                @click="vote(2)"
-            >🥰 {{ voted?.up === 0 || !voted?.up ? undefined : voted.up
-            }}</common-button>
+                :disabled="myTurn || voted?.up.voted"
+                @click="addVote(2, true)"
+            >🥰 {{ voted?.up.num === 0 || !voted?.up ? undefined : voted.up.num
+            }}
+            </common-button>
             <common-button
-                :disabled="myTurn"
-                @click="vote(3)"
-            >🕵️ {{ voted?.imposter === 0 || !voted?.imposter ?
-                undefined : voted.imposter }}</common-button>
-            <common-button @click="vote(4)">❤️</common-button>
+                :disabled="myTurn || voted?.imposter.voted"
+                @click="addVote(3, true)"
+            >🕵️ {{ voted?.imposter.num === 0 || !voted?.imposter ?
+                undefined : voted.imposter.num }}
+            </common-button>
+            <common-button @click="addVote(4, true)">❤️</common-button>
         </div>
         <br>
         <br>
@@ -85,7 +87,7 @@ const hearts = ref<{ id: number }[]>([]);
 const heartRefs = ref<HTMLElement[]>([]);
 const lobbyId = route.params.id as string;
 
-const { gameSocket: gameSocket, game, connected, lobby, voted } = useGameSocket(lobbyId, { onHeart: animateHeart });
+const { gameSocket: gameSocket, game, connected, lobby, voted, addVote } = useGameSocket(lobbyId, { onHeart: animateHeart });
 
 const clue = ref('');
 const animateClue = ref(false);
@@ -110,11 +112,6 @@ const turnName: ComputedRef<string> = computed(() => {
 function sendClue() {
     gameSocket.emit('giveClue', clue.value);
     clue.value = '';
-}
-
-function vote(rating: number) {
-    // 1=- 2=+ 3=VOTE! 4=heart
-    gameSocket.emit('vote', rating);
 }
 
 function animateHeart() {

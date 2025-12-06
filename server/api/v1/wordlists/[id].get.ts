@@ -25,7 +25,7 @@ export default defineEventHandler(async event => {
         },
         select: {
             public: true,
-            system: true,
+            default: true,
             from: true,
         },
     });
@@ -35,10 +35,10 @@ export default defineEventHandler(async event => {
     }
 
     // Check the permissions
-    // it has to be either the users own wordlist or one from the system
+    // it has to be either the users own wordlist or one from the system (default)
     // however admins can access everything
     // TODO: handle shared playlists
-    if (!meta.public && !meta.system) {
+    if (!meta.public && !meta.default) {
         if (meta.from?.id != currentUser.userId) {
             if (!currentUser.admin) {
                 return createApiError('Not enough permissions to access this ressource', 403);
@@ -50,7 +50,15 @@ export default defineEventHandler(async event => {
         where: {
             id: wordlistId,
         },
-        select: WordListFetchSelectIncludeWords,
+        select: {
+            ...WordListFetchSelectIncludeWords,
+            words: {
+                select: WordListFetchSelectIncludeWords.words.select,
+                orderBy: {
+                    word: 'asc',
+                },
+            },
+        },
     });
 
     if (!wordlist) {

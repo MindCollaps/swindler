@@ -14,7 +14,7 @@ export default defineEventHandler(async event => {
             where: {
                 OR: [
                     { public: true },
-                    { system: true },
+                    { default: true },
                     { fromUserId: currentUser.userId },
                     { shared: true, sharedLists: { some: { userId: currentUser.userId } } },
                 ],

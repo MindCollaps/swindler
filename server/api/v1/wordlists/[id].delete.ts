@@ -32,7 +32,7 @@ export default defineEventHandler(async event => {
 
     // Check the permissions
     // to delete a wordlist from the systen, you have to be an admin
-    if (wordList.system) {
+    if (wordList.default) {
         if (!currentUser.admin) {
             return createApiError('Not enough permissions to delete this ressource', 403);
         }

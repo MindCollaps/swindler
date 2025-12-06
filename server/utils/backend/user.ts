@@ -1,11 +1,17 @@
 import { prisma } from '~~/server/utils/prisma';
 import { hashPassword } from '~~/server/utils/crypto/password';
 import type { User } from '@prisma/client';
+import type { FakeUser } from '~~/types/redis';
 
 interface CreateUserResult {
     success: boolean;
     user?: User;
     error?: 'ALREADY_EXISTS' | 'DATABASE_ERROR';
+}
+
+interface CreateFakeUserResult {
+    success: boolean;
+    user?: FakeUser;
 }
 
 export async function createUser(
@@ -56,4 +62,41 @@ export async function createUser(
     catch {
         return { success: false, error: 'DATABASE_ERROR' };
     }
+}
+
+export async function createFakeUser(
+    nickname: string,
+    lobby: string,
+): Promise<CreateFakeUserResult> {
+    nickname = nickname.toLowerCase();
+
+    const newUserId = await getFakeUserNextId();
+
+    const fakeUser: FakeUser = {
+        lobby,
+        nickname,
+        id: newUserId,
+    };
+
+    return {
+        success: true,
+        user: fakeUser,
+    };
+}
+
+export async function getFakeUserNextId(): Promise<number> {
+    const redisIdIdentifier = 'fakeuser-id';
+    const redisId = await getRedisSync(redisIdIdentifier);
+    let id: number | undefined;
+
+    if (!redisId) {
+        id = 0;
+    }
+    else {
+        id = parseInt(redisId);
+        id += 1;
+    }
+
+    setRedisSync(redisIdIdentifier, id.toString(), 7 * 24 * 60 * 60 * 1000);
+    return id;
 }

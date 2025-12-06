@@ -3,4 +3,5 @@ export interface UserSession {
     username: string;
     userId: number;
     timeStamp: number;
+    fakeUser: boolean;
 }

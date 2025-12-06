@@ -3,7 +3,6 @@ import jsonwebtoken from 'jsonwebtoken';
 import type { JwtPayload } from 'jsonwebtoken';
 import type { KeyObject } from 'crypto';
 import { createPrivateKey, createPublicKey, generateKeyPairSync } from 'crypto';
-import type { User } from '@prisma/client';
 
 let privKey: KeyObject | null = null;
 let pubKey: KeyObject | null = null;
@@ -62,7 +61,7 @@ export function initJWTSecret() {
     }
 }
 
-export function generateJWT(user: User, random: string, iat: number): string {
+export function generateJWT(userId: number, random: string, iat: number): string {
     if (!privKey) {
         throw new Error('JWT private key not initialized');
     }
@@ -74,7 +73,7 @@ export function generateJWT(user: User, random: string, iat: number): string {
 
     return jsonwebtoken.sign(payload, privKey, {
         issuer: 'Swindler Corp',
-        subject: user.id.toString(),
+        subject: userId.toString(),
         audience: 'Swindler Users',
         expiresIn: '1h',
         algorithm: 'RS256',

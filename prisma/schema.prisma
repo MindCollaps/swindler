@@ -58,12 +58,12 @@ model UserFriends {
 
 model Word {
   id         Int           @id @default(autoincrement())
-  word       String
-  isCustom   Boolean?      @default(false)
+  word       String @unique
   fromUserId Int?
   from       User?         @relation(fields: [fromUserId], references: [id])
   WordLists  WordList[]
   flagged    FlaggedWord[]
+  banned     Boolean?
 }
 
 model FlaggedWord {
@@ -84,7 +84,8 @@ model WordList {
   words       Word[]
   shared      Boolean
   public      Boolean
-  system      Boolean
+  default      Boolean
+  custom      Boolean      @default(false)
   stars       StarredList[]
   sharedLists SharedLists[]
   fromUserId  Int?

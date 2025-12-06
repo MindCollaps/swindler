@@ -7,6 +7,7 @@ import { createToken } from '../crypto';
 import type { UserSession } from '~~/types/data';
 import { getRedisSync } from '~~/server/utils/backend/redis';
 import cookie from 'cookie';
+import type { FakeUser } from '~~/types/redis';
 
 export const userSessionAvailableMS = 5 * 24 * 60 * 60 * 1000;
 
@@ -17,6 +18,14 @@ declare module 'h3' {
 }
 
 export async function makeUserSession(user: User, event: H3Event<EventHandlerRequest>) {
+    await makeSession(user.admin, user.username, user.id, event, false);
+}
+
+export async function makeFakeUserSession(fakeUser: FakeUser, event: H3Event<EventHandlerRequest>) {
+    await makeSession(false, fakeUser.nickname, fakeUser.id, event, true);
+}
+
+async function makeSession(admin: boolean, username: string, userId: number, event: H3Event<EventHandlerRequest>, fakeUser: boolean) {
     let random = createToken(8);
     let found = await getRedisSync(`user-${ random }`);
 
@@ -26,13 +35,14 @@ export async function makeUserSession(user: User, event: H3Event<EventHandlerReq
     }
 
     const iat = Math.floor(Date.now() / 1000);
-    const jwt = generateJWT(user, random, iat);
+    const jwt = generateJWT(userId, random, iat);
 
     const data: UserSession = {
-        admin: user.admin,
-        username: user.username,
-        userId: user.id,
+        admin,
+        username,
+        userId,
         timeStamp: iat,
+        fakeUser: fakeUser,
     };
 
     await setRedisSync(`user-${ random }`, JSON.stringify(data), userSessionAvailableMS);
@@ -79,6 +89,7 @@ async function checkJwt(authCookie: string): Promise<H3EventContext['user'] | un
             admin: user.admin,
             random: jwt.random,
             timeStamp: jwt.iat ?? 0,
+            fakeUser: user.fakeUser,
         };
     }
     catch (error: any) {
@@ -94,7 +105,16 @@ export async function requireAuth(event: H3Event) {
     }
 
     try {
-        event.context.user = await checkJwt(authCookie);
+        const user = await checkJwt(authCookie);
+        if (!user) {
+            throw new Error('User invalid!');
+        }
+        else if (user.fakeUser) {
+            throw new Error('Fake user not authorized for this resource!');
+        }
+        else {
+            event.context.user = user;
+        }
     }
     catch (err) {
         invalidateUserSession(event);

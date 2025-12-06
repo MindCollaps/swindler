@@ -7,6 +7,11 @@ export const signupSchema = z.object({
     email: z.string().email(),
 }).strict();
 
+export const joinSchema = z.object({
+    nickname: z.string().min(3).max(32),
+    lobby: z.string().min(8).max(8),
+}).strict();
+
 export const loginSchema = z.object({
     username: z.string().min(3).max(32),
     password: z.string().min(3).max(64),
@@ -18,7 +23,16 @@ export const WordlistCreationSchema = z.object({
     words: z.array(z.string().min(1).max(64)).min(1),
     isCustom: z.boolean(),
     isPublic: z.boolean(),
-    isSystem: z.boolean(),
+    isDefault: z.boolean(),
+}).strict();
+
+export const WordlistUpdateSchema = z.object({
+    // name: z.string().min(3).max(64),
+    description: z.string().max(256),
+    words: z.array(z.string().min(1).max(64)).min(1),
+    isCustom: z.boolean(),
+    isPublic: z.boolean(),
+    isDefault: z.boolean(),
 }).strict();
 
 export const lobbyCreationResponseSchema = z.object({

@@ -1,5 +1,8 @@
 <template>
-    <div v-if="connected">
+    <div v-if="!store.me?.loggedIn && socket.connected">
+        <create-fake-user :lobby="lobbyId"/>
+    </div>
+    <div v-else-if="connected && store.me?.loggedIn">
         Info
         <br>
         Round {{ lobby?.round }}<br>
@@ -61,6 +64,7 @@
 <script setup lang="ts">
 import { useLobbySocket } from '~/composables/sockets/lobby';
 import { useStore } from '~/store';
+import { socket } from '~/components/socket';
 
 const store = useStore();
 

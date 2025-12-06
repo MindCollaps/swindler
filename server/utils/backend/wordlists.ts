@@ -15,7 +15,7 @@ export async function createWordList(
     isCustom: boolean = false,
     isShared: boolean = false,
     isPublic: boolean = false,
-    isSystem: boolean = false,
+    isDefault: boolean = false,
 
 ): Promise<ImportWordListResult> {
     // check if wordlist with same name exists
@@ -54,7 +54,6 @@ export async function createWordList(
     const createdWords = await prisma.word.createManyAndReturn({
         data: missingWords.map(word => ({
             word,
-            isCustom: isCustom,
             fromUserId: userId,
         })),
         select: { id: true },
@@ -77,7 +76,8 @@ export async function createWordList(
             fromUserId: userId,
             shared: isShared,
             public: isPublic,
-            system: isSystem,
+            default: isDefault,
+            custom: isCustom,
             words: {
                 connect: allWordIds,
             },

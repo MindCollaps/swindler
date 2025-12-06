@@ -14,8 +14,9 @@ export default defineEventHandler(async event => {
 
     const userId = event.context.user?.userId;
     const username = event.context.user?.username;
+    const fakeUser = event.context.user?.fakeUser;
 
-    if (!userId || !username) {
+    if (!userId || !username || fakeUser == undefined) {
         throw createApiError('Invalid Token', 401, validationResult.error);
     }
 
@@ -36,6 +37,7 @@ export default defineEventHandler(async event => {
             id: userId,
             username,
             ready: false,
+            fakeUser,
         },
         gameRules: {
             maxPlayers: 4,

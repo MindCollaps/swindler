@@ -25,18 +25,18 @@ export default defineEventHandler(async event => {
     const isShared = false; // defaults to false and can be changed later when the sharing is triggered
 
     // only admins can create default system wordlists
-    if (data.isSystem) {
+    if (data.isDefault) {
         await requireAdminAuth(event);
     }
     else {
         data.isCustom = true; // all created wordlists are custom by default, but admins can change this
     }
 
-    if (data.isSystem && !data.isPublic) {
+    if (data.isDefault && !data.isPublic) {
         return createApiError('Default wordlists have to be public!', 400);
     }
 
-    if (data.isSystem && data.isCustom) {
+    if (data.isDefault && data.isCustom) {
         return createApiError('Default wordlists cannot be custom!', 400);
     }
 
@@ -49,7 +49,7 @@ export default defineEventHandler(async event => {
         data.isCustom,
         isShared,
         data.isPublic, // choice of the creator, but default wordlists should be public
-        data.isSystem, // default wordlist
+        data.isDefault, // default wordlist
     );
 
     if (!result.success) {

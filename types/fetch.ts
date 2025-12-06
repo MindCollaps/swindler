@@ -3,7 +3,7 @@ import type { Prisma } from '@prisma/client';
 export const LobbysWordListSelect = {
     id: true,
     name: true,
-    system: true,
+    default: true,
     description: true,
     from: {
         select: {
@@ -24,11 +24,10 @@ export const WordListFetchSelect = {
     //     select: {
     //         id: true,
     //         word: true,
-    //         isCustom: true,
     //     },
     // },
     public: true,
-    system: true,
+    default: true,
 };
 
 export const WordListFetchSelectIncludeWords = {
@@ -39,11 +38,11 @@ export const WordListFetchSelectIncludeWords = {
         select: {
             id: true,
             word: true,
-            isCustom: true,
         },
     },
     public: true,
-    system: true,
+    default: true,
+    custom: true,
 };
 
 export type FetchingWordList = Prisma.WordListGetPayload<{

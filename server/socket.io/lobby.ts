@@ -3,14 +3,15 @@ import { prisma } from '../utils/prisma';
 import { LobbysWordListSelect } from '../../types/fetch';
 import { getRedisSync, redisClient, setRedisSync } from '../utils/backend/redis';
 import { createLock, IoredisAdapter } from 'redlock-universal';
-import type { Lobby, Game, ReidsLobbyPlayer, LobbyWordList, LobbyWord, LobbyGame, GivingClue, GameEvent } from '../../types/redis';
+import type { Lobby, Game, ReidsLobbyPlayer, LobbyWordList, LobbyWord, LobbyGame, GivingClue, GameEvent, Voted } from '../../types/redis';
 import { GameEventType } from '../../types/redis';
 
 export default async function lobbyHandler(namespace: Namespace, socket: Socket, id: string) {
     const userId = socket.user?.userId;
     const username = socket.user?.username;
+    const fakeUser = socket.user?.fakeUser;
 
-    if (!userId || !username) {
+    if (!userId || !username || fakeUser == undefined) {
         console.log('No user id found!');
         return;
     }
@@ -38,11 +39,12 @@ export default async function lobbyHandler(namespace: Namespace, socket: Socket,
             lobbyData = JSON.parse(cachedLobby);
         }
 
-        lobbyData.players = lobbyData.players.filter(e => e.id != userId);
+        lobbyData.players = lobbyData.players.filter(e => !(e.id == userId && e.fakeUser == fakeUser));
         lobbyData.players.push({
             id: userId,
-            username: socket.user?.username ?? 'Anonymous',
+            username: username,
             ready: false,
+            fakeUser: fakeUser,
         });
 
         setRedisSync(`lobby-${ id }`, JSON.stringify(lobbyData), 5 * 60 * 60 * 1000);
@@ -66,12 +68,14 @@ export default async function lobbyHandler(namespace: Namespace, socket: Socket,
 
     socket.on('game', () => sendGame(socket, id));
 
+    sendVoted(socket, id);
+
     socket.on('disconnect', async () => {
         const cachedLobby = await getRedisSync(`lobby-${ id }`);
         if (!cachedLobby || !socket.user) return;
         const lobbyData: Lobby = JSON.parse(cachedLobby);
 
-        lobbyData.players = lobbyData.players.filter(e => e.id != userId);
+        lobbyData.players = lobbyData.players.filter(e => !(e.id == userId && e.fakeUser == fakeUser));
         setRedisSync(`lobby-${ id }`, JSON.stringify(lobbyData), 5 * 60 * 60 * 1000);
 
         namespace.emit('players', lobbyData.players);
@@ -95,6 +99,38 @@ export default async function lobbyHandler(namespace: Namespace, socket: Socket,
     asyncWordlist();
 }
 
+async function sendVoted(socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>, id: string) {
+    const gameData = await getRedisSync(`game-${ id }`) as string;
+    const lobbyData = await getRedisSync(`lobby-${ id }`) as string;
+
+    if (!lobbyData || !socket.user?.userId || !gameData) return;
+
+    const lobby: Lobby = JSON.parse(lobbyData);
+    const game: Game = JSON.parse(gameData);
+
+    const events = lobby.gameEvents.filter(x => x.gameNumber == lobby.gameNumber && x.round == game.round && x.turn == game.turn);
+    const upVotes = events.filter(x => x.type == GameEventType.ReceivedUpVote);
+    const downVotes = events.filter(x => x.type == GameEventType.ReceivedDownVote);
+    const imposterVotes = events.filter(x => x.type == GameEventType.SaysImposer);
+
+    const voted: Voted = {
+        up: {
+            num: upVotes.length,
+            voted: upVotes.find(x => x.initiatorId == socket.user?.userId) != undefined,
+        },
+        down: {
+            num: downVotes.length,
+            voted: downVotes.find(x => x.initiatorId == socket.user?.userId) != undefined,
+        },
+        imposter: {
+            num: imposterVotes.length,
+            voted: imposterVotes.find(x => x.initiatorId == socket.user?.userId) != undefined,
+        },
+    };
+
+    socket.emit('voted', voted);
+}
+
 async function ready(socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>, id: string, ready: boolean) {
     const resource = `locks:lobby-${ id }`;
     const lock = createLock({
@@ -112,7 +148,7 @@ async function ready(socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultE
 
         const lobby: Lobby = JSON.parse(lobbyData);
 
-        const player = lobby.players.find(x => x.id == socket.user?.userId);
+        const player = lobby.players.find(x => x.id == socket.user?.userId && x.fakeUser == socket.user.fakeUser);
 
         if (!player) return;
 
@@ -152,7 +188,7 @@ async function vote(socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEv
         const lobby: Lobby = JSON.parse(lobbyData);
         const game: Game = JSON.parse(gameData);
 
-        const player = lobby.players.find(x => x.id == socket.user?.userId);
+        const player = lobby.players.find(x => x.id == socket.user?.userId && x.fakeUser == socket.user.fakeUser);
 
         if (!player) return;
 
@@ -165,7 +201,7 @@ async function vote(socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEv
                     break;
                 }
                 case 2: {
-                    eventType = GameEventType.ReceivedDownVote;
+                    eventType = GameEventType.ReceivedUpVote;
                     break;
                 }
                 case 3: {
@@ -227,7 +263,7 @@ async function giveClue(socket: Socket<DefaultEventsMap, DefaultEventsMap, Defau
         const lobby: Lobby = JSON.parse(lobbyData);
         const game: Game = JSON.parse(gameData);
 
-        const player = lobby.players.find(x => x.id == socket.user?.userId);
+        const player = lobby.players.find(x => x.id == socket.user?.userId && x.fakeUser == socket.user.fakeUser);
 
         if (!player) return;
 

@@ -39,7 +39,7 @@
             >Custom</common-checkbox>
 
             <common-checkbox
-                v-model="isSystem"
+                v-model="isDefault"
             >Default</common-checkbox>
             <common-checkbox
                 v-model="isPublic"
@@ -73,13 +73,15 @@ import { useStore } from '~/store';
 
 const store = useStore();
 
+const router = useRouter();
+
 const wordLists = ref<FetchingWordList[]>();
 
 const name = ref<string>();
 const description = ref<string>();
 const isPublic = ref<boolean>(false);
 const isCustom = ref<boolean>(false);
-const isSystem = ref<boolean>(false);
+const isDefault = ref<boolean>(false);
 const words = ref<string>();
 
 interface Response {
@@ -113,7 +115,7 @@ async function createWordlist() {
                 words: wordArray,
                 isCustom: isCustom.value,
                 isPublic: isPublic.value,
-                isSystem: isSystem.value,
+                isDefault: isDefault.value,
             }),
         });
         if (result.ok) {
@@ -149,7 +151,7 @@ async function deleteWordlist(id: number) {
 }
 
 async function editWordlist(id: number) {
-    window.location.href = `/wordlist/${ id }`;
+    router.push(`/wordlist/${ id }`);
 }
 
 onMounted(() => {

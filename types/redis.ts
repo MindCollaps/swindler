@@ -19,6 +19,13 @@ export interface ReidsLobbyPlayer {
     id: number;
     username: string;
     ready: boolean;
+    fakeUser: boolean;
+}
+
+export interface FakeUser {
+    id: number;
+    nickname: string;
+    lobby: string;
 }
 
 export interface GameRules {
@@ -86,23 +93,13 @@ export enum GameEventType {
     ReceivedDownVote,
 }
 
+export interface Voted {
+    down: Vote;
+    up: Vote;
+    imposter: Vote;
+}
 
-// enum GameEventType {
-//   VotedCorrectly
-//   VotedIncorrectly
-//   VotedAbstain
-//   ReceivedUpVote
-//   ReceivedDownVote
-// }
-
-// model GameEvent {
-//   id          Int           @id @default(autoincrement())
-//   initiatorId Int
-//   receiverId  Int?
-//   triggered   DateTime      @default(now())
-//   type        GameEventType
-//   lobbyId     Int
-
-//   initiator User  @relation("GameEventInitiator", fields: [initiatorId], references: [id])
-//   receiver  User? @relation("GameEventReceiver", fields: [receiverId], references: [id])
-// }
+export interface Vote {
+    voted: boolean;
+    num: number;
+}

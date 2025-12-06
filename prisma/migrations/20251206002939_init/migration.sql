@@ -44,8 +44,8 @@ CREATE TABLE "UserFriends" (
 CREATE TABLE "Word" (
     "id" SERIAL NOT NULL,
     "word" TEXT NOT NULL,
-    "isCustom" BOOLEAN DEFAULT false,
     "fromUserId" INTEGER,
+    "banned" BOOLEAN,
 
     CONSTRAINT "Word_pkey" PRIMARY KEY ("id")
 );
@@ -69,7 +69,8 @@ CREATE TABLE "WordList" (
     "description" TEXT NOT NULL,
     "shared" BOOLEAN NOT NULL,
     "public" BOOLEAN NOT NULL,
-    "system" BOOLEAN NOT NULL,
+    "default" BOOLEAN NOT NULL,
+    "custom" BOOLEAN NOT NULL DEFAULT false,
     "fromUserId" INTEGER,
 
     CONSTRAINT "WordList_pkey" PRIMARY KEY ("id")
@@ -82,6 +83,9 @@ CREATE TABLE "_WordToWordList" (
 
     CONSTRAINT "_WordToWordList_AB_pkey" PRIMARY KEY ("A","B")
 );
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Word_word_key" ON "Word"("word");
 
 -- CreateIndex
 CREATE INDEX "_WordToWordList_B_index" ON "_WordToWordList"("B");
