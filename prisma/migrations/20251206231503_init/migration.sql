@@ -53,7 +53,6 @@ CREATE TABLE "Word" (
 -- CreateTable
 CREATE TABLE "FlaggedWord" (
     "id" SERIAL NOT NULL,
-    "reporter" INTEGER NOT NULL,
     "wordId" INTEGER NOT NULL,
     "reason" INTEGER NOT NULL,
     "message" TEXT,

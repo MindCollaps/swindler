@@ -68,7 +68,6 @@ model Word {
 
 model FlaggedWord {
   id             Int     @id @default(autoincrement())
-  reporter       Int
   wordId         Int
   word           Word    @relation(fields: [wordId], references: [id])
   reason         Int

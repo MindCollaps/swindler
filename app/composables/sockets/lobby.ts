@@ -9,13 +9,21 @@ const lobby: Ref<Lobby | null> = ref(null);
 const wordLists: Ref<FetchingWordList[] | null> = ref(null);
 const connected: Ref<boolean> = ref(false);
 
-export function useLobbySocket(lobbyId: string) {
-    const router = useRouter();
+const disconnect = () => {
+    if (lobbySocket) {
+        lobbySocket.disconnect();
+        lobbySocket.off();
+        console.log('lobby socket disconnected');
+    }
+};
 
+export function useLobbySocket(lobbyId: string) {
     if (!lobbySocket) lobbySocket = io(`/lobby-${ lobbyId }`, { path: '/socket.io', autoConnect: false });
 
     const connect = () => {
         if (!lobbySocket || lobbySocket?.connected) return;
+
+        const router = useRouter();
 
         lobbySocket.on('connect', () => {
             connected.value = true;
@@ -52,28 +60,21 @@ export function useLobbySocket(lobbyId: string) {
         });
 
         lobbySocket.connect();
-    };
 
-    const disconnect = () => {
-        if (lobbySocket) {
-            lobbySocket.disconnect();
-            lobbySocket.off();
-            console.log('lobby socket disconnected');
-        }
+        onBeforeRouteLeave((to, from, next) => {
+            const allowedPrefixes = ['/game/', '/lobby/'];
+
+            const goingOutsideGame = !allowedPrefixes.some(prefix => to.path.startsWith(prefix));
+
+            if (goingOutsideGame) {
+                disconnect();
+                lobbySocket = undefined;
+            }
+            next();
+        });
     };
 
     onMounted(connect);
-    onBeforeRouteLeave((to, from, next) => {
-        const allowedPrefixes = ['/game/', '/lobby/'];
-
-        const goingOutsideGame = !allowedPrefixes.some(prefix => to.path.startsWith(prefix));
-
-        if (goingOutsideGame) {
-            disconnect();
-            lobbySocket = undefined;
-        }
-        next();
-    });
 
     return { lobbySocket, lobby, wordLists, disconnect, connected };
 }

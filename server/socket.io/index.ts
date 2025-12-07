@@ -38,6 +38,7 @@ export function initSocket(io: Server<DefaultEventsMap, DefaultEventsMap, Defaul
                 admin: socket.user?.admin ?? false,
                 username: socket.user?.username ?? '',
                 userid: socket.user?.userId ?? -1,
+                fakeUser: socket.user?.fakeUser ?? false,
             };
 
             socket.emit('me', data);

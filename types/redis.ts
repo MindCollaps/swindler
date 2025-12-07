@@ -46,6 +46,7 @@ export interface Game {
     imposter: number;
     specialGameMode: number;
     turnOrder: number[];
+    gameState: GameState;
 }
 
 export interface LobbyWord {
@@ -91,6 +92,14 @@ export enum GameEventType {
     SaysImposer,
     ReceivedUpVote,
     ReceivedDownVote,
+}
+
+export enum GameState {
+    Idle,
+    Round,
+    Cue,
+    RoundEnd,
+    GameEnd,
 }
 
 export interface Voted {

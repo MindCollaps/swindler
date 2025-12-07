@@ -46,6 +46,10 @@
             >
                 {{ word.word }} {{ word.id === -1 ? ' | Unsafed' : '' }}
                 <common-button @click="deleteWord(word.word)">Delete</common-button>
+                <flag-word
+                    v-if="word.id !== -1"
+                    :word="word"
+                />
             </div>
         </div>
     </div>
@@ -54,6 +58,7 @@
 <script setup lang="ts">
 import { useStore } from '~/store';
 import type { FetchingWordListWithWords } from '~~/types/fetch';
+import FlagWord from '~/components/word/FlagWord.vue';
 
 interface Response {
     data?: FetchingWordListWithWords;

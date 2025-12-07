@@ -10,12 +10,16 @@
 
 <script setup lang="ts">
 import { socket } from '~/components/socket';
+import { useLobbySocket } from '~/composables/sockets/lobby';
 
 const props = defineProps({
-    lobby: {
+    lobbyId: {
         type: String as PropType<string>,
+        required: true,
     },
 });
+
+const { lobbySocket } = useLobbySocket(props.lobbyId);
 
 const nickname = ref<string>();
 
@@ -30,11 +34,14 @@ async function join() {
             method: 'POST',
             body: JSON.stringify({
                 nickname: nickname.value,
-                lobby: props.lobby,
+                lobby: props.lobbyId,
             }),
         });
         socket.disconnect();
         socket.connect();
+        lobbySocket.disconnect();
+        lobbySocket.connect();
+
 
         socket.emit('me');
     }

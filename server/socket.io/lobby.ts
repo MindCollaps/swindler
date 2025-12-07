@@ -4,7 +4,7 @@ import { LobbysWordListSelect } from '../../types/fetch';
 import { getRedisSync, redisClient, setRedisSync } from '../utils/backend/redis';
 import { createLock, IoredisAdapter } from 'redlock-universal';
 import type { Lobby, Game, ReidsLobbyPlayer, LobbyWordList, LobbyWord, LobbyGame, GivingClue, GameEvent, Voted } from '../../types/redis';
-import { GameEventType } from '../../types/redis';
+import { GameEventType, GameState } from '../../types/redis';
 
 export default async function lobbyHandler(namespace: Namespace, socket: Socket, id: string) {
     const userId = socket.user?.userId;
@@ -163,7 +163,6 @@ async function ready(socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultE
 }
 
 async function vote(socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>, id: string, value: any) {
-    // TODO: add function to load how meny voted and include if you were one of them that already voted.
     const eventNumber = value as number;
     if (eventNumber == 4) {
         socket.broadcast.emit('vote', 4);
@@ -275,20 +274,78 @@ async function giveClue(socket: Socket<DefaultEventsMap, DefaultEventsMap, Defau
 
             socket.emit('givingClue', clue);
             socket.broadcast.emit('givingClue', clue);
+            if (isRoundOver(game)) {
+                // Round is over!
+                game.round += 1;
+                if (game.round >= lobby.gameRules.rounds) {
+                    // Game is over!
+                    lobby.gameNumber += 1;
+
+                    setTimeout(async () => {
+                        await setGameSate(socket, id, GameState.GameEnd);
+                        socket.broadcast.emit('gameEnd');
+                        socket.emit('gameEnd');
+                    }, 5000);
+
+                    game.gameState = GameState.Cue;
+
+                    setRedisSync(`game-${ lobby.token }`, JSON.stringify(game), 5 * 60 * 60 * 1000);
+                    return;
+                }
+
+                // Round is over!
+                setTimeout(async () => {
+                    await setGameSate(socket, id, GameState.RoundEnd);
+                    socket.broadcast.emit('roundEnd');
+                    socket.emit('roundEnd');
+
+                    setTimeout(async () => {
+                        await setGameSate(socket, id, GameState.Round);
+                        socket.broadcast.emit('continue');
+                        socket.emit('continue');
+                    }, 5000);
+                }, 5000);
+            }
+            else {
+                // Round is not over!
+                setTimeout(async () => {
+                    await setGameSate(socket, id, GameState.Round);
+                    socket.broadcast.emit('continue');
+                    socket.emit('continue');
+                }, 5000);
+            }
         }
         else return;
 
-        if (isRoundOver(game)) {
-            game.round += 1;
-            if (game.round >= lobby.gameRules.rounds) {
-                socket.broadcast.emit('roundEnd');
-                socket.emit('roundEnd');
-                return;
-            }
-        }
-
+        // Prepare next game and set current game state
         game.turn = nextPlayer(game, lobby);
+        game.gameState = GameState.Cue;
         setRedisSync(`game-${ lobby.token }`, JSON.stringify(game), 5 * 60 * 60 * 1000);
+    }
+    finally {
+        await lock.release(handle);
+    }
+}
+
+async function setGameSate(socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>, id: string, gameState: GameState) {
+    const resource = `locks:game-${ id }`;
+    const lock = createLock({
+        adapter: new IoredisAdapter(redisClient),
+        key: resource,
+        ttl: 20000,
+    });
+
+    const handle = await lock.acquire();
+    try {
+        const gameData = await getRedisSync(`game-${ id }`) as string;
+
+        if (!socket.user || !gameData) return;
+
+        const game: Game = JSON.parse(gameData);
+
+        game.gameState = gameState;
+
+        setRedisSync(`game-${ id }`, JSON.stringify(game), 5 * 60 * 60 * 1000);
     }
     finally {
         await lock.release(handle);
@@ -325,6 +382,7 @@ async function sendGame(socket: Socket<DefaultEventsMap, DefaultEventsMap, Defau
         turn: game.turn,
         word: isImposter ? undefined : game.word,
         imposter: isImposter,
+        gameState: game.gameState,
     };
 
     socket.emit('game', lobbyGame);
@@ -373,6 +431,7 @@ async function createGame(lobby: Lobby) {
         turnOrder: turnOrder,
         turn: turnOrder[0]!,
         word: randomWord,
+        gameState: GameState.Round,
     };
 
     setRedisSync(`game-${ lobby.token }`, JSON.stringify(game), 5 * 60 * 60 * 1000);

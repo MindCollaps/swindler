@@ -45,3 +45,9 @@ export const lobbyCreationResponseSchema = z.object({
     membersCanAddWordLists: z.boolean(),
     membersCanAddCustomWordLists: z.boolean(),
 });
+
+export const FlagWordSchema = z.object({
+    wordId: z.number().int().min(0),
+    reason: z.number().int().min(0),
+    message: z.string().max(256),
+});

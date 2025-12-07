@@ -1,6 +1,6 @@
 <template>
     <div v-if="!store.me?.loggedIn && socket.connected">
-        <create-fake-user :lobby="lobbyId"/>
+        <create-fake-user :lobby-id="lobbyId"/>
     </div>
     <div v-else-if="connected && store.me?.loggedIn">
         Info
@@ -12,16 +12,11 @@
         {{ lobby?.token }}
         {{ lobby?.founder.username }}
         <br>
-        Players {{ lobby?.players.filter(x => x.ready).length }} / {{ lobby?.players.length }} Ready
-        <div>
-            <div
-                v-for="player in lobby?.players.filter(x => x.id !== store.me?.userid)"
-                :key="player.id"
-            >
-                {{ player.username }}
-                {{ player.ready }}
-            </div>
-        </div>
+        <br>
+        <player-list
+            :lobby="lobby"
+            show-ready
+        />
         <br>
         Wordlists
         <div v-if="owner">
@@ -65,6 +60,8 @@
 import { useLobbySocket } from '~/composables/sockets/lobby';
 import { useStore } from '~/store';
 import { socket } from '~/components/socket';
+import CreateFakeUser from '~/components/game/CreateFakeUser.vue';
+import PlayerList from '~/components/game/PlayerList.vue';
 
 const store = useStore();
 
@@ -99,7 +96,7 @@ const allReady: ComputedRef<boolean> = computed(() => {
 
 onMounted(() => {
     if (!lobby.value) {
-        lobbySocket.emit('lobby');
+        nextTick(() => lobbySocket.emit('lobby'));
     }
 });
 

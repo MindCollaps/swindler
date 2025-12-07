@@ -3,4 +3,5 @@ export type MeUserObject = {
     admin: boolean;
     username: string;
     userid: number;
+    fakeUser: boolean;
 };

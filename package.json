@@ -17,7 +17,7 @@
     "db-push": "yarn prisma db push",
     "db-deploy": "yarn prisma migrate deploy",
     "db-drop": "yarn prisma db push --force-reset",
-    "db-reset-db": "yarn prisma migrate reset --force && yarn prisma migrate dev --name init",
+    "db-reset-db": "yarn prisma migrate reset --force && yarn prisma migrate dev --name init && yarn prisma generate",
     "db-reset": "rm ./prisma/migrations -r && yarn db-reset-db"
   },
   "dependencies": {
