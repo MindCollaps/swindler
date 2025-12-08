@@ -34,6 +34,9 @@
         <template v-if="game?.gameState === GameState.RoundEnd">
             Round ended.
         </template>
+        <template v-if="game?.gameState === GameState.Vote">
+            Lets vote someone out
+        </template>
         <template v-if="game?.gameState === GameState.GameEnd">
             Game ended!
             Pretend like you see fancy statistics here please :3

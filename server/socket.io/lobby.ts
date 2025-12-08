@@ -6,6 +6,9 @@ import { createLock, IoredisAdapter } from 'redlock-universal';
 import type { Lobby, Game, ReidsLobbyPlayer, LobbyWordList, LobbyWord, LobbyGame, GivingClue, GameEvent, Voted } from '../../types/redis';
 import { GameEventType, GameState } from '../../types/redis';
 
+const waitForNextRound = 10 * 1000;
+const gameLobbyTtl = 5 * 60 * 60 * 1000;
+
 export default async function lobbyHandler(namespace: Namespace, socket: Socket, id: string) {
     const userId = socket.user?.userId;
     const username = socket.user?.username;
@@ -16,7 +19,7 @@ export default async function lobbyHandler(namespace: Namespace, socket: Socket,
         return;
     }
 
-    const resource = `locks:lobby-${ id }`;
+    const resource = `locks:lobby-${id}`;
 
     const lock = createLock({
         adapter: new IoredisAdapter(redisClient),
@@ -29,7 +32,7 @@ export default async function lobbyHandler(namespace: Namespace, socket: Socket,
     try {
         const handle = await lock.acquire();
 
-        const cachedLobby = await getRedisSync(`lobby-${ id }`);
+        const cachedLobby = await getRedisSync(`lobby-${id}`);
 
         if (!cachedLobby) {
             socket.emit('redirect', '/lobby');
@@ -47,7 +50,7 @@ export default async function lobbyHandler(namespace: Namespace, socket: Socket,
             fakeUser: fakeUser,
         });
 
-        setRedisSync(`lobby-${ id }`, JSON.stringify(lobbyData), 5 * 60 * 60 * 1000);
+        setRedisSync(`lobby-${id}`, JSON.stringify(lobbyData), gameLobbyTtl);
         await lock.release(handle);
 
         socket.emit('lobby', lobbyData);
@@ -71,12 +74,12 @@ export default async function lobbyHandler(namespace: Namespace, socket: Socket,
     sendVoted(socket, id);
 
     socket.on('disconnect', async () => {
-        const cachedLobby = await getRedisSync(`lobby-${ id }`);
+        const cachedLobby = await getRedisSync(`lobby-${id}`);
         if (!cachedLobby || !socket.user) return;
         const lobbyData: Lobby = JSON.parse(cachedLobby);
 
         lobbyData.players = lobbyData.players.filter(e => !(e.id == userId && e.fakeUser == fakeUser));
-        setRedisSync(`lobby-${ id }`, JSON.stringify(lobbyData), 5 * 60 * 60 * 1000);
+        setRedisSync(`lobby-${id}`, JSON.stringify(lobbyData), gameLobbyTtl);
 
         namespace.emit('players', lobbyData.players);
     });
@@ -100,8 +103,8 @@ export default async function lobbyHandler(namespace: Namespace, socket: Socket,
 }
 
 async function sendVoted(socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>, id: string) {
-    const gameData = await getRedisSync(`game-${ id }`) as string;
-    const lobbyData = await getRedisSync(`lobby-${ id }`) as string;
+    const gameData = await getRedisSync(`game-${id}`) as string;
+    const lobbyData = await getRedisSync(`lobby-${id}`) as string;
 
     if (!lobbyData || !socket.user?.userId || !gameData) return;
 
@@ -132,7 +135,7 @@ async function sendVoted(socket: Socket<DefaultEventsMap, DefaultEventsMap, Defa
 }
 
 async function ready(socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>, id: string, ready: boolean) {
-    const resource = `locks:lobby-${ id }`;
+    const resource = `locks:lobby-${id}`;
     const lock = createLock({
         adapter: new IoredisAdapter(redisClient),
         key: resource,
@@ -142,7 +145,7 @@ async function ready(socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultE
     const handle = await lock.acquire();
 
     try {
-        const lobbyData = await getRedisSync(`lobby-${ id }`) as string;
+        const lobbyData = await getRedisSync(`lobby-${id}`) as string;
 
         if (!lobbyData || !socket.user) return;
 
@@ -154,7 +157,7 @@ async function ready(socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultE
 
         player.ready = ready;
 
-        setRedisSync(`lobby-${ id }`, JSON.stringify(lobby), 5 * 60 * 60 * 1000);
+        setRedisSync(`lobby-${id}`, JSON.stringify(lobby), gameLobbyTtl);
         socket.broadcast.emit('players', lobby.players);
     }
     finally {
@@ -169,7 +172,7 @@ async function vote(socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEv
         return;
     }
 
-    const resource = `locks:lobby-${ id }`;
+    const resource = `locks:lobby-${id}`;
     const lock = createLock({
         adapter: new IoredisAdapter(redisClient),
         key: resource,
@@ -179,8 +182,8 @@ async function vote(socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEv
     const handle = await lock.acquire();
 
     try {
-        const gameData = await getRedisSync(`game-${ id }`) as string;
-        const lobbyData = await getRedisSync(`lobby-${ id }`) as string;
+        const gameData = await getRedisSync(`game-${id}`) as string;
+        const lobbyData = await getRedisSync(`lobby-${id}`) as string;
 
         if (!lobbyData || !socket.user || !gameData) return;
 
@@ -191,7 +194,7 @@ async function vote(socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEv
 
         if (!player) return;
 
-        if (!isTurn(game, socket.user.userId)) {
+        if (!isTurn(game, socket.user.userId) || eventNumber == 3) {
             let eventType: GameEventType;
 
             switch (eventNumber) {
@@ -218,6 +221,7 @@ async function vote(socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEv
                 x.round == game.round &&
                 x.gameNumber == lobby.gameNumber &&
                 x.receiverId == game.turn)) {
+                    console.log('already logged');
                 // Event was already logged
                 return;
             }
@@ -234,7 +238,12 @@ async function vote(socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEv
 
             lobby.gameEvents.push(gameEvent);
 
-            setRedisSync(`lobby-${ id }`, JSON.stringify(lobby), 5 * 60 * 60 * 1000);
+            if (checkVoteImposter(game, lobby)) {
+                game.gameState = GameState.Vote;
+                await setRedisSync(`game-${id}`, JSON.stringify(game), gameLobbyTtl);
+            }
+
+            await setRedisSync(`lobby-${id}`, JSON.stringify(lobby), gameLobbyTtl);
             socket.broadcast.emit('vote', eventNumber);
         }
     }
@@ -243,8 +252,17 @@ async function vote(socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEv
     }
 }
 
+function checkVoteImposter(game: Game, lobby: Lobby): boolean {
+    return lobby.gameEvents.filter(x =>
+        x.type == GameEventType.SaysImposer &&
+        x.turn == game.turn &&
+        x.round == game.round &&
+        x.gameNumber == lobby.gameNumber
+    ).length > lobby.players.length / 2;
+}
+
 async function giveClue(socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>, id: string, value: any) {
-    const resource = `locks:game-${ id }`;
+    const resource = `locks:game-${id}`;
     const lock = createLock({
         adapter: new IoredisAdapter(redisClient),
         key: resource,
@@ -254,8 +272,8 @@ async function giveClue(socket: Socket<DefaultEventsMap, DefaultEventsMap, Defau
     const handle = await lock.acquire();
 
     try {
-        const gameData = await getRedisSync(`game-${ id }`) as string;
-        const lobbyData = await getRedisSync(`lobby-${ id }`) as string;
+        const gameData = await getRedisSync(`game-${id}`) as string;
+        const lobbyData = await getRedisSync(`lobby-${id}`) as string;
 
         if (!lobbyData || !socket.user || !gameData) return;
 
@@ -285,34 +303,37 @@ async function giveClue(socket: Socket<DefaultEventsMap, DefaultEventsMap, Defau
                         await setGameSate(socket, id, GameState.GameEnd);
                         socket.broadcast.emit('gameEnd');
                         socket.emit('gameEnd');
-                    }, 5000);
+                    }, waitForNextRound);
 
                     game.gameState = GameState.Cue;
 
-                    setRedisSync(`game-${ lobby.token }`, JSON.stringify(game), 5 * 60 * 60 * 1000);
+                    setRedisSync(`game-${lobby.token}`, JSON.stringify(game), gameLobbyTtl);
                     return;
                 }
 
                 // Round is over!
                 setTimeout(async () => {
+                    if((await getGameState(id)) == GameState.Vote) return sendVoting(socket);
                     await setGameSate(socket, id, GameState.RoundEnd);
                     socket.broadcast.emit('roundEnd');
                     socket.emit('roundEnd');
 
                     setTimeout(async () => {
+                        if((await getGameState(id)) == GameState.Vote) return sendVoting(socket);
                         await setGameSate(socket, id, GameState.Round);
                         socket.broadcast.emit('continue');
                         socket.emit('continue');
-                    }, 5000);
-                }, 5000);
+                    }, waitForNextRound);
+                }, waitForNextRound);
             }
             else {
                 // Round is not over!
                 setTimeout(async () => {
+                    if((await getGameState(id)) == GameState.Vote) return sendVoting(socket);
                     await setGameSate(socket, id, GameState.Round);
                     socket.broadcast.emit('continue');
                     socket.emit('continue');
-                }, 5000);
+                }, waitForNextRound);
             }
         }
         else return;
@@ -320,15 +341,29 @@ async function giveClue(socket: Socket<DefaultEventsMap, DefaultEventsMap, Defau
         // Prepare next game and set current game state
         game.turn = nextPlayer(game, lobby);
         game.gameState = GameState.Cue;
-        setRedisSync(`game-${ lobby.token }`, JSON.stringify(game), 5 * 60 * 60 * 1000);
+        setRedisSync(`game-${lobby.token}`, JSON.stringify(game), gameLobbyTtl);
     }
     finally {
         await lock.release(handle);
     }
 }
 
+function sendVoting(socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>) {
+    socket.broadcast.emit('voting');
+    socket.emit('voting');
+}
+
+async function getGameState(id: string): Promise<GameState | undefined> {
+    const gameData = await getRedisSync(`game-${id}`) as string;
+
+    if (!gameData) return;
+
+    const game: Game = JSON.parse(gameData);
+    return game.gameState;
+}
+
 async function setGameSate(socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>, id: string, gameState: GameState) {
-    const resource = `locks:game-${ id }`;
+    const resource = `locks:game-${id}`;
     const lock = createLock({
         adapter: new IoredisAdapter(redisClient),
         key: resource,
@@ -337,7 +372,7 @@ async function setGameSate(socket: Socket<DefaultEventsMap, DefaultEventsMap, De
 
     const handle = await lock.acquire();
     try {
-        const gameData = await getRedisSync(`game-${ id }`) as string;
+        const gameData = await getRedisSync(`game-${id}`) as string;
 
         if (!socket.user || !gameData) return;
 
@@ -345,7 +380,7 @@ async function setGameSate(socket: Socket<DefaultEventsMap, DefaultEventsMap, De
 
         game.gameState = gameState;
 
-        setRedisSync(`game-${ id }`, JSON.stringify(game), 5 * 60 * 60 * 1000);
+        setRedisSync(`game-${id}`, JSON.stringify(game), gameLobbyTtl);
     }
     finally {
         await lock.release(handle);
@@ -353,7 +388,7 @@ async function setGameSate(socket: Socket<DefaultEventsMap, DefaultEventsMap, De
 }
 
 async function lobbyStart(socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>, id: string) {
-    const lobbyData = await getRedisSync(`lobby-${ id }`);
+    const lobbyData = await getRedisSync(`lobby-${id}`);
     if (!lobbyData || !socket.user) return;
     const lobby: Lobby = JSON.parse(lobbyData);
 
@@ -368,8 +403,8 @@ async function lobbyStart(socket: Socket<DefaultEventsMap, DefaultEventsMap, Def
 }
 
 async function sendGame(socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>, id: string) {
-    const gameData = await getRedisSync(`game-${ id }`) as string;
-    const lobbyData = await getRedisSync(`lobby-${ id }`) as string;
+    const gameData = await getRedisSync(`game-${id}`) as string;
+    const lobbyData = await getRedisSync(`lobby-${id}`) as string;
 
     if (!lobbyData || !socket.user || !gameData) return;
 
@@ -390,7 +425,7 @@ async function sendGame(socket: Socket<DefaultEventsMap, DefaultEventsMap, Defau
 }
 
 async function addWordlist(socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>, id: string, value: any) {
-    const lobbyData = await getRedisSync(`lobby-${ id }`);
+    const lobbyData = await getRedisSync(`lobby-${id}`);
     if (!lobbyData || !socket.user) return;
     const lobby: Lobby = JSON.parse(lobbyData);
 
@@ -398,7 +433,7 @@ async function addWordlist(socket: Socket<DefaultEventsMap, DefaultEventsMap, De
 
     if (lobby.wordLists.indexOf(value) == -1) {
         lobby.wordLists.push(value);
-        setRedisSync(`lobby-${ id }`, JSON.stringify(lobby), 5 * 60 * 60 * 1000);
+        setRedisSync(`lobby-${id}`, JSON.stringify(lobby), gameLobbyTtl);
 
         socket.emit('lobbyWordLists', lobby.wordLists);
         socket.broadcast.emit('lobbyWordLists', lobby.wordLists);
@@ -406,14 +441,14 @@ async function addWordlist(socket: Socket<DefaultEventsMap, DefaultEventsMap, De
 }
 
 async function removeWordlist(socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>, id: string, value: any) {
-    const lobbyData = await getRedisSync(`lobby-${ id }`);
+    const lobbyData = await getRedisSync(`lobby-${id}`);
     if (!lobbyData || !socket.user) return;
     const lobby: Lobby = JSON.parse(lobbyData);
 
     if (!isOwner(lobby, socket.user.userId)) return;
     if (lobby.wordLists.indexOf(value) != -1) {
         lobby.wordLists = lobby.wordLists.filter(x => x != value);
-        setRedisSync(`lobby-${ id }`, JSON.stringify(lobby), 5 * 60 * 60 * 1000);
+        setRedisSync(`lobby-${id}`, JSON.stringify(lobby), gameLobbyTtl);
 
         socket.emit('lobbyWordLists', lobby.wordLists);
         socket.broadcast.emit('lobbyWordLists', lobby.wordLists);
@@ -434,7 +469,7 @@ async function createGame(lobby: Lobby) {
         gameState: GameState.Round,
     };
 
-    setRedisSync(`game-${ lobby.token }`, JSON.stringify(game), 5 * 60 * 60 * 1000);
+    setRedisSync(`game-${lobby.token}`, JSON.stringify(game), gameLobbyTtl);
 }
 
 function chooseImposter(players: ReidsLobbyPlayer[]): number {
@@ -511,7 +546,7 @@ async function chooseRandomWord(wordLists: number[]): Promise<LobbyWord> {
 }
 
 async function getCachedWordList(id: number): Promise<LobbyWordList> {
-    const wordListData = await getRedisSync(`wordlist-${ id }`);
+    const wordListData = await getRedisSync(`wordlist-${id}`);
 
     if (!wordListData) {
         const wordList = await cacheWordLists([id], true);
@@ -536,7 +571,7 @@ async function cacheWordLists(wordLists: number[], skipSearch: boolean = false):
         const exists: number[] = [];
 
         for (const n of wordLists) {
-            const data = await getRedisSync(`wordlist-${ n }`);
+            const data = await getRedisSync(`wordlist-${n}`);
             if (data) {
                 exists.push(n);
             }
@@ -572,7 +607,7 @@ async function cacheWordLists(wordLists: number[], skipSearch: boolean = false):
     });
 
     for (const list of dbWordLists) {
-        setRedisSync(`wordlist-${ list.id }`, JSON.stringify(list), 2 * 24 * 60 * 60 * 1000);
+        setRedisSync(`wordlist-${list.id}`, JSON.stringify(list), 2 * 24 * 60 * 60 * 1000);
     }
 
     return dbWordLists;

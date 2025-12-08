@@ -1,12 +1,12 @@
 <template>
-    <div>
+    <div v-if="lobby">
         <template v-if="showReady">
-            Players {{ lobby?.players.filter(x => x.ready).length }} / {{ lobby?.players.length }} Ready
+            Players {{ lobby.players.filter(x => x.ready).length }} / {{ lobby.players.length }} Ready
         </template>
         <div>
             You
             <div
-                v-for="player in lobby?.players.filter(x => x.id !== store.me?.userid || x.fakeUser !== store.me?.fakeUser)"
+                v-for="player in lobby.players.filter(x => x.id !== store.me?.userid || x.fakeUser !== store.me.fakeUser)"
                 :key="player.fakeUser ? player.id * -1 : player.id"
             >
                 {{ player.username }}
@@ -24,7 +24,6 @@ import { useStore } from '~/store';
 defineProps({
     lobby: {
         type: Object as PropType<Lobby | null>,
-        required: true,
     },
     showReady: {
         type: Boolean,

@@ -13,7 +13,6 @@ const disconnect = () => {
     if (lobbySocket) {
         lobbySocket.disconnect();
         lobbySocket.off();
-        console.log('lobby socket disconnected');
     }
 };
 
@@ -27,10 +26,12 @@ export function useLobbySocket(lobbyId: string) {
 
         lobbySocket.on('connect', () => {
             connected.value = true;
+            console.log(`✅ lobby socket ${lobbyId} connected`);
         });
 
         lobbySocket.on('disconnect', () => {
             connected.value = false;
+            console.log(`❌ lobby socket ${lobbyId} disconnected`)
         });
 
         lobbySocket.on('lobby', data => {

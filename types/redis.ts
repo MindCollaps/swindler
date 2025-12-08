@@ -100,6 +100,7 @@ export enum GameState {
     Cue,
     RoundEnd,
     GameEnd,
+    Vote,
 }
 
 export interface Voted {

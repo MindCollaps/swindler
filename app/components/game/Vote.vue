@@ -14,7 +14,7 @@
         }}
         </common-button>
         <common-button
-            :disabled="myTurn || voted?.imposter.voted"
+            :disabled="voted?.imposter.voted"
             @click="addVote(3, true)"
         >🕵️ {{
             voted?.imposter.num === 0 || !voted?.imposter ?

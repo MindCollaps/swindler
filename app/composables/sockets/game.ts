@@ -107,6 +107,10 @@ export function useGameSocket(lobbyId: string, options: { onHeart?: () => void }
             clue.value = value;
             game.value.gameState = GameState.Cue;
         });
+        gameSocket.on('voting', () => {
+            if (!game.value) return;
+            game.value.gameState = GameState.Vote;
+        });
         gameSocket.on('continue', () => {
             if (!gameSocket) return;
             gameSocket.emit('game');
