@@ -17,11 +17,6 @@ services:
     depends_on:
       - db
       - redis
-    healthcheck:
-      test: ["CMD-SHELL", "wget -q -O- http://localhost:3000/health || exit 1"]
-      interval: 15s
-      timeout: 5s
-      retries: 5
     restart: no
 
   db:

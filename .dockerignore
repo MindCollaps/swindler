@@ -17,4 +17,5 @@ dist
 db/
 redis/
 *.pem
-.config/
+.config/Dockerfile
+.config/Dockerfile.dev

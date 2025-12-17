@@ -6,14 +6,18 @@ services:
       target: runner
     image: swindler:latest
     container_name: swindler-app
+    env_file:
+      - .env
     ports:
       - "3000:3000"
     environment:
       - NODE_ENV=production
       - PORT=3000
     depends_on:
-      - db
-      - redis
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "wget -q -O- http://localhost:3000/health || exit 1"]
@@ -24,6 +28,8 @@ services:
   db:
     image: 'postgres:latest'
     container_name: swindler-db
+    env_file:
+      - .env
     volumes:
       - db_data:/var/lib/postgresql/18/docker
     healthcheck:
@@ -36,6 +42,8 @@ services:
   redis:
     image: 'redis:latest'
     container_name: swindler-redis
+    env_file:
+      - .env
     environment:
       - REDIS_APPLICATION_MODE=master
     volumes:
