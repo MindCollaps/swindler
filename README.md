@@ -7,9 +7,9 @@ sudo docker compose -f docker-compose.dev.yml up -d
 ```
 
 ```bash
-yarn db-push
+bun run db-push
 ```
 
 ```bash
-yarn dev
+bun run dev
 ```
