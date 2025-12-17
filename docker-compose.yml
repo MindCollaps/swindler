@@ -40,7 +40,7 @@ services:
       - REDIS_APPLICATION_MODE=master
     volumes:
       - redis_data:/data
-    command: redis-server /usr/local/etc/redis/redis.conf --requirepass ${REDIS_PASSWORD}
+    command: redis-server --requirepass ${REDIS_PASSWORD}
     healthcheck:
       test: ['CMD', 'redis-cli', 'ping']
       interval: 5s
