@@ -6,10 +6,6 @@ services:
       target: runner
     image: swindler:latest
     container_name: swindler-app
-    env_file:
-      - .env
-    ports:
-      - "3000:3000"
     environment:
       - NODE_ENV=production
       - PORT=3000
@@ -28,8 +24,6 @@ services:
   db:
     image: 'postgres:latest'
     container_name: swindler-db
-    env_file:
-      - .env
     volumes:
       - db_data:/var/lib/postgresql/18/docker
     healthcheck:
@@ -42,8 +36,6 @@ services:
   redis:
     image: 'redis:latest'
     container_name: swindler-redis
-    env_file:
-      - .env
     environment:
       - REDIS_APPLICATION_MODE=master
     volumes:
