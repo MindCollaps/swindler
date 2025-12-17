@@ -3,6 +3,8 @@ FROM oven/bun:1-alpine AS builder
 WORKDIR /app
 ENV NODE_ENV=production
 
+RUN apk add --no-cache nodejs
+
 COPY package.json bun.lock tsconfig.json ./
 
 RUN bun install
@@ -10,7 +12,7 @@ RUN bun install
 COPY . .
 ARG DATABASE_URL=postgresql://swindler:swindler@db:5432/swindler
 ENV DATABASE_URL=${DATABASE_URL}
-RUN bun run prisma generate && bun run prepare && bun run build
+RUN bun run prisma generate && bun run prepare && node node_modules/nuxt/bin/nuxt.mjs build
 
 
 FROM node:20-alpine AS runner
@@ -21,13 +23,14 @@ ENV PORT=3000
 
 RUN addgroup -S app && adduser -S app -G app
 
-COPY package.json ./
-COPY --from=builder /app/node_modules ./node_modules
+RUN chown app:app /app
 
-COPY --from=builder /app/.output ./.output
-COPY --from=builder /app/public ./public
+COPY --chown=app:app package.json ./
+COPY --chown=app:app --from=builder /app/node_modules ./node_modules
 
-RUN chown -R app:app /app
+COPY --chown=app:app --from=builder /app/.output ./.output
+COPY --chown=app:app --from=builder /app/public ./public
+
 USER app
 
 EXPOSE 3000
