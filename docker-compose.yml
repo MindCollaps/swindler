@@ -11,8 +11,6 @@ services:
     environment:
       - NODE_ENV=production
       - PORT=3000
-    env_file:
-      - .env
     depends_on:
       - db
       - redis
@@ -26,8 +24,6 @@ services:
   db:
     image: 'postgres:latest'
     container_name: swindler-db
-    env_file:
-      - .env
     volumes:
       - db_data:/var/lib/postgresql/18/docker
     healthcheck:
@@ -42,8 +38,6 @@ services:
     container_name: swindler-redis
     environment:
       - REDIS_APPLICATION_MODE=master
-    env_file:
-      - .env
     volumes:
       - redis_data:/data
     command: redis-server /usr/local/etc/redis/redis.conf --requirepass ${REDIS_PASSWORD}
