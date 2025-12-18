@@ -3,7 +3,6 @@ services:
     build:
       context: .
       dockerfile: .config/Dockerfile.dev
-    command: ["bun", "run", "dev", "--", "-H", "0.0.0.0"]
     environment:
       - NODE_ENV=development
       - PORT=3000
@@ -24,10 +23,6 @@ services:
     container_name: swindler-db
     env_file:
       - .env
-    environment:
-      - POSTGRES_USER=${POSTGRES_USER:-postgres}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
-      - POSTGRES_DB=${POSTGRES_DB:-swindler_dev}
     ports:
       - "15432:5432"
     volumes:
@@ -43,8 +38,7 @@ services:
       - "6379:6379"
     volumes:
       - ./redis:/data
-      - ./.config/redis.conf:/usr/local/etc/redis/redis.conf
-    command: redis-server /usr/local/etc/redis/redis.conf --requirepass ${REDIS_PASSWORD:-""}
+    command: redis-server --requirepass ${REDIS_PASSWORD:-""}
     restart: no
 
 networks:

@@ -7,14 +7,9 @@ RUN apk add --no-cache \
     build-base python3 python3-dev \
     vips-dev libpng-dev libjpeg-turbo-dev zlib-dev openssl-dev git
 
-COPY package.json bun.lock tsconfig.json ./
-RUN bun install
-
-COPY . .
-
-RUN chown -R node:node /app
-USER node
-
 EXPOSE 3000
 
-CMD ["bun", "run", "dev", "--", "-H", "0.0.0.0"]
+COPY .config/entrypoint.dev.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
+CMD ["/usr/local/bin/entrypoint.sh"]
