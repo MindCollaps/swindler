@@ -18,6 +18,9 @@
             show-ready
         />
         <br>
+        <template v-if="store.me.developer">
+            {{ JSON.stringify(store.me) }}
+        </template>
         Wordlists
         <div v-if="owner">
             <div
@@ -74,7 +77,7 @@ const owner: ComputedRef<boolean> = computed(() => {
     if (!lobby.value?.founder.id || !store.me?.userid) {
         return false;
     }
-    return lobby.value?.founder.id == store.me?.userid;
+    return lobby.value?.founder.id == store.me?.userid && lobby.value?.founder.fakeUser == store.me?.fakeUser;
 });
 
 const ready: ComputedRef<boolean> = computed(() => {

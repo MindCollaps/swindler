@@ -4,4 +4,5 @@ export type MeUserObject = {
     username: string;
     userid: number;
     fakeUser: boolean;
+    developer: boolean;
 };

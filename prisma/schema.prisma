@@ -24,6 +24,7 @@ model User {
   shareWordListsOwned SharedLists[]
   flaggedWords        FlaggedWord[]
   ownedWordLists      WordList[]
+  developer           Boolean
 }
 
 model StarredList {

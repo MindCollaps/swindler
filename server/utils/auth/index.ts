@@ -18,14 +18,14 @@ declare module 'h3' {
 }
 
 export async function makeUserSession(user: User, event: H3Event<EventHandlerRequest>) {
-    await makeSession(user.admin, user.username, user.id, event, false);
+    await makeSession(user.admin, user.username, user.id, event, false, user.developer);
 }
 
 export async function makeFakeUserSession(fakeUser: FakeUser, event: H3Event<EventHandlerRequest>) {
-    await makeSession(false, fakeUser.nickname, fakeUser.id, event, true);
+    await makeSession(false, fakeUser.nickname, fakeUser.id, event, true, false);
 }
 
-async function makeSession(admin: boolean, username: string, userId: number, event: H3Event<EventHandlerRequest>, fakeUser: boolean) {
+async function makeSession(admin: boolean, username: string, userId: number, event: H3Event<EventHandlerRequest>, fakeUser: boolean, developer: boolean = false) {
     let random = createToken(8);
     let found = await getRedisSync(`user-${ random }`);
 
@@ -43,6 +43,7 @@ async function makeSession(admin: boolean, username: string, userId: number, eve
         userId,
         timeStamp: iat,
         fakeUser: fakeUser,
+        developer
     };
 
     await setRedisSync(`user-${ random }`, JSON.stringify(data), userSessionAvailableMS);
@@ -90,6 +91,7 @@ async function checkJwt(authCookie: string): Promise<H3EventContext['user'] | un
             random: jwt.random,
             timeStamp: jwt.iat ?? 0,
             fakeUser: user.fakeUser,
+            developer: user.developer ?? false,
         };
     }
     catch (error: any) {

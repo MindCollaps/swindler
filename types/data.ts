@@ -4,4 +4,5 @@ export interface UserSession {
     userId: number;
     timeStamp: number;
     fakeUser: boolean;
+    developer: boolean;
 }

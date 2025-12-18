@@ -37,6 +37,12 @@ export interface GameRules {
     allowSpecialGameMode: boolean;
     membersCanAddWordLists: boolean;
     membersCanAddCustomWordLists: boolean;
+    revealVotes: boolean;
+}
+
+export enum WinReason {
+    Voted,
+    Guessed,
 }
 
 export interface Game {
@@ -47,6 +53,10 @@ export interface Game {
     specialGameMode: number;
     turnOrder: number[];
     gameState: GameState;
+    cueEndTime?: number;
+    readyToContinue?: number[];
+    imposterGuess?: string;
+    winReason?: WinReason;
 }
 
 export interface LobbyWord {
@@ -64,6 +74,8 @@ export interface LobbyWordList {
 export interface LobbyGame extends Omit<Game, 'imposter' | 'specialGameMode' | 'word' | 'turnOrder'> {
     word?: LobbyWord;
     imposter: boolean;
+    imposterGuess?: string;
+    winReason?: WinReason;
 }
 
 export interface GivingClue {
@@ -92,6 +104,7 @@ export enum GameEventType {
     SaysImposer,
     ReceivedUpVote,
     ReceivedDownVote,
+    VotedForPlayer,
 }
 
 export enum GameState {
@@ -101,6 +114,8 @@ export enum GameState {
     RoundEnd,
     GameEnd,
     Vote,
+    LobbyEnd,
+    ImposterVote,
 }
 
 export interface Voted {

@@ -16,7 +16,7 @@ export default defineEventHandler(async event => {
         throw createApiError('Passwords do not match', 400);
     }
 
-    const result = await createUser(username, email, password, false);
+    const result = await createUser(username, email, password, false, false);
     if (!result.success || !result.user) {
         switch (result.error) {
             case 'ALREADY_EXISTS':

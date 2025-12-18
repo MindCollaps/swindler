@@ -48,6 +48,7 @@ export default defineEventHandler(async event => {
             rounds: 4,
             timeLimit: 0,
             timeLimited: false,
+            revealVotes: false,
         },
         players: [],
     };
