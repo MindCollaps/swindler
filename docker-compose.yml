@@ -2,8 +2,6 @@ services:
   swindler-app:
     image: ghcr.io/mindcollaps/swindler:latest
     container_name: swindler-app
-    ports:
-      - "3000:3000"
     environment:
       - NODE_ENV=production
       - PORT=3000
