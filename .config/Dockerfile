@@ -30,9 +30,15 @@ COPY --chown=app:app --from=builder /app/node_modules ./node_modules
 
 COPY --chown=app:app --from=builder /app/.output ./.output
 COPY --chown=app:app --from=builder /app/public ./public
+COPY --chown=app:app prisma ./prisma
+COPY --chown=app:app prisma.config.ts ./prisma.config.ts
+COPY --chown=app:app .config/wordlists ./.config/wordlists
+COPY --chown=app:app .config/entrypoint.sh ./entrypoint.sh
+
+RUN chmod +x ./entrypoint.sh
 
 USER app
 
 EXPOSE 3000
 
-CMD ["node", ".output/server/index.mjs"]
+CMD ["./entrypoint.sh"]

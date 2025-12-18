@@ -27,6 +27,7 @@ logs
 # Dev
 /db
 /lib
+/redis
 
 .todo.md
 
