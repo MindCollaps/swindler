@@ -1,26 +1,26 @@
 services:
   swindler-app:
-    build:
-      context: .
-      dockerfile: .config/Dockerfile
-      target: runner
-    image: swindler:latest
+    image: ghcr.io/mindcollaps/swindler:latest
     container_name: swindler-app
+    ports:
+      - "3000:3000"
     environment:
       - NODE_ENV=production
       - PORT=3000
+      - NITRO_HOST=0.0.0.0
     depends_on:
       db:
         condition: service_healthy
       redis:
         condition: service_healthy
     restart: unless-stopped
+    env_file:
+      - .env
     healthcheck:
       test: ["CMD-SHELL", "wget -q -O- http://localhost:3000/health || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
-
   db:
     image: 'postgres:latest'
     container_name: swindler-db
@@ -33,6 +33,11 @@ services:
       interval: 5s
       timeout: 20s
       retries: 10
+    env_file:
+      - .env
+    networks:
+      - default
+
   redis:
     image: 'redis:latest'
     container_name: swindler-redis
@@ -41,11 +46,15 @@ services:
     volumes:
       - redis_data:/data
     command: redis-server --requirepass ${REDIS_PASSWORD}
+    env_file:
+      - .env
     healthcheck:
       test: ['CMD', 'redis-cli', 'ping']
       interval: 5s
       timeout: 5s
       retries: 5
+    networks:
+      - default
 
 volumes:
   db_data:
