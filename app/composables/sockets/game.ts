@@ -57,6 +57,9 @@ const addVote = (vote: number, selfVoted: boolean = false) => {
     }
 };
 
+const gameResults = ref<any>(null);
+const hasVotedForPlayer = ref(false);
+
 export function useGameSocket(lobbyId: string, options: { onHeart?: () => void } = {}) {
     if (!gameSocket) {
         const { lobbySocket, lobby: lobbyLobby, connected: lobbyConnected, disconnect: lobbyDisconnect } = useLobbySocket(lobbyId);
@@ -65,6 +68,25 @@ export function useGameSocket(lobbyId: string, options: { onHeart?: () => void }
         lobby = lobbyLobby;
         disconnect = lobbyDisconnect;
     }
+
+    const skipWait = () => {
+        if (!gameSocket) return;
+        gameSocket.emit('skipWait');
+    };
+
+    const voteForPlayer = (playerId: number) => {
+        if (!gameSocket) return;
+        gameSocket.emit('voteForPlayer', playerId);        hasVotedForPlayer.value = true;    };
+
+    const nextGame = () => {
+        if (!gameSocket) return;
+        gameSocket.emit('nextGame');
+    };
+
+    const guessWord = (word: string) => {
+        if (!gameSocket) return;
+        gameSocket.emit('guessWord', word);
+    };
 
     const connect = () => {
         if (!gameSocket) return;
@@ -85,6 +107,21 @@ export function useGameSocket(lobbyId: string, options: { onHeart?: () => void }
         gameSocket.on('game', value => {
             game.value = value;
         });
+        gameSocket.on('gameUpdate', (value: Partial<LobbyGame>) => {
+            if (!game.value) return;
+            Object.assign(game.value, value);
+            console.log('Game update received:', JSON.stringify(value));
+        });
+        gameSocket.on('gameEnd', value => {
+            if (!game.value) return;
+            game.value.gameState = GameState.GameEnd;
+            if (value) {
+                gameResults.value = value;
+            }
+            if (gameSocket) {
+                gameSocket.emit('game');
+            }
+        });
         gameSocket.on('vote', value => {
             if (value as number != 4) {
                 addVote(value);
@@ -97,10 +134,7 @@ export function useGameSocket(lobbyId: string, options: { onHeart?: () => void }
             if (!game.value) return;
             if (!gameSocket) return;
             resetVote();
-        });
-        gameSocket.on('gameEnd', () => {
-            if (!game.value) return;
-            game.value.gameState = GameState.GameEnd;
+            game.value.gameState = GameState.RoundEnd;
         });
         gameSocket.on('givingClue', value => {
             if (!game.value) return;
@@ -116,11 +150,22 @@ export function useGameSocket(lobbyId: string, options: { onHeart?: () => void }
             gameSocket.emit('game');
             resetVote();
         });
+        gameSocket.on('start', () => {
+            if (!gameSocket) return;
+            gameSocket.emit('game');
+            resetVote();
+            gameResults.value = null;
+            hasVotedForPlayer.value = false;
+        });
+        gameSocket.on('lobbyEnd', () => {
+            if (!game.value) return;
+            game.value.gameState = GameState.LobbyEnd;
+        });
     };
 
     onMounted(connect);
 
-    return { gameSocket, lobby, game, voted, addVote, myTurn, disconnect, connected, clue };
+    return { gameSocket, lobby, game, voted, addVote, myTurn, disconnect, connected, clue, skipWait, voteForPlayer, gameResults, nextGame, hasVotedForPlayer, guessWord };
 }
 
 function resetVote() {

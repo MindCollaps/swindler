@@ -1,11 +1,14 @@
-FROM oven/bun:1-alpine
+FROM node:24-slim
 
 WORKDIR /app
 ENV NODE_ENV=development
 
-RUN apk add --no-cache \
-    build-base python3 python3-dev \
-    vips-dev libpng-dev libjpeg-turbo-dev zlib-dev openssl-dev git
+RUN apt-get update
+RUN apt-get install -y default-mysql-client git curl unzip
+
+# Install Bun
+ENV BUN_INSTALL=/usr/local
+RUN curl -fsSL https://bun.sh/install | bash
 
 EXPOSE 3000
 

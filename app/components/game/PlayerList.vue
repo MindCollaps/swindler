@@ -6,8 +6,8 @@
         <div>
             You
             <div
-                v-for="player in lobby.players.filter(x => x.id !== store.me?.userid || x.fakeUser !== store.me.fakeUser)"
-                :key="player.fakeUser ? player.id * -1 : player.id"
+                v-for="player in lobby.players.filter(x => !isSameUser({ id: x.id, fakeUser: x.fakeUser }, { id: store.me?.userid ?? 0, fakeUser: store.me?.fakeUser ?? false }))"
+                :key="player.id"
             >
                 {{ player.username }}
                 <template v-if="showReady">{{ player.ready }}</template>
@@ -18,6 +18,7 @@
 
 <script lang="ts" setup>
 import type { PropType } from 'vue';
+import { isSameUser } from '~/utils/user';
 import type { Lobby } from '~~/types/redis';
 import { useStore } from '~/store';
 

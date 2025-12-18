@@ -20,6 +20,7 @@ export async function createUser(
     password: string,
     admin: boolean = false,
     disabled: boolean = false,
+    developer: boolean = false,
 ): Promise<CreateUserResult> {
     username = username.toLowerCase(); // always use the lowercase username!!
 
@@ -50,6 +51,7 @@ export async function createUser(
                 email,
                 admin,
                 disabled,
+                developer,
             },
         });
 
@@ -85,16 +87,16 @@ export async function createFakeUser(
 }
 
 export async function getFakeUserNextId(): Promise<number> {
-    const redisIdIdentifier = 'fakeuser-id';
+    const redisIdIdentifier = 'fakeuser-neg-id';
     const redisId = await getRedisSync(redisIdIdentifier);
     let id: number | undefined;
 
     if (!redisId) {
-        id = 0;
+        id = -1;
     }
     else {
         id = parseInt(redisId);
-        id += 1;
+        id -= 1;
     }
 
     setRedisSync(redisIdIdentifier, id.toString(), 7 * 24 * 60 * 60 * 1000);

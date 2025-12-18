@@ -50,7 +50,7 @@ async function initializeAdminUser() {
                 disabled = true;
             }
 
-            const result = await createUser(username, email, password, true, disabled);
+            const result = await createUser(username, email, password, true, disabled, true);
             if (!result) {
                 throw new Error('Failed to create the initial admin user');
             }

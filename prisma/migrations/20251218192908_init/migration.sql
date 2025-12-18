@@ -10,6 +10,7 @@ CREATE TABLE "User" (
     "level" INTEGER DEFAULT 0,
     "gamesPlayed" INTEGER DEFAULT 0,
     "admin" BOOLEAN NOT NULL DEFAULT false,
+    "developer" BOOLEAN NOT NULL,
 
     CONSTRAINT "User_pkey" PRIMARY KEY ("id")
 );
