@@ -3,6 +3,17 @@ name: Create and publish a Docker image
 on:
   push:
     branches: ['main']
+    paths:
+      - 'app/**'
+      - 'server/**'
+      - 'public/**'
+      - 'prisma/**'
+      - 'modules/**'
+      - '.config/entrypoint.sh'
+      - 'nuxt.config.ts'
+      - 'package.json'
+      - 'bun.lock'
+      - 'tsconfig.json'
 
 env:
   REGISTRY: ghcr.io
