@@ -21,6 +21,7 @@
         <template v-if="store.me.developer">
             {{ JSON.stringify(store.me) }}
         </template>
+        <br>
         Wordlists
         <div v-if="owner">
             <div

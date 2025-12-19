@@ -43,7 +43,7 @@ async function makeSession(admin: boolean, username: string, userId: number, eve
         userId,
         timeStamp: iat,
         fakeUser: fakeUser,
-        developer
+        developer,
     };
 
     await setRedisSync(`user-${ random }`, JSON.stringify(data), userSessionAvailableMS);

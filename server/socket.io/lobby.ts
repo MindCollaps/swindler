@@ -17,7 +17,7 @@ export default async function lobbyHandler(namespace: Namespace, socket: Socket,
         return;
     }
 
-    const resource = `locks:lobby-${id}`;
+    const resource = `locks:lobby-${ id }`;
 
     const lock = createLock({
         adapter: new IoredisAdapter(redisClient),
@@ -30,7 +30,7 @@ export default async function lobbyHandler(namespace: Namespace, socket: Socket,
     try {
         const handle = await lock.acquire();
 
-        const cachedLobby = await getRedisSync(`lobby-${id}`);
+        const cachedLobby = await getRedisSync(`lobby-${ id }`);
 
         if (!cachedLobby) {
             socket.emit('redirect', '/lobby');
@@ -48,7 +48,7 @@ export default async function lobbyHandler(namespace: Namespace, socket: Socket,
             fakeUser: fakeUser,
         });
 
-        setRedisSync(`lobby-${id}`, JSON.stringify(lobbyData), gameLobbyTtl);
+        setRedisSync(`lobby-${ id }`, JSON.stringify(lobbyData), gameLobbyTtl);
         await lock.release(handle);
 
         socket.emit('lobby', lobbyData);
@@ -75,12 +75,12 @@ export default async function lobbyHandler(namespace: Namespace, socket: Socket,
     sendVoted(socket, id);
 
     socket.on('disconnect', async () => {
-        const cachedLobby = await getRedisSync(`lobby-${id}`);
+        const cachedLobby = await getRedisSync(`lobby-${ id }`);
         if (!cachedLobby || !socket.user) return;
         const lobbyData: Lobby = JSON.parse(cachedLobby);
 
         lobbyData.players = lobbyData.players.filter(e => !isSameUser(e, { id: userId, fakeUser: fakeUser }));
-        setRedisSync(`lobby-${id}`, JSON.stringify(lobbyData), gameLobbyTtl);
+        setRedisSync(`lobby-${ id }`, JSON.stringify(lobbyData), gameLobbyTtl);
 
         namespace.emit('players', lobbyData.players);
     });
@@ -104,7 +104,7 @@ export default async function lobbyHandler(namespace: Namespace, socket: Socket,
 }
 
 async function ready(socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>, id: string, ready: boolean) {
-    const resource = `locks:lobby-${id}`;
+    const resource = `locks:lobby-${ id }`;
     const lock = createLock({
         adapter: new IoredisAdapter(redisClient),
         key: resource,
@@ -114,7 +114,7 @@ async function ready(socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultE
     const handle = await lock.acquire();
 
     try {
-        const lobbyData = await getRedisSync(`lobby-${id}`) as string;
+        const lobbyData = await getRedisSync(`lobby-${ id }`) as string;
 
         if (!lobbyData || !socket.user) return;
 
@@ -126,7 +126,7 @@ async function ready(socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultE
 
         player.ready = ready;
 
-        setRedisSync(`lobby-${id}`, JSON.stringify(lobby), gameLobbyTtl);
+        setRedisSync(`lobby-${ id }`, JSON.stringify(lobby), gameLobbyTtl);
         socket.broadcast.emit('players', lobby.players);
     }
     finally {
@@ -135,7 +135,7 @@ async function ready(socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultE
 }
 
 async function lobbyStart(socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>, id: string) {
-    const lobbyData = await getRedisSync(`lobby-${id}`);
+    const lobbyData = await getRedisSync(`lobby-${ id }`);
     if (!lobbyData || !socket.user) return;
     const lobby: Lobby = JSON.parse(lobbyData);
 
@@ -150,7 +150,7 @@ async function lobbyStart(socket: Socket<DefaultEventsMap, DefaultEventsMap, Def
 }
 
 async function addWordlist(socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>, id: string, value: any) {
-    const lobbyData = await getRedisSync(`lobby-${id}`);
+    const lobbyData = await getRedisSync(`lobby-${ id }`);
     if (!lobbyData || !socket.user) return;
     const lobby: Lobby = JSON.parse(lobbyData);
 
@@ -158,7 +158,7 @@ async function addWordlist(socket: Socket<DefaultEventsMap, DefaultEventsMap, De
 
     if (lobby.wordLists.indexOf(value) == -1) {
         lobby.wordLists.push(value);
-        setRedisSync(`lobby-${id}`, JSON.stringify(lobby), gameLobbyTtl);
+        setRedisSync(`lobby-${ id }`, JSON.stringify(lobby), gameLobbyTtl);
 
         socket.emit('lobbyWordLists', lobby.wordLists);
         socket.broadcast.emit('lobbyWordLists', lobby.wordLists);
@@ -166,20 +166,20 @@ async function addWordlist(socket: Socket<DefaultEventsMap, DefaultEventsMap, De
 }
 
 async function removeWordlist(socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>, id: string, value: any) {
-    const lobbyData = await getRedisSync(`lobby-${id}`);
+    const lobbyData = await getRedisSync(`lobby-${ id }`);
     if (!lobbyData || !socket.user) return;
     const lobby: Lobby = JSON.parse(lobbyData);
 
     if (!isOwner(lobby, { id: socket.user.userId, fakeUser: socket.user.fakeUser })) return;
     if (lobby.wordLists.indexOf(value) != -1) {
         lobby.wordLists = lobby.wordLists.filter(x => x != value);
-        setRedisSync(`lobby-${id}`, JSON.stringify(lobby), gameLobbyTtl);
+        setRedisSync(`lobby-${ id }`, JSON.stringify(lobby), gameLobbyTtl);
 
         socket.emit('lobbyWordLists', lobby.wordLists);
         socket.broadcast.emit('lobbyWordLists', lobby.wordLists);
     }
 }
 
-function isOwner(lobby: Lobby, user: { id: number, fakeUser: boolean }) {
+function isOwner(lobby: Lobby, user: { id: number; fakeUser: boolean }) {
     return isSameUser(lobby.founder, user);
 }

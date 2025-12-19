@@ -13,6 +13,7 @@ export interface Lobby {
     wordLists: number[];
     gameEvents: GameEvent[];
     playedGames: PlayedGame[];
+    wordsSaid: WordSaid[];
 }
 
 export interface ReidsLobbyPlayer {
@@ -87,6 +88,14 @@ export interface PlayedGame extends Omit<Game, 'round' | 'turn'> {
     roundsPlayed: number;
 }
 
+export interface WordSaid {
+    playerId: number;
+    word: string;
+    round: number;
+    turn: number;
+    gameNumber: number;
+}
+
 export interface GameEvent {
     initiatorId: number;
     receiverId?: number;
@@ -100,8 +109,8 @@ export interface GameEvent {
 export enum GameEventType {
     VotedCorrectly,
     VotedIncorrectly,
-    VotedAbstain,
-    SaysImposer,
+    // VotedAbstain,
+    SaysImposter,
     ReceivedUpVote,
     ReceivedDownVote,
     VotedForPlayer,

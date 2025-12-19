@@ -16,21 +16,30 @@
             </div>
             <br>
             Players
-            <player-list :lobby="lobby" />
+            <player-list :lobby="lobby"/>
             <br>
             <br>
-            <clue v-if="myTurn" :lobby-id="lobbyId" />
+            <clue v-if="myTurn"/>
             <div v-if="game?.imposter">
                 <common-button @click="showGuessInput = !showGuessInput">Guess Word</common-button>
                 <div v-if="showGuessInput">
-                    <common-input-text v-model="guessInputValue" placeholder="Guess the word" />
+                    <common-input-text
+                        v-model="guessInputValue"
+                        placeholder="Guess the word"
+                    />
                     <common-button @click="submitGuess">Submit</common-button>
                 </div>
             </div>
+
+            <word-log/>
         </template>
+
+
         <template v-if="game?.gameState === GameState.Idle">
             Waiting for game to start...
         </template>
+
+
         <template v-if="game?.gameState === GameState.Cue">
             <template v-if="store.me?.developer">
                 {{ JSON.stringify(game) }}
@@ -41,36 +50,58 @@
                 <br><br>
             </template>
             {{ clue?.player.username }} said {{ clue?.clue }}
-            <vote :lobby-id="lobbyId" />
+            <vote/>
             <div class="timer">
                 Time until continue: {{ timeRemaining }}s
             </div>
-            <common-button :disabled="isReady" @click="skipWait">
+            <common-button
+                :disabled="isReady"
+                @click="skipWait"
+            >
                 {{ isReady ? 'Waiting for others...' : 'Ready' }} ({{ game?.readyToContinue?.length ?? 0 }}/{{ lobby?.players.length ?? 0 }})
             </common-button>
+            <word-log/>
         </template>
         <template v-if="game?.gameState === GameState.RoundEnd">
-            Round ended.
+            Round ended - Next round starting in {{ timeRemaining }}s
+            <word-log/>
         </template>
+
+
         <template v-if="game?.gameState === GameState.Vote">
             Lets vote someone out
-            <div v-for="player in lobby?.players" :key="player.id">
+            <div
+                v-for="player in lobby?.players"
+                :key="player.id"
+            >
                 {{ player.username }}
-                <common-button :disabled="hasVotedForPlayer" @click="voteForPlayer(player.id)">Vote</common-button>
+                <common-button
+                    :disabled="hasVotedForPlayer"
+                    @click="voteForPlayer(player.id)"
+                >Vote</common-button>
             </div>
             <div v-if="game?.imposter">
                 <common-button @click="showGuessInput = !showGuessInput">Guess Word</common-button>
                 <div v-if="showGuessInput">
-                    <common-input-text v-model="guessInputValue" placeholder="Guess the word" />
+                    <common-input-text
+                        v-model="guessInputValue"
+                        placeholder="Guess the word"
+                    />
                     <common-button @click="submitGuess">Submit</common-button>
                 </div>
             </div>
+
+            <word-log/>
         </template>
+
+
         <template v-if="game?.gameState === GameState.ImposterVote">
             The Imposter thinks '{{ game?.imposterGuess?.toLowerCase() }}' is the word.
             <br>
             The word was: {{ game?.word?.word?.toLowerCase() }}
         </template>
+
+
         <template v-if="game?.gameState === GameState.GameEnd">
             Game ended!
             <div v-if="gameResults">
@@ -92,26 +123,38 @@
                 <br>
                 <template v-if="game?.winReason === WinReason.Voted">
                     Votes:
-                <div v-for="vote in gameResults.votes" :key="vote.initiatorId">
-                    <template v-if="vote.initiatorId !== -1">
-                        {{ lobby?.players.find(p => p.id === vote.initiatorId)?.username }} voted for
-                    </template>
-                    <template v-else>
-                        Someone voted for
-                    </template>
-                    {{ lobby?.players.find(p => p.id === vote.receiverId)?.username }}
-                </div>
+                    <div
+                        v-for="vote in gameResults.votes"
+                        :key="vote.initiatorId"
+                    >
+                        <template v-if="vote.initiatorId !== -1">
+                            {{ lobby?.players.find(p => p.id === vote.initiatorId)?.username }} voted for
+                        </template>
+                        <template v-else>
+                            Someone voted for
+                        </template>
+                        {{ lobby?.players.find(p => p.id === vote.receiverId)?.username }}
+                    </div>
                 </template>
             </div>
-            <common-button v-if="store.me?.userid === lobby?.founder.id" @click="nextGame">
+            <common-button
+                v-if="store.me?.userid === lobby?.founder.id"
+                @click="nextGame"
+            >
                 Next Game
             </common-button>
+
+            <word-log/>
         </template>
+
+
         <template v-if="game?.gameState === GameState.LobbyEnd">
             Lobby ended!
             Thanks for playing!
+
+            <word-log/>
         </template>
-        <heart :lobby-id="lobbyId" />
+        <heart/>
     </div>
     <div v-else>
         Loading
@@ -123,6 +166,7 @@ import Heart from '~/components/game/Heart.vue';
 import PlayerList from '~/components/game/PlayerList.vue';
 import Vote from '~/components/game/Vote.vue';
 import Clue from '~/components/game/Clue.vue';
+import WordLog from '~/components/game/WordLog.vue';
 import { useStore } from '~/store';
 import { GameState, WinReason } from '~~/types/redis';
 import { useGameSocket } from '~/composables/sockets/game';
@@ -147,13 +191,14 @@ function submitGuess() {
     }
 }
 
-watch(() => game.value?.cueEndTime, (newVal) => {
+watch(() => game.value?.cueEndTime, newVal => {
     if (timerInterval) clearInterval(timerInterval);
     if (newVal) {
         updateTimer();
         timerInterval = setInterval(updateTimer, 1000);
         isReady.value = false;
-    } else {
+    }
+    else {
         timeRemaining.value = 0;
     }
 }, { immediate: true });
