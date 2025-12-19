@@ -18,6 +18,10 @@ const myTurn: ComputedRef<boolean> = computed(() => {
     return store.me.userid == game.value.turn;
 });
 
+const disconnectGameSocket = () => {
+    gameSocket = undefined;
+};
+
 // From Lobby
 let lobby: Ref<Lobby | null> = ref(null);
 let connected: Ref<boolean> = ref(false);
@@ -62,7 +66,7 @@ const hasVotedForPlayer = ref(false);
 
 export function useGameSocket(lobbyId: string, options: { onHeart?: () => void } = {}) {
     if (!gameSocket) {
-        const { lobbySocket, lobby: lobbyLobby, connected: lobbyConnected, disconnect: lobbyDisconnect } = useLobbySocket(lobbyId);
+        const { lobbySocket, lobby: lobbyLobby, connected: lobbyConnected, disconnect: lobbyDisconnect } = useLobbySocket(lobbyId, { onDisconnect: disconnectGameSocket });
         gameSocket = lobbySocket;
         connected = lobbyConnected;
         lobby = lobbyLobby;
@@ -76,7 +80,8 @@ export function useGameSocket(lobbyId: string, options: { onHeart?: () => void }
 
     const voteForPlayer = (playerId: number) => {
         if (!gameSocket) return;
-        gameSocket.emit('voteForPlayer', playerId);        hasVotedForPlayer.value = true;    };
+        gameSocket.emit('voteForPlayer', playerId); hasVotedForPlayer.value = true;
+    };
 
     const nextGame = () => {
         if (!gameSocket) return;
@@ -138,8 +143,17 @@ export function useGameSocket(lobbyId: string, options: { onHeart?: () => void }
         });
         gameSocket.on('givingClue', value => {
             if (!game.value) return;
-            clue.value = value;
+            const cue: GivingClue = value;
+
+            clue.value = cue;
             game.value.gameState = GameState.Cue;
+            lobby.value?.wordsSaid.push({
+                playerId: cue.player.id,
+                word: cue.clue,
+                round: game.value.round,
+                turn: game.value.turn,
+                gameNumber: lobby.value.gameNumber,
+            });
         });
         gameSocket.on('voting', () => {
             if (!game.value) return;

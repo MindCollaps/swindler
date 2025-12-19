@@ -33,6 +33,7 @@ export default defineEventHandler(async event => {
         gameEvents: [],
         playedGames: [],
         gameNumber: 1,
+        wordsSaid: [],
         founder: {
             id: userId,
             username,

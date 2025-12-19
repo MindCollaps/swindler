@@ -15,16 +15,13 @@
 import { animate } from 'animejs';
 import { useGameSocket } from '~/composables/sockets/game';
 
-const props = defineProps({
-    lobbyId: {
-        type: String,
-        required: true,
-    },
-});
+const route = useRoute();
+const lobbyId = route.params.id as string;
+
 const hearts = ref<{ id: number }[]>([]);
 const heartRefs = ref<HTMLElement[]>([]);
 
-useGameSocket(props.lobbyId, { onHeart: animateHeart });
+useGameSocket(lobbyId, { onHeart: animateHeart });
 
 function animateHeart() {
     console.log('heart');

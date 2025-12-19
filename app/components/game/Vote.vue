@@ -27,13 +27,9 @@
 <script lang="ts" setup>
 import { useGameSocket } from '~/composables/sockets/game';
 
-const props = defineProps({
-    lobbyId: {
-        type: String,
-        required: true,
-    },
-});
+const route = useRoute();
+const lobbyId = route.params.id as string;
 
-const { voted, addVote, myTurn } = useGameSocket(props.lobbyId);
+const { voted, addVote, myTurn } = useGameSocket(lobbyId);
 </script>
 

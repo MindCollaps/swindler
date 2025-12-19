@@ -11,16 +11,13 @@
 <script lang="ts" setup>
 import { useGameSocket } from '~/composables/sockets/game';
 
-const props = defineProps({
-    lobbyId: {
-        type: String,
-        required: true,
-    },
-});
 
 const clue = ref('');
 
-const { gameSocket } = useGameSocket(props.lobbyId);
+const route = useRoute();
+const lobbyId = route.params.id as string;
+
+const { gameSocket } = useGameSocket(lobbyId);
 
 function sendClue() {
     gameSocket.emit('giveClue', clue.value);

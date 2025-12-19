@@ -17,20 +17,20 @@
 </template>
 
 <script lang="ts" setup>
-import type { PropType } from 'vue';
 import { isSameUser } from '~/utils/user';
-import type { Lobby } from '~~/types/redis';
+import { useGameSocket } from '~/composables/sockets/game';
 import { useStore } from '~/store';
 
 defineProps({
-    lobby: {
-        type: Object as PropType<Lobby | null>,
-    },
     showReady: {
         type: Boolean,
         default: false,
     },
 });
+const route = useRoute();
+const lobbyId = route.params.id as string;
+
+const { lobby } = useGameSocket(lobbyId);
 
 const store = useStore();
 </script>

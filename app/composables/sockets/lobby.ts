@@ -13,10 +13,12 @@ const disconnect = () => {
     if (lobbySocket) {
         lobbySocket.disconnect();
         lobbySocket.off();
+
+        lobbySocket = undefined;
     }
 };
 
-export function useLobbySocket(lobbyId: string) {
+export function useLobbySocket(lobbyId: string, options?: { onDisconnect: () => void }) {
     if (!lobbySocket) lobbySocket = io(`/lobby-${ lobbyId }`, { path: '/socket.io', autoConnect: false });
 
     const connect = () => {
@@ -26,12 +28,15 @@ export function useLobbySocket(lobbyId: string) {
 
         lobbySocket.on('connect', () => {
             connected.value = true;
-            console.log(`✅ lobby socket ${lobbyId} connected`);
+            console.log(`✅ lobby socket ${ lobbyId } connected`);
         });
 
         lobbySocket.on('disconnect', () => {
             connected.value = false;
-            console.log(`❌ lobby socket ${lobbyId} disconnected`)
+            if (options?.onDisconnect) {
+                options.onDisconnect();
+            }
+            console.log(`❌ lobby socket ${ lobbyId } disconnected`);
         });
 
         lobbySocket.on('lobby', data => {

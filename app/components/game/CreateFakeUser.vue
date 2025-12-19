@@ -12,14 +12,10 @@
 import { socket } from '~/components/socket';
 import { useLobbySocket } from '~/composables/sockets/lobby';
 
-const props = defineProps({
-    lobbyId: {
-        type: String as PropType<string>,
-        required: true,
-    },
-});
+const route = useRoute();
+const lobbyId = route.params.id as string;
 
-const { lobbySocket } = useLobbySocket(props.lobbyId);
+const { lobbySocket } = useLobbySocket(lobbyId);
 
 const nickname = ref<string>();
 
@@ -34,7 +30,7 @@ async function join() {
             method: 'POST',
             body: JSON.stringify({
                 nickname: nickname.value,
-                lobby: props.lobbyId,
+                lobby: lobbyId,
             }),
         });
         socket.disconnect();

@@ -1,9 +1,11 @@
 <template>
     <div>
-        <common-checkbox
+        <!--
+ <common-checkbox
             v-model="publicV"
             value="false"
         >Public</common-checkbox>
+-->
         <common-input-number
             v-model="games"
             min="1"
@@ -12,7 +14,8 @@
             v-model="rounds"
             min="1"
         >Rounds</common-input-number>
-        <common-input-number
+        <!--
+ <common-input-number
             v-model="maxPlayers"
             min="1"
         >Max Players</common-input-number>
@@ -32,6 +35,7 @@
             v-model="membersCanAddCustomWordLists"
             value="true"
         >Member can add custom Wordlists</common-checkbox>
+-->
 
         <common-button @click="create()">Create Lobby</common-button>
     </div>
