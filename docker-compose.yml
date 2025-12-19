@@ -34,8 +34,6 @@ services:
       retries: 10
     env_file:
       - .env
-    networks:
-      - default
 
   redis:
     image: 'redis:7-alpine'
@@ -52,8 +50,6 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
-    networks:
-      - default
 
 volumes:
   db_data:
