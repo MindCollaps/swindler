@@ -22,7 +22,8 @@
     "db-deploy": "docker compose -f docker-compose.yml -f docker-compose.dev.yml exec swindler-app bun run prisma migrate deploy",
     "db-drop": "docker compose -f docker-compose.yml -f docker-compose.dev.yml exec swindler-app bun run prisma db push --force-reset",
     "db-reset-db": "docker compose -f docker-compose.yml -f docker-compose.dev.yml exec swindler-app sh -c \"bun run prisma migrate reset --force && bun run prisma migrate dev --name init && bun run prisma generate\"",
-    "db-reset": "rm -rf ./prisma/migrations && bun run db-reset-db"
+    "db-reset": "rm -rf ./prisma/migrations && bun run db-reset-db",
+    "sort": "python .config/sort_wordlists.py"
   },
   "dependencies": {
     "@nuxt/fonts": "0.11.4",
