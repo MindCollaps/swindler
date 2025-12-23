@@ -3,16 +3,16 @@
 <template>
     <div>
         Wordlists
-        <div>
+        <div class="wordlist">
             <div
                 v-for="wordList in wordLists"
                 :key="wordList.name"
-                style="display: flex; align-items: end; justify-content: space-between; margin-bottom: 2px;"
+                class="item"
             >
                 {{ wordList.name }}
-                <div>
-                    <common-button @click="deleteWordlist(wordList.id)">Delete</common-button>
+                <div class="actions">
                     <common-button @click="editWordlist(wordList.id)">Edit</common-button>
+                    <common-button @click="deleteWordlist(wordList.id)">Delete</common-button>
                 </div>
             </div>
         </div>
@@ -158,3 +158,30 @@ onMounted(() => {
     getWordlists();
 });
 </script>
+
+<style lang="scss" scoped>
+    .wordlist {
+        display: flex;
+        flex-direction: column;
+        margin-top: 10px;
+        margin-bottom: 20px;
+        gap: 10px;
+        padding: 10px;
+        border-radius: 5px;
+
+        .item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 2px;
+            background-color: $darkgray900;
+            padding: 8px;
+            border-radius: 4px;
+
+            .actions {
+                display: flex;
+                gap: 8px;
+            }
+        }
+    }
+</style>

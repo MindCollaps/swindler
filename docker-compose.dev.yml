@@ -13,6 +13,11 @@ services:
       - "51212:51212"
     volumes:
       - .:/app:rw
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
 
   db:
     image: postgres:15-alpine
