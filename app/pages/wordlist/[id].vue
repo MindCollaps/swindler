@@ -42,7 +42,7 @@
             <div
                 v-for="word in wordlist.words"
                 :key="word.id"
-                style="display: flex; align-items: end; justify-content: space-between; margin-bottom: 2px;"
+                class="word-item"
             >
                 {{ word.word }} {{ word.id === -1 ? ' | Unsafed' : '' }}
                 <common-button @click="deleteWord(word.word)">Delete</common-button>
@@ -155,3 +155,12 @@ onMounted(() => {
     getWordlist(wordlistId);
 });
 </script>
+
+<style scoped lang='scss'>
+    .word-item {
+        display: flex;
+        align-items: end;
+        justify-content: space-between;
+        margin-bottom: 2px;
+    }
+</style>

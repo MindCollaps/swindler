@@ -17,6 +17,7 @@
                     :name="icon"
                 />
                 <input
+                    ref="inputRef"
                     v-bind="inputAttrs"
                     v-model="model"
                     :disabled="disabled"
@@ -70,6 +71,12 @@ defineSlots<{ default?: () => string }>();
 
 const focused = defineModel('focused', { type: Boolean });
 const model = defineModel({ type: String, default: null });
+
+const inputRef = ref<HTMLInputElement | null>(null);
+
+defineExpose({
+    input: inputRef,
+});
 </script>
 
 <style scoped lang="scss">

@@ -1,0 +1,3 @@
+<template>
+    Waiting for game to start...
+</template>
