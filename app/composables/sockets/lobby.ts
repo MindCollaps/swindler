@@ -34,7 +34,7 @@ export function useLobbySocket(lobbyId: string, options?: { onDisconnect: () => 
         });
 
         lobbySocket.on('connect_error', err => {
-            if (err.message == 'Unauthorized') {
+            if (err.message === 'Unauthorized') {
                 return;
             }
             lobbyNotFound.value = true;
