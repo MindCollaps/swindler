@@ -18,26 +18,26 @@ const passwordSchema = z.string()
     );
 
 export const signupSchema = z.object({
-    username: z.string().min(3).max(32).trim(),
+    username: z.string().min(3).max(32).transform(val => val.trim()),
     password: passwordSchema,
     passwordRepeated: passwordSchema,
-    email: z.string().email().toLowerCase().trim(),
+    email: z.string().email().transform(val => val.toLowerCase().trim()),
 }).strict();
 
 export const joinSchema = z.object({
-    nickname: z.string().min(3).max(32).trim(),
+    nickname: z.string().min(3).max(32).transform(val => val.trim()),
     lobby: z.string().min(8).max(8),
 }).strict();
 
 export const loginSchema = z.object({
-    username: z.string().min(3).max(32).trim(),
+    username: z.string().min(3).max(32).transform(val => val.trim()),
     password: z.string().min(3).max(64),
 }).strict();
 
 export const WordlistCreationSchema = z.object({
-    name: z.string().min(3).max(64).trim(),
-    description: z.string().max(256).trim(),
-    words: z.array(z.string().min(1).max(64).trim()).min(1),
+    name: z.string().min(3).max(64).transform(val => val.trim()),
+    description: z.string().max(256).transform(val => val.trim()),
+    words: z.array(z.string().min(1).max(64).transform(val => val.trim())).min(1),
     isCustom: z.boolean(),
     isPublic: z.boolean(),
     isDefault: z.boolean(),
@@ -45,8 +45,8 @@ export const WordlistCreationSchema = z.object({
 
 export const WordlistUpdateSchema = z.object({
     // name: z.string().min(3).max(64),
-    description: z.string().max(256).trim(),
-    words: z.array(z.string().min(1).max(64).trim()).min(1),
+    description: z.string().max(256).transform(val => val.trim()),
+    words: z.array(z.string().min(1).max(64).transform(val => val.trim())).min(1),
     isCustom: z.boolean(),
     isPublic: z.boolean(),
     isDefault: z.boolean(),
@@ -66,5 +66,5 @@ export const lobbyCreationResponseSchema = z.object({
 export const FlagWordSchema = z.object({
     wordId: z.number().int().min(0),
     reason: z.number().int().min(0),
-    message: z.string().max(256).trim(),
+    message: z.string().max(256).transform(val => val.trim()),
 });
