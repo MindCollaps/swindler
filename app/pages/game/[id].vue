@@ -133,6 +133,8 @@ const componentProps = computed(() => {
             return { game: game.value };
         case GameState.GameEnd:
             return { game: game.value, lobby: lobby.value, gameResults: gameResults.value };
+        case GameState.LobbyEnd:
+            return { lobby: lobby.value };
         default:
             return {};
     }

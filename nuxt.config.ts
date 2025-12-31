@@ -1,6 +1,12 @@
 import svgLoader from 'vite-svg-loader';
+import pkg from './package.json';
 
 export default defineNuxtConfig({
+    runtimeConfig: {
+        public: {
+            version: pkg.version,
+        },
+    },
     app: {
         head: {
             meta: [

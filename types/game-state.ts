@@ -3,3 +3,4 @@ export interface GameStateEmits {
     (e: 'voteForPlayer', playerId: number): void;
     (e: 'guessWord', word: string): void;
 }
+

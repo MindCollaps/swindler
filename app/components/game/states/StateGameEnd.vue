@@ -2,11 +2,11 @@
     <div v-if="gameResults">
         <div
             v-if="imposterWon"
-            :class="iWin ? 'win' : 'loose'"
+            :class="iWin ? 'win' : 'lose'"
         >{{ iWin ? 'You win!' : 'Imposter won' }}</div>
         <div
             v-else
-            :class="iWin ? 'win' : 'loose'"
+            :class="iWin ? 'win' : 'lose'"
         >Crewmates Win</div>
         <div v-if="game?.winReason === WinReason.Guessed">
             {{ gameResults.wasCorrect ? 'Imposter guessed the word correctly!' : 'Imposter guessed the word incorrectly' }}
