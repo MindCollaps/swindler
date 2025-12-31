@@ -2,7 +2,7 @@ import type { Namespace, Socket, DefaultEventsMap } from 'socket.io';
 import { prisma } from '../utils/prisma';
 import { getRedisSync, redisClient, setRedisSync } from '../utils/backend/redis';
 import { createLock, IoredisAdapter } from 'redlock-universal';
-import type { Lobby, Game, ReidsLobbyPlayer, LobbyWordList, LobbyWord, LobbyGame, GivingClue, GameEvent, Voted, WordSaid } from '../../types/redis';
+import type { Lobby, Game, ReidsLobbyPlayer, LobbyWordList, LobbyWord, LobbyGame, GivingClue, GameEvent, Voted, WordSaid, LobbyStat } from '../../types/redis';
 import { GameEventType, GameState, WinReason } from '../../types/redis';
 import { isSameUser } from '../../app/utils/user';
 
@@ -245,6 +245,34 @@ export async function proceedFromVote(id: string, namespace: Namespace) {
         const votedPlayer = votedPlayerId ? lobby.players.find(p => p.id === votedPlayerId) : undefined;
         const imposterPlayer = lobby.players.find(p => p.id === game.imposter);
 
+        // Log VotedCorrectly / VotedIncorrectly
+        votes.forEach(v => {
+            if (v.receiverId === game.imposter) {
+                lobby.gameEvents.push({
+                    initiatorId: v.initiatorId,
+                    receiverId: v.receiverId,
+                    triggered: new Date(),
+                    type: GameEventType.VotedCorrectly,
+                    round: game.round,
+                    turn: game.turn,
+                    gameNumber: lobby.gameNumber,
+                });
+            }
+            else {
+                lobby.gameEvents.push({
+                    initiatorId: v.initiatorId,
+                    receiverId: v.receiverId,
+                    triggered: new Date(),
+                    type: GameEventType.VotedIncorrectly,
+                    round: game.round,
+                    turn: game.turn,
+                    gameNumber: lobby.gameNumber,
+                });
+            }
+        });
+
+        await setRedisSync(`lobby-${ id }`, JSON.stringify(lobby), gameLobbyTtl);
+
         namespace.emit('gameEnd', {
             votedPlayer: votedPlayer,
             imposterPlayer: imposterPlayer,
@@ -463,7 +491,10 @@ export async function nextGame(socket: Socket<DefaultEventsMap, DefaultEventsMap
         }
         else {
             game.gameState = GameState.LobbyEnd;
+            lobby.stats = calculateLobbyStats(lobby);
             await setRedisSync(`game-${ id }`, JSON.stringify(game), gameLobbyTtl);
+            await setRedisSync(`lobby-${ id }`, JSON.stringify(lobby), gameLobbyTtl);
+            namespace.emit('lobby', lobby);
             namespace.emit('lobbyEnd');
         }
     }
@@ -805,5 +836,60 @@ export async function proceedFromImposterVote(id: string, namespace: Namespace) 
     finally {
         await lock.release(handle);
     }
+}
+
+function calculateLobbyStats(lobby: Lobby): LobbyStat[] {
+    const events = lobby.gameEvents;
+    const players = lobby.players;
+
+    const stats: LobbyStat[] = [];
+
+    const addStat = (title: string, className: string, unit: string, type: GameEventType, field: 'initiatorId' | 'receiverId') => {
+        const winner = getStatWinner(events, type, field, players);
+        if (winner.player && winner.count > 0) {
+            stats.push({
+                title,
+                class: className,
+                unit,
+                player: winner.player,
+                count: winner.count,
+                message: winner.message,
+            });
+        }
+    };
+
+    addStat('Best Detective', 'success', 'correct votes', GameEventType.VotedCorrectly, 'initiatorId');
+    addStat('Worst Detective', 'error', 'incorrect votes', GameEventType.VotedIncorrectly, 'initiatorId');
+    addStat('Most Loved', 'primary', 'hearts', GameEventType.ReceivedUpVote, 'receiverId');
+    addStat('Most Sus', 'warning', 'votes', GameEventType.ReceivedDownVote, 'receiverId');
+    addStat('Paranoid', 'info', 'calls', GameEventType.SaysImposter, 'initiatorId');
+
+    return stats.slice(0, 3);
+}
+
+function getStatWinner(events: GameEvent[], type: GameEventType, field: 'initiatorId' | 'receiverId', players: ReidsLobbyPlayer[]) {
+    const counts = new Map<number, number>();
+    events.filter(e => e.type === type).forEach(e => {
+        const id = e[field];
+        if (id !== undefined) {
+            counts.set(id, (counts.get(id) || 0) + 1);
+        }
+    });
+
+    let max = -1;
+    let winnerId = -1;
+    counts.forEach((count, id) => {
+        if (count > max) {
+            max = count;
+            winnerId = id;
+        }
+    });
+
+    if (max <= 0) {
+        return { count: 0, message: 'No one yet' };
+    }
+
+    const player = players.find(p => p.id === winnerId);
+    return { player, count: max, message: '' };
 }
 

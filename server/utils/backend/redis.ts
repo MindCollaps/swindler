@@ -46,6 +46,13 @@ export function setRedisSync(key: string, data: string, expireIn: number) {
     }));
 }
 
+export function expireRedisSync(key: string, expireIn: number) {
+    return new Promise<void>((resolve, reject) => redisClient.pexpire(key, expireIn, err => {
+        if (err) return reject(err);
+        resolve();
+    }));
+}
+
 export function unsetRedisSync(key: string) {
     return new Promise<void>((resolve, reject) => redisClient.del(key, (err, result) => {
         if (err) return reject(err);

@@ -1,3 +1,5 @@
+import { useStore } from '~/store';
+
 export interface HeaderItem {
     text: string;
     active?: boolean;
@@ -12,12 +14,19 @@ export interface HeaderItem {
 
 export const useHeaderMenu = () => computed<HeaderItem[]>(() => {
     const route = useRoute();
+    const store = useStore();
 
     const menu: HeaderItem[] = [
         {
             text: 'Home',
             path: '/',
             icon: 'material-symbols:other-houses',
+        },
+        {
+            text: 'Wordlist',
+            path: '/wordlist',
+            icon: 'material-symbols:menu-book',
+            hide: !(store.me?.admin || store.me?.developer),
         },
     ];
 

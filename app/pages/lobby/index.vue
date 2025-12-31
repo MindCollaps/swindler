@@ -1,5 +1,5 @@
 <template>
-    <div>
+    <common-box>
         <!--
  <common-checkbox
             v-model="publicV"
@@ -38,7 +38,7 @@
 -->
 
         <common-button @click="create()">Create Lobby</common-button>
-    </div>
+    </common-box>
 </template>
 
 <script lang="ts" setup>
@@ -83,4 +83,3 @@ async function create() {
     }
 }
 </script>
-

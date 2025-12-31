@@ -163,9 +163,10 @@ onMounted(() => {
     .wordlist {
         display: flex;
         flex-direction: column;
+        gap: 10px;
+
         margin-top: 10px;
         margin-bottom: 20px;
-        gap: 10px;
         padding: 10px;
         border-radius: 5px;
 
@@ -173,10 +174,12 @@ onMounted(() => {
             display: flex;
             align-items: center;
             justify-content: space-between;
+
             margin-bottom: 2px;
-            background-color: $darkgray900;
             padding: 8px;
             border-radius: 4px;
+
+            background-color: $darkgray900;
 
             .actions {
                 display: flex;

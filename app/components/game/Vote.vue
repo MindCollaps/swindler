@@ -1,5 +1,5 @@
 <template>
-    <div>
+    <div class="vote-buttons">
         <common-button
             :disabled="myTurn || voted?.down.voted"
             @click="addVote(1, true)"
@@ -33,3 +33,9 @@ const lobbyId = route.params.id as string;
 const { voted, addVote, myTurn } = useGameSocket(lobbyId);
 </script>
 
+<style scoped lang="scss">
+.vote-buttons {
+    display: flex;
+    gap: 8px;
+}
+</style>

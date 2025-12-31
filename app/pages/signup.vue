@@ -1,5 +1,5 @@
 <template>
-    <div>
+    <common-box>
         <common-input-text
             v-model="username"
             @keyup.enter="signup"
@@ -19,7 +19,7 @@
             @keyup.enter="signup"
         >Repeat Password</common-input-text>
         <common-button @click="signup">Signup</common-button>
-    </div>
+    </common-box>
 </template>
 
 <script setup lang="ts">

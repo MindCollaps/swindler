@@ -95,7 +95,7 @@ export async function getFakeUserNextId(): Promise<number> {
         id = -1;
     }
     else {
-        id = parseInt(redisId);
+        id = parseInt(redisId, 10);
         id -= 1;
     }
 

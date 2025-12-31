@@ -8,6 +8,7 @@ let lobbySocket: Socket | undefined;
 const lobby: Ref<Lobby | null> = ref(null);
 const wordLists: Ref<FetchingWordList[] | null> = ref(null);
 const connected: Ref<boolean> = ref(false);
+const lobbyNotFound: Ref<boolean> = ref(false);
 
 const disconnect = () => {
     if (lobbySocket) {
@@ -28,7 +29,17 @@ export function useLobbySocket(lobbyId: string, options?: { onDisconnect: () => 
 
         lobbySocket.on('connect', () => {
             connected.value = true;
+            lobbyNotFound.value = false;
             console.log(`✅ lobby socket ${ lobbyId } connected`);
+        });
+
+        lobbySocket.on('connect_error', err => {
+            if (err.message === 'Unauthorized') {
+                return;
+            }
+            lobbyNotFound.value = true;
+            connected.value = false;
+            console.log(`❌ lobby socket ${ lobbyId } connection error`, err);
         });
 
         lobbySocket.on('disconnect', () => {
@@ -65,6 +76,7 @@ export function useLobbySocket(lobbyId: string, options?: { onDisconnect: () => 
             }
         });
 
+        lobbyNotFound.value = false;
         lobbySocket.connect();
 
         onBeforeRouteLeave((to, from, next) => {
@@ -82,5 +94,5 @@ export function useLobbySocket(lobbyId: string, options?: { onDisconnect: () => 
 
     onMounted(connect);
 
-    return { lobbySocket, lobby, wordLists, disconnect, connected };
+    return { lobbySocket, lobby, wordLists, disconnect, connected, lobbyNotFound };
 }

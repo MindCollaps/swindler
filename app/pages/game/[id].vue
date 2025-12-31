@@ -1,195 +1,69 @@
 <template>
-    <div v-if="connected">
-        <template v-if="game?.gameState === GameState.Round">
-            Round: {{ game?.round }}
-            <div v-if="myTurn">
-                Your Turn
-            </div>
-            <div v-else>
-                {{ turnName }}'s turn
-            </div>
-            <br>
-            Imposter: {{ game?.imposter ? 'yes' : 'no' }}
-            <br>
-            <div v-if="!game?.imposter">
-                Word: {{ game?.word?.word }}
-            </div>
-            <br>
-            Players
-            <player-list :lobby="lobby"/>
-            <br>
-            <br>
-            <clue v-if="myTurn"/>
-            <div v-if="game?.imposter">
-                <common-button @click="showGuessInput = !showGuessInput">Guess Word</common-button>
-                <div v-if="showGuessInput">
-                    <common-input-text
-                        v-model="guessInputValue"
-                        placeholder="Guess the word"
-                    />
-                    <common-button @click="submitGuess">Submit</common-button>
-                </div>
-            </div>
-
-            <word-log/>
-        </template>
-
-
-        <template v-if="game?.gameState === GameState.Idle">
-            Waiting for game to start...
-        </template>
-
-
-        <template v-if="game?.gameState === GameState.Cue">
-            <template v-if="store.me?.developer">
-                {{ JSON.stringify(game) }}
-                <br><br>
-                {{ JSON.stringify(lobby) }}
-                <br><br>
-                {{ JSON.stringify(voted) }}
-                <br><br>
-            </template>
-            {{ clue?.player.username }} said {{ clue?.clue }}
-            <vote/>
-            <div class="timer">
-                Time until continue: {{ timeRemaining }}s
-            </div>
-            <common-button
-                :disabled="isReady"
-                @click="skipWait"
-            >
-                {{ isReady ? 'Waiting for others...' : 'Ready' }} ({{ game?.readyToContinue?.length ?? 0 }}/{{ lobby?.players.length ?? 0 }})
-            </common-button>
-            <word-log/>
-        </template>
-        <template v-if="game?.gameState === GameState.RoundEnd">
-            Round ended - Next round starting in {{ timeRemaining }}s
-            <word-log/>
-        </template>
-
-
-        <template v-if="game?.gameState === GameState.Vote">
-            Lets vote someone out
-            <div
-                v-for="player in lobby?.players"
-                :key="player.id"
-            >
-                {{ player.username }}
-                <common-button
-                    :disabled="hasVotedForPlayer"
-                    @click="voteForPlayer(player.id)"
-                >Vote</common-button>
-            </div>
-            <div v-if="game?.imposter">
-                <common-button @click="showGuessInput = !showGuessInput">Guess Word</common-button>
-                <div v-if="showGuessInput">
-                    <common-input-text
-                        v-model="guessInputValue"
-                        placeholder="Guess the word"
-                    />
-                    <common-button @click="submitGuess">Submit</common-button>
-                </div>
-            </div>
-
-            <word-log/>
-        </template>
-
-
-        <template v-if="game?.gameState === GameState.ImposterVote">
-            The Imposter thinks '{{ game?.imposterGuess?.toLowerCase() }}' is the word.
-            <br>
-            The word was: {{ game?.word?.word?.toLowerCase() }}
-        </template>
-
-
-        <template v-if="game?.gameState === GameState.GameEnd">
-            Game ended!
-            <div v-if="gameResults">
-                <div v-if="game.winReason === WinReason.Guessed">
-                    {{ gameResults.wasCorrect ? 'Imposter guessed the word correctly!' : 'Imposter guessed the word incorrectly' }}
-                </div>
-                <div v-else-if="game.winReason === WinReason.Voted">
-                    {{ gameResults.wasCorrect ? 'You correctly voted the imposter!' : 'You failed to vote the imposter' }}
-                </div>
-                <br>
-                Imposter was: {{ gameResults.imposterPlayer?.username }}
-                <br>
-                The word was: {{ game?.word?.word }}
-                <br>
-                <template v-if="game?.winReason === WinReason.Voted">
-                    Voted out: {{ gameResults.votedPlayer?.username ?? 'No one' }}
-                    <br>
-                </template>
-                <br>
-                <template v-if="game?.winReason === WinReason.Voted">
-                    Votes:
-                    <div
-                        v-for="vote in gameResults.votes"
-                        :key="vote.initiatorId"
-                    >
-                        <template v-if="vote.initiatorId !== -1">
-                            {{ lobby?.players.find(p => p.id === vote.initiatorId)?.username }} voted for
-                        </template>
-                        <template v-else>
-                            Someone voted for
-                        </template>
-                        {{ lobby?.players.find(p => p.id === vote.receiverId)?.username }}
-                    </div>
-                </template>
-            </div>
-            <common-button
-                v-if="store.me?.userid === lobby?.founder.id"
-                @click="nextGame"
-            >
-                Next Game
-            </common-button>
-
-            <word-log/>
-        </template>
-
-
-        <template v-if="game?.gameState === GameState.LobbyEnd">
-            Lobby ended!
-            Thanks for playing!
-
-            <word-log/>
-        </template>
-        <heart/>
+    <common-lobby-not-found v-if="lobbyNotFound"/>
+    <div
+        v-else-if="connected"
+        class="game"
+    >
+        <component
+            :is="currentStateComponent"
+            v-if="currentStateComponent"
+            v-bind="componentProps"
+            @guessWord="guessWord"
+            @nextGame="nextGame"
+            @skipWait="skipWait"
+            @voteForPlayer="voteForPlayer"
+        />
+        <heart
+            v-for="heart in hearts"
+            :key="heart.id"
+            :x="heart.x"
+            :y="heart.y"
+        />
     </div>
     <div v-else>
-        Loading
+        Loading...
     </div>
 </template>
 
 <script setup lang="ts">
 import Heart from '~/components/game/Heart.vue';
-import PlayerList from '~/components/game/PlayerList.vue';
-import Vote from '~/components/game/Vote.vue';
-import Clue from '~/components/game/Clue.vue';
-import WordLog from '~/components/game/WordLog.vue';
-import { useStore } from '~/store';
-import { GameState, WinReason } from '~~/types/redis';
+import { GameState } from '~~/types/redis';
 import { useGameSocket } from '~/composables/sockets/game';
+
+import StateRound from '~/components/game/states/StateRound.vue';
+import StateIdle from '~/components/game/states/StateIdle.vue';
+import StateCue from '~/components/game/states/StateCue.vue';
+import StateRoundEnd from '~/components/game/states/StateRoundEnd.vue';
+import StateVote from '~/components/game/states/StateVote.vue';
+import StateImposterVote from '~/components/game/states/StateImposterVote.vue';
+import StateGameEnd from '~/components/game/states/StateGameEnd.vue';
+import StateLobbyEnd from '~/components/game/states/StateLobbyEnd.vue';
+
+definePageMeta({
+    layout: 'empty',
+});
 
 const route = useRoute();
 
 const lobbyId = route.params.id as string;
-const store = useStore();
 
-const { gameSocket: gameSocket, game, connected, lobby, myTurn, clue, voteForPlayer, gameResults, nextGame, hasVotedForPlayer, guessWord, voted } = useGameSocket(lobbyId);
+const { gameSocket: gameSocket, game, connected, lobby, myTurn, clue, voteForPlayer, gameResults, nextGame, hasVotedForPlayer, guessWord, voted, lobbyNotFound } = useGameSocket(lobbyId);
 
 const timeRemaining = ref(0);
 const isReady = ref(false);
-const showGuessInput = ref(false);
-const guessInputValue = ref('');
 let timerInterval: ReturnType<typeof setInterval> | null = null;
 
-function submitGuess() {
-    if (guessInputValue.value) {
-        guessWord(guessInputValue.value);
-        showGuessInput.value = false;
-    }
-}
+const hearts = ref<{ id: number; x: number; y: number }[]>([]);
+let heartId = 0;
+
+
+gameSocket.on('heart', () => {
+    const id = heartId++;
+    hearts.value.push({ id, x: Math.random() * 90, y: Math.random() * 90 });
+    setTimeout(() => {
+        hearts.value = hearts.value.filter(h => h.id !== id);
+    }, 2000);
+});
 
 watch(() => game.value?.cueEndTime, newVal => {
     if (timerInterval) clearInterval(timerInterval);
@@ -209,7 +83,7 @@ function updateTimer() {
         return;
     }
     const diff = Math.ceil((game.value.cueEndTime - Date.now()) / 1000);
-    timeRemaining.value = diff > 0 ? diff - 2 : 0;
+    timeRemaining.value = diff > 0 ? diff - 1 : 0;
 }
 
 function skipWait() {
@@ -227,6 +101,43 @@ const turnName: ComputedRef<string> = computed(() => {
     }
 
     return lobby.value.players.find(x => x.id == game.value?.turn)?.username ?? '';
+});
+
+const stateComponents = {
+    [GameState.Round]: StateRound,
+    [GameState.Idle]: StateIdle,
+    [GameState.Cue]: StateCue,
+    [GameState.RoundEnd]: StateRoundEnd,
+    [GameState.Vote]: StateVote,
+    [GameState.ImposterVote]: StateImposterVote,
+    [GameState.GameEnd]: StateGameEnd,
+    [GameState.LobbyEnd]: StateLobbyEnd,
+};
+
+const currentStateComponent = computed(() => {
+    if (game.value?.gameState === undefined) return null;
+    return stateComponents[game.value.gameState];
+});
+
+const componentProps = computed(() => {
+    switch (game.value?.gameState) {
+        case GameState.Round:
+            return { game: game.value, lobby: lobby.value, myTurn: myTurn.value, turnName: turnName.value };
+        case GameState.Cue:
+            return { game: game.value, lobby: lobby.value, voted: voted.value, clue: clue.value, timeRemaining: timeRemaining.value, isReady: isReady.value };
+        case GameState.RoundEnd:
+            return { timeRemaining: timeRemaining.value };
+        case GameState.Vote:
+            return { game: game.value, lobby: lobby.value, hasVotedForPlayer: hasVotedForPlayer.value };
+        case GameState.ImposterVote:
+            return { game: game.value };
+        case GameState.GameEnd:
+            return { game: game.value, lobby: lobby.value, gameResults: gameResults.value };
+        case GameState.LobbyEnd:
+            return { lobby: lobby.value };
+        default:
+            return {};
+    }
 });
 
 onMounted(() => {
@@ -247,5 +158,9 @@ onMounted(() => {
     color: #ff6b9d;
 
     opacity: 1;
+}
+
+.game {
+    padding: 16px;
 }
 </style>

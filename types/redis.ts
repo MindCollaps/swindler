@@ -14,6 +14,16 @@ export interface Lobby {
     gameEvents: GameEvent[];
     playedGames: PlayedGame[];
     wordsSaid: WordSaid[];
+    stats?: LobbyStat[];
+}
+
+export interface LobbyStat {
+    title: string;
+    class: string;
+    unit: string;
+    player?: ReidsLobbyPlayer;
+    count: number;
+    message: string;
 }
 
 export interface ReidsLobbyPlayer {

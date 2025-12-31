@@ -1,5 +1,5 @@
 <template>
-    <div>
+    <common-box>
         <common-input-text
             v-model="username"
             @keyup.enter="login"
@@ -10,7 +10,7 @@
             @keyup.enter="login"
         >Password</common-input-text>
         <common-button @click="login">Login</common-button>
-    </div>
+    </common-box>
 </template>
 
 <script setup lang="ts">
