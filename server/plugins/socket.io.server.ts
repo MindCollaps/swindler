@@ -14,6 +14,11 @@ export default defineNitroPlugin((nitroApp: NitroApp) => {
         cleanupEmptyChildNamespaces: true,
         pingInterval: 25000,
         pingTimeout: 60000,
+        cors: {
+            origin: process.env.ALLOWED_ORIGINS?.split(',') || '*',
+            methods: ['GET', 'POST'],
+            credentials: true,
+        },
     });
 
     socketServer.bind(engine);

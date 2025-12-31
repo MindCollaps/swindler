@@ -116,7 +116,10 @@ export async function requireAuth(event: H3Event) {
     }
     catch (err) {
         invalidateUserSession(event);
-        console.log(err);
+        // Log error for debugging but don't expose details to client
+        if (import.meta.dev) {
+            console.error('Auth error:', err);
+        }
         throw createApiError('Invalid or expired token', 401);
     }
 }
