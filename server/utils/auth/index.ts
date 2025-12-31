@@ -57,10 +57,6 @@ export function invalidateUserSession(event: H3Event<EventHandlerRequest>) {
     }
 }
 
-export function invalidateUserSessionSocket(socket: Socket) {
-    socket.emit('logout');
-}
-
 async function checkJwt(authCookie: string): Promise<H3EventContext['user'] | undefined> {
     try {
         const jwt = verifyJWT(authCookie);
@@ -140,7 +136,8 @@ export async function parseSocketCookie(socket: Socket<DefaultEventsMap, Default
         return user;
     }
     catch {
-        invalidateUserSessionSocket(socket);
+        // invalid token
+        return undefined;
     }
 }
 

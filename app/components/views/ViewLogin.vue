@@ -24,15 +24,10 @@
 
 <script setup lang="ts">
 import { useStore } from '~/store';
+import { ready } from '~/composables/layout';
 import CommonLoader from '../common/CommonLoader.vue';
 
 const store = useStore();
-
-const ready = ref(false);
-
-onMounted(() => {
-    ready.value = true;
-});
 </script>
 
 <style scoped lang="scss">

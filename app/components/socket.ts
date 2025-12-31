@@ -6,19 +6,20 @@ import type { MeUserObject } from '~~/types/socket';
 export let socket: Socket;
 
 export function setupSocket() {
-    const router = useRouter();
-
-    const store = useStore();
-
     if (!socket) {
         socket = io('/', { path: '/socket.io', autoConnect: false });
     }
 
-    onMounted(() => {
+    const router = useRouter();
+
+    const store = useStore();
+
+    onBeforeMount(() => {
         if (socket.connected) return;
 
         socket.on('me', (response: MeUserObject) => {
             store.me = response;
+            store.ready = true;
         });
         socket.on('logout', () => {
             window.location.href = '/logout';
@@ -28,7 +29,5 @@ export function setupSocket() {
         });
 
         socket.connect();
-
-        socket.emit('me');
     });
 }

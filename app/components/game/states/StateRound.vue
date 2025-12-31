@@ -74,6 +74,7 @@ import PlayerList from '~/components/game/PlayerList.vue';
 import Clue from '~/components/game/Clue.vue';
 import WordLog from '~/components/game/WordLog.vue';
 import type { LobbyGame, Lobby } from '~~/types/redis';
+import type { GameStateEmits } from '~~/types/game-state';
 
 defineProps<{
     game: LobbyGame | null;
@@ -82,9 +83,7 @@ defineProps<{
     turnName: string;
 }>();
 
-const emit = defineEmits<{
-    (e: 'guessWord', word: string): void;
-}>();
+const emit = defineEmits<GameStateEmits>();
 
 const showGuessInput = ref(false);
 const guessInputValue = ref('');

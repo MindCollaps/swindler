@@ -27,6 +27,7 @@ import Vote from '~/components/game/Vote.vue';
 import WordLog from '~/components/game/WordLog.vue';
 import { useStore } from '~/store';
 import type { LobbyGame, Lobby, Voted, GivingClue } from '~~/types/redis';
+import type { GameStateEmits } from '~~/types/game-state';
 
 defineProps<{
     game: LobbyGame | null;
@@ -37,9 +38,7 @@ defineProps<{
     isReady: boolean;
 }>();
 
-defineEmits<{
-    (e: 'skipWait'): void;
-}>();
+defineEmits<GameStateEmits>();
 
 const store = useStore();
 </script>

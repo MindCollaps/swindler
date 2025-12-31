@@ -7,7 +7,7 @@ export const useStore = defineStore('index', {
         theme: 'default' as ThemesList,
         lobbyCode: '',
         me: undefined as MeUserObject | undefined,
-        setupDone: false,
+        ready: false,
     }),
     actions: {
     },

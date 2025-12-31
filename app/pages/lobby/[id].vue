@@ -1,5 +1,6 @@
 <template>
-    <div v-if="!store?.me?.loggedIn && socket.connected">
+    <common-lobby-not-found v-if="lobbyNotFound"/>
+    <div v-else-if="!store?.me?.loggedIn && socket.connected">
         <create-fake-user :lobby-id="lobbyId"/>
     </div>
     <div
@@ -105,7 +106,7 @@ function copyLink() {
     uriInput.value?.input?.select();
 }
 
-const { lobbySocket, lobby, wordLists, connected } = useLobbySocket(lobbyId);
+const { lobbySocket, lobby, wordLists, connected, lobbyNotFound } = useLobbySocket(lobbyId);
 
 const owner: ComputedRef<boolean> = computed(() => {
     if (!lobby.value?.founder.id || !store?.me?.userid) {

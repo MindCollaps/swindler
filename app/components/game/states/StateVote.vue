@@ -19,6 +19,7 @@
 <script setup lang="ts">
 import WordLog from '~/components/game/WordLog.vue';
 import type { LobbyGame, Lobby } from '~~/types/redis';
+import type { GameStateEmits } from '~~/types/game-state';
 
 defineProps<{
     game: LobbyGame | null;
@@ -26,9 +27,7 @@ defineProps<{
     hasVotedForPlayer: boolean;
 }>();
 
-defineEmits<{
-    (e: 'voteForPlayer', playerId: number): void;
-}>();
+defineEmits<GameStateEmits>();
 </script>
 
 <style scoped lang="scss">

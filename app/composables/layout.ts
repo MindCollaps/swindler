@@ -1,9 +1,13 @@
 import { useStore } from '~/store';
 import { setupSocket } from '~/components/socket';
 
-export const useLayout = () => {
-    const store = useStore();
+const store = useStore();
 
+export const ready = computed(() => {
+    return store.ready;
+});
+
+export const useLayout = () => {
     // Theme handling
     const themeCookie = useCookie<ThemesList>('theme', {
         path: '/',

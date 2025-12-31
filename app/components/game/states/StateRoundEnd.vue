@@ -6,10 +6,13 @@
 
 <script setup lang="ts">
 import WordLog from '~/components/game/WordLog.vue';
+import type { GameStateEmits } from '~~/types/game-state';
 
 defineProps<{
     timeRemaining: number;
 }>();
+
+defineEmits<GameStateEmits>();
 </script>
 
 <style scoped lang="scss">

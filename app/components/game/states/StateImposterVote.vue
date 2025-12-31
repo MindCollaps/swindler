@@ -11,17 +11,23 @@
         </div>
         The Imposter thinks '{{ game?.imposterGuess?.toLowerCase() }}' is the word.
     </div>
-    <div v-else>
+    <div
+        v-else
+        class="guess"
+    >
         You think '{{ game?.imposterGuess?.toLowerCase() }}' is the word.
     </div>
 </template>
 
 <script setup lang="ts">
 import type { LobbyGame } from '~~/types/redis';
+import type { GameStateEmits } from '~~/types/game-state';
 
 defineProps<{
     game: LobbyGame | null;
 }>();
+
+defineEmits<GameStateEmits>();
 </script>
 
 <style scoped lang="scss">

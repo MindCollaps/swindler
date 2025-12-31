@@ -32,19 +32,25 @@ export function initSocket(io: Server<DefaultEventsMap, DefaultEventsMap, Defaul
 
     io.on('connection', socket => {
         socket.on('me', () => {
-            const loggedIn = !!socket.user;
-            const data: MeUserObject = {
-                loggedIn,
-                admin: socket.user?.admin ?? false,
-                username: socket.user?.username ?? '',
-                userid: socket.user?.userId ?? -1,
-                fakeUser: socket.user?.fakeUser ?? false,
-                developer: socket.user?.developer ?? false,
-            };
-
-            socket.emit('me', data);
+            emitMe(socket);
         });
+
+        emitMe(socket);
     });
+}
+
+function emitMe(socket: Socket) {
+    const loggedIn = !!socket.user;
+    const data: MeUserObject = {
+        loggedIn,
+        admin: socket.user?.admin ?? false,
+        username: socket.user?.username ?? '',
+        userid: socket.user?.userId ?? -1,
+        fakeUser: socket.user?.fakeUser ?? false,
+        developer: socket.user?.developer ?? false,
+    };
+
+    socket.emit('me', data);
 }
 
 export function registerLobby(token: string) {

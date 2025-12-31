@@ -1,6 +1,7 @@
 <template>
+    <common-lobby-not-found v-if="lobbyNotFound"/>
     <div
-        v-if="connected"
+        v-else-if="connected"
         class="game"
     >
         <component
@@ -20,7 +21,7 @@
         />
     </div>
     <div v-else>
-        Loading
+        Loading...
     </div>
 </template>
 
@@ -46,7 +47,7 @@ const route = useRoute();
 
 const lobbyId = route.params.id as string;
 
-const { gameSocket: gameSocket, game, connected, lobby, myTurn, clue, voteForPlayer, gameResults, nextGame, hasVotedForPlayer, guessWord, voted } = useGameSocket(lobbyId);
+const { gameSocket: gameSocket, game, connected, lobby, myTurn, clue, voteForPlayer, gameResults, nextGame, hasVotedForPlayer, guessWord, voted, lobbyNotFound } = useGameSocket(lobbyId);
 
 const timeRemaining = ref(0);
 const isReady = ref(false);

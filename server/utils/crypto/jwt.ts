@@ -75,7 +75,7 @@ export function generateJWT(userId: number, random: string, iat: number): string
         issuer: 'Swindler Corp',
         subject: userId.toString(),
         audience: 'Swindler Users',
-        expiresIn: '1h',
+        expiresIn: '5d',
         algorithm: 'RS256',
     });
 }
