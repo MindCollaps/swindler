@@ -10,7 +10,7 @@ export default defineEventHandler(async event => {
     }
 
     const payload = verifyJWT(token);
-    if (!payload || !payload.sub) {
+    if (!payload || !payload.sub || !payload.random) {
         throw createError({ statusCode: 401, message: 'Invalid token' });
     }
 
