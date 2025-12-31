@@ -77,7 +77,7 @@ const imposterWon = computed(() => {
 
 const iWin = computed(() => {
     if (props.game?.imposter) {
-        return imposterWon;
+        return imposterWon.value;
     }
     else {
         return !imposterWon.value;
