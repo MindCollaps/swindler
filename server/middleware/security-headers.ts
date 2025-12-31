@@ -1,4 +1,12 @@
+// Log security headers initialization on first load
+let securityHeadersInitialized = false;
+
 export default defineEventHandler(event => {
+    if (!securityHeadersInitialized) {
+        console.log('[Security] Security headers middleware initialized');
+        securityHeadersInitialized = true;
+    }
+
     const headers = event.node.res;
 
     // Prevent MIME type sniffing

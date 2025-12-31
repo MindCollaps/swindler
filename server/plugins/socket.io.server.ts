@@ -9,13 +9,19 @@ import { initSocket } from '../socket.io';
 export let socketServer: Server<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>;
 
 export default defineNitroPlugin((nitroApp: NitroApp) => {
+    console.log('[Socket.io] Initializing Socket.io server');
+
     const engine = new Engine();
+    const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || '*';
+
+    console.log(`[Socket.io] CORS allowed origins: ${ Array.isArray(allowedOrigins) ? allowedOrigins.join(', ') : allowedOrigins }`);
+
     socketServer = new Server({
         cleanupEmptyChildNamespaces: true,
         pingInterval: 25000,
         pingTimeout: 60000,
         cors: {
-            origin: process.env.ALLOWED_ORIGINS?.split(',') || '*',
+            origin: allowedOrigins,
             methods: ['GET', 'POST'],
             credentials: true,
         },
@@ -23,7 +29,22 @@ export default defineNitroPlugin((nitroApp: NitroApp) => {
 
     socketServer.bind(engine);
 
+    // Log connection events
+    socketServer.on('connection', socket => {
+        const clientIp = socket.handshake.address;
+        console.log(`[Socket.io] Client connected: ${ socket.id } from IP: ${ clientIp }`);
+
+        socket.on('disconnect', reason => {
+            console.log(`[Socket.io] Client disconnected: ${ socket.id }, reason: ${ reason }`);
+        });
+
+        socket.on('error', error => {
+            console.error(`[Socket.io] Socket error for client ${ socket.id }:`, error);
+        });
+    });
+
     initSocket(socketServer);
+    console.log('[Socket.io] Socket handlers initialized');
 
     nitroApp.router.use('/socket.io', defineEventHandler({
         handler(event) {
@@ -40,4 +61,6 @@ export default defineNitroPlugin((nitroApp: NitroApp) => {
             },
         },
     }));
+
+    console.log('[Socket.io] Socket.io server ready on /socket.io');
 });

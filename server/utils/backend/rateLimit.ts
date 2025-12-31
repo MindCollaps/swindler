@@ -20,12 +20,22 @@ export async function checkRateLimit(key: string, options: RateLimitOptions): Pr
         if (current === 1) {
             // First request, set expiry
             await redisClient.pexpire(redisKey, options.windowMs);
+            console.log(`[RateLimit] New rate limit window started for key: ${ key }`);
         }
 
-        return current <= options.maxRequests;
+        const isAllowed = current <= options.maxRequests;
+
+        if (!isAllowed) {
+            console.warn(`[RateLimit] Rate limit exceeded for key: ${ key } (attempt ${ current }/${ options.maxRequests })`);
+        }
+        else if (current > 1) {
+            console.log(`[RateLimit] Request ${ current }/${ options.maxRequests } for key: ${ key }`);
+        }
+
+        return isAllowed;
     }
     catch (error) {
-        console.error('Rate limit check failed:', error);
+        console.error('[RateLimit] Rate limit check failed:', error);
         // On error, allow the request to prevent blocking users due to Redis issues
         return true;
     }
@@ -43,10 +53,12 @@ export async function getRateLimitInfo(key: string, maxRequests: number): Promis
 
         const remaining = Math.max(0, maxRequests - (current ? parseInt(current, 10) : 0));
 
+        console.log(`[RateLimit] Info for key: ${ key.split(':')[0] } - Remaining: ${ remaining }/${ maxRequests }, TTL: ${ ttl }ms`);
+
         return { remaining, ttl: ttl > 0 ? ttl : 0 };
     }
     catch (error) {
-        console.error('Get rate limit info failed:', error);
+        console.error('[RateLimit] Get rate limit info failed:', error);
         return { remaining: maxRequests, ttl: 0 };
     }
 }
