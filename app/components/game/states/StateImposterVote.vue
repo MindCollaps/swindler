@@ -3,10 +3,7 @@
         v-if="!game?.imposter"
         class="guess"
     >
-        <div
-            v-if="!game?.imposter"
-            class="word"
-        >
+        <div class="word">
             Word: {{ game?.word?.word }}
         </div>
         The Imposter thinks '{{ game?.imposterGuess?.toLowerCase() }}' is the word.
