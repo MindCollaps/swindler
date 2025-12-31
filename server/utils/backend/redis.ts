@@ -42,6 +42,7 @@ export type RedisDataGet<T extends Record<string, any> | any[], D extends T | nu
 export function setRedisSync(key: string, data: string, expireIn: number) {
     return new Promise<void>((resolve, reject) => redisClient.set(key, data, 'PX', expireIn, (err, result) => {
         if (err) return reject(err);
+        if (result !== 'OK') return reject(new Error(`Failed to set key: ${key}`));
         resolve();
     }));
 }
@@ -49,13 +50,18 @@ export function setRedisSync(key: string, data: string, expireIn: number) {
 export function expireRedisSync(key: string, expireIn: number) {
     return new Promise<void>((resolve, reject) => redisClient.pexpire(key, expireIn, (err, result) => {
         if (err) return reject(err);
-        resolve();
+        if (result === 1) {
+            resolve();
+        } else {
+            reject(new Error(`Failed to set expiration on key: ${key} (key may not exist)`));
+        }
     }));
 }
 
 export function unsetRedisSync(key: string) {
     return new Promise<void>((resolve, reject) => redisClient.del(key, (err, result) => {
         if (err) return reject(err);
+        // result is the number of keys deleted, but we don't reject if key doesn't exist
         resolve();
     }));
 }
