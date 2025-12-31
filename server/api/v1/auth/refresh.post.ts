@@ -21,7 +21,7 @@ export default defineEventHandler(async event => {
         throw createError({ statusCode: 401, message: 'Invalid token' });
     }
 
-    const userId = parseInt(payload.sub);
+    const userId = parseInt(payload.sub, 10);
     const random = payload.random;
     const iat = Math.floor(Date.now() / 1000);
 
