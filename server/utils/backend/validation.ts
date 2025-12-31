@@ -29,6 +29,8 @@ export const joinSchema = z.object({
     lobby: z.string().min(8).max(8),
 }).strict();
 
+// Login schema uses basic password validation (not strict requirements)
+// to allow users with old passwords to still log in
 export const loginSchema = z.object({
     username: z.string().min(3).max(32).transform(val => val.trim()),
     password: z.string().min(3).max(64),
