@@ -12,7 +12,7 @@ export default defineEventHandler(async event => {
     }
 
     const body = await readBody(event);
-    const wordlistId = parseInt(event.context.params?.id);
+    const wordlistId = parseInt(event.context.params?.id, 10);
     const currentUser = event.context.user;
 
     if (!wordlistId) {

@@ -1,8 +1,20 @@
 import { makeUserSession } from '~~/server/utils/auth';
 import { checkPassword } from '~~/server/utils/crypto/password';
 import { prisma } from '~~/server/utils/prisma';
+import { checkRateLimit } from '~~/server/utils/backend/rateLimit';
 
 export default defineEventHandler(async event => {
+    // Rate limiting: 5 login attempts per 15 minutes per IP
+    const clientIp = getRequestIP(event, { xForwardedFor: true }) || 'unknown';
+    const isAllowed = await checkRateLimit(`login:${ clientIp }`, {
+        windowMs: 15 * 60 * 1000, // 15 minutes
+        maxRequests: 5,
+    });
+
+    if (!isAllowed) {
+        throw createApiError('Too many login attempts. Please try again later.', 429);
+    }
+
     const body = await readBody(event);
 
     const validationResult = loginSchema.safeParse(body);

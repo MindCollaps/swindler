@@ -7,7 +7,7 @@ export default defineEventHandler(async event => {
         return createApiError('Missing parameter', 400);
     }
 
-    const wordlistId = parseInt(event.context.params?.id);
+    const wordlistId = parseInt(event.context.params?.id, 10);
     const currentUser = event.context.user;
 
     if (!wordlistId) {

@@ -46,7 +46,7 @@ services:
     env_file:
       - .env
     healthcheck:
-      test: ['CMD', 'redis-cli', 'ping']
+      test: ['CMD', 'redis-cli', '--pass', '${REDIS_PASSWORD}', 'ping']
       interval: 5s
       timeout: 5s
       retries: 5
