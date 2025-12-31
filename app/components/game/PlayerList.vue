@@ -16,7 +16,7 @@
             <div class=list>
                 <div
                     class="item"
-                    :class="game?.turn === store.me?.userid&& showTurn ? 'current-turn' : ''"
+                    :class="game?.turn === store.me?.userid && showTurn ? 'current-turn' : ''"
                 >
                     You
                     <div

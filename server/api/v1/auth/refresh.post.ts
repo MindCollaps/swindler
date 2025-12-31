@@ -9,8 +9,15 @@ export default defineEventHandler(async event => {
         throw createError({ statusCode: 401, message: 'No token' });
     }
 
-    const payload = verifyJWT(token);
-    if (!payload || !payload.sub) {
+    let payload;
+    try {
+        payload = verifyJWT(token);
+    }
+    catch (ignore) {
+        throw createError({ statusCode: 401, message: 'Invalid token' });
+    }
+
+    if (!payload || !payload.sub || typeof payload.random !== 'string') {
         throw createError({ statusCode: 401, message: 'Invalid token' });
     }
 
