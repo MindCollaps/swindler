@@ -161,6 +161,6 @@ onMounted(() => {
 }
 
 .game {
-    padding: 16px;
+    padding: 32px;
 }
 </style>
