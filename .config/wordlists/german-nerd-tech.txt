@@ -45,7 +45,6 @@ Headset
 HTML
 Interface
 Internet
-IPAdresse
 Java
 Joystick
 Kabel
@@ -70,7 +69,6 @@ NFT
 Online
 Passwort
 Patch
-Peripherie
 Phishing
 Ping
 Pixel

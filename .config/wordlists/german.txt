@@ -203,7 +203,6 @@ Lampe
 Land
 Laptop
 Lastwagen
-Leben
 Lebensmittel
 Leiste
 Licht

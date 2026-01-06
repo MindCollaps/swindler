@@ -4,15 +4,12 @@ Avatar
 Avenger
 Batman
 Beamen
-Bosskampf
 Creeper
 Cyberpunk
 Cyborg
 Dalek
-DeLorean
 Dementor
 Diamantschwert
-DoctorWho
 Drache
 Droide
 Dungeon
@@ -36,14 +33,10 @@ Highscore
 Hitpoints
 Hobbit
 Hogwarts
-Horkrux
 Hulk
-InfinityStein
 Inventar
-IronMan
 Jedi
 Joker
-JurassicPark
 Kirk
 Klingone
 Kryptonit
@@ -54,7 +47,6 @@ Link
 Loot
 Luigi
 Macht
-Magier
 Mana
 Mario
 Mars
@@ -84,7 +76,6 @@ Sauron
 Schild
 Schnatz
 Schriftrolle
-SchwarzesLoch
 Sith
 Skin
 Slytherin
@@ -95,7 +86,6 @@ Spoiler
 Sternenflotte
 Stormtrooper
 Superman
-Tardis
 Terminator
 Tetris
 Thanos
@@ -107,7 +97,6 @@ Troll
 Vampir
 Vulkanier
 Wakanda
-Warpantrieb
 Werwolf
 Winterfell
 Witcher

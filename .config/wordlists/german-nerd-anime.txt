@@ -1,8 +1,5 @@
-Akatsuki
 Anime
-Chakra
 Cosplay
-DeathNote
 Digimon
 Dojo
 Dragonball
@@ -16,7 +13,6 @@ Jutsu
 Kaiju
 Katana
 Kimono
-Kitsune
 Kunai
 Luffy
 Manga
@@ -29,17 +25,14 @@ Otaku
 Pikachu
 Pokemon
 Ramen
-SailorMoon
 Samurai
 Sasuke
 Sensei
-Sharingan
 Shinigami
 Shinobi
 Shonen
 Sushi
 Titan
-Totoro
 Vegeta
 Waifu
 Yandere

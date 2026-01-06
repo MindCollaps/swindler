@@ -66,12 +66,13 @@
             </div>
         </div>
         <common-button
-            :primary-color="ready ? 'success500' : 'warning600'"
+            :primary-color="ready ? 'error500' : 'success500'"
             @click="emitReady"
         >{{ ready ? 'Unready' : 'Ready' }}</common-button>
         <common-button
             v-if="owner && ready && allReady"
             class="start-button"
+            primary-color="success500"
             @click="startGame()"
         >Start Game</common-button>
     </div>
