@@ -1,16 +1,27 @@
 <template>
-    <div class="avatar" :style="{
+    <div
+        class="avatar"
+        :style="{
             '--size-x': sizeX,
             '--size-y': sizeY,
-        }">
-        <a-head :avatar="avatar"/>
+        }"
+    >
+        <a-head
+            :avatar="avatar"
+            :size-x="sizeX"
+            :size-y="sizeY"
+        />
         <a-part
             class="skin"
-            :src="'/resources/avatar/body-' + avatar?.body"
+            :size-x="sizeX"
+            :size-y="sizeY"
+            :src="'body-' + avatar?.body"
         />
         <a-part
             class="clothing"
-            :src="'/resources/avatar/clothing-' + avatar?.clothing"
+            :size-x="sizeX"
+            :size-y="sizeY"
+            :src="'cloth-' + avatar?.cloth"
         />
     </div>
 </template>
@@ -32,6 +43,5 @@ defineProps({
     position: absolute;
     width: var(--size-x);
     height: var(--size-y);
-    rotate: 90deg;
 }
 </style>

@@ -51,7 +51,7 @@ import type { Lobby, LobbyGame } from '~~/types/redis';
 
 defineProps({
     game: Object as PropType<LobbyGame | null>,
-      lobby: Object as PropType<Lobby | null>,
+    lobby: Object as PropType<Lobby | null>,
     myTurn: Boolean,
     turnName: String,
     onlyWord: {
@@ -69,9 +69,9 @@ defineProps({
     margin-bottom: 32px;
 
     .game-number {
-      grid-column: 2;
-      text-align: center;
-      margin-bottom: 16px;
+        grid-column: 2;
+        margin-bottom: 16px;
+        text-align: center;
     }
 
     .round {
@@ -106,12 +106,15 @@ defineProps({
     }
 
     .word {
-        padding: 16px;
-        background: $darkgray900;
-        border-radius: 16px;
         grid-column: 2;
+
+        padding: 16px;
+        border-radius: 16px;
+
         font-size: 3rem;
         text-align: center;
+
+        background: $darkgray900;
     }
 }
 </style>

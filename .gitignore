@@ -30,6 +30,7 @@ logs
 /redis
 
 .todo.md
-
-
 *.pem
+
+# Until character system is final
+*.png

@@ -32,12 +32,16 @@
 
             <div class="control-buttons">
                 <p>Words</p>
-                <common-input-text v-model="newWord" input-type="string" @keyup.enter="addWord" />
-                
+                <common-input-text
+                    v-model="newWord"
+                    input-type="string"
+                    @keyup.enter="addWord"
+                />
+
                 <common-button @click="addWord">Add new word</common-button>
                 <common-button @click="updateWordlist(wordlist.id)">Save wordlist</common-button>
             </div>
-            
+
             <div class="wordlist">
                 <div
                     v-for="word in wordlist.words"
@@ -47,7 +51,10 @@
                     {{ word.word }} {{ word.id === -1 ? ' | Unsafed' : '' }}
                     <div class="buttons">
                         <common-button @click="deleteWord(word.word)">Delete</common-button>
-                        <flag-word v-if="word.id !== -1" :word="word" />
+                        <flag-word
+                            v-if="word.id !== -1"
+                            :word="word"
+                        />
                     </div>
                 </div>
             </div>
@@ -188,10 +195,10 @@ onMounted(() => {
 
     .control-buttons {
         display: flex;
-            flex-direction: column;
-            gap: 10px;
-        
-            padding: 10px;
-            border-radius: 5px;
+        flex-direction: column;
+        gap: 10px;
+
+        padding: 10px;
+        border-radius: 5px;
     }
 </style>

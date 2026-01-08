@@ -33,7 +33,12 @@
 
             <p>Words (one per line)</p>
             <div class="textfield">
-                <textarea v-model="words" cols="40" name="Words" rows="5" />
+                <textarea
+                    v-model="words"
+                    cols="40"
+                    name="Words"
+                    rows="5"
+                />
             </div>
 
             <p>Access Settings</p>
@@ -211,12 +216,12 @@ onMounted(() => {
         .checkbox {
             display: flex;
             flex-direction: row;
-            justify-content: center;
             gap: 10px;
+            justify-content: center;
 
             .item {
-                padding: 10px;
                 margin-right: 5px;
+                padding: 10px;
             }
         }
     }

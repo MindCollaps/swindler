@@ -1,3 +1,5 @@
+import atlas from '../app/utils/avatarAtlas.json';
+
 export interface UserSession {
     admin: boolean;
     username: string;
@@ -8,21 +10,19 @@ export interface UserSession {
 }
 
 export const AVATAR_DEFINITIONS = {
-    body: { max: 2, optional: false },
-    face: { max: 2, optional: false },
-    clothing: { max: 3, optional: false },
-    hair: { max: 1, optional: true },
+    body: { max: atlas.parts.body.length, optional: false },
+    eyes: { max: atlas.parts.eyes.length, optional: false },
+    mouth: { max: atlas.parts.mouth.length, optional: false },
+    cloth: { max: atlas.parts.cloth.length, optional: false },
+    hair: { max: atlas.parts.hair.length, optional: true },
+    accessory1: { max: atlas.parts.acc.length, optional: true },
+    accessory2: { max: atlas.parts.acc.length, optional: true },
 } as const;
-
-type Range<N extends number, T extends any[] = [any]> = 
-    T['length'] extends N 
-    ? T['length'] 
-    : T['length'] | Range<N, [...T, any]>;
 
 type AvatarDef = typeof AVATAR_DEFINITIONS;
 
 export type Avatar = {
-    [K in keyof AvatarDef]: AvatarDef[K]['optional'] extends true
-        ? Range<AvatarDef[K]['max']> | undefined
-        : Range<AvatarDef[K]['max']>;
+    -readonly [K in keyof AvatarDef]: AvatarDef[K]['optional'] extends true
+        ? number | undefined
+        : number;
 };

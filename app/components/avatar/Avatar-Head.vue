@@ -1,16 +1,43 @@
 <template>
-    <div class="head" :style="{
+    <div
+        class="head"
+        :style="{
             '--size-x': sizeX,
             '--size-y': sizeY,
-        }">
+        }"
+    >
         <a-part
             v-if="avatar?.hair"
             class="hair"
-            :src="'/resources/avatar/hair-' + avatar?.hair"
+            :size-x="sizeX"
+            :size-y="sizeY"
+            :src="'hair-' + avatar?.hair"
         />
         <a-part
-            class="face"
-            :src="'/resources/avatar/face-' + avatar?.face"
+            class="eyes"
+            :size-x="sizeX"
+            :size-y="sizeY"
+            :src="'eyes-' + avatar?.eyes"
+        />
+        <a-part
+            class="mouth"
+            :size-x="sizeX"
+            :size-y="sizeY"
+            :src="'mouth-' + avatar?.mouth"
+        />
+        <a-part
+            v-if="avatar?.accessory1"
+            class="accessories"
+            :size-x="sizeX"
+            :size-y="sizeY"
+            :src="'acc-' + avatar?.accessory1"
+        />
+        <a-part
+            v-if="avatar?.accessory2"
+            class="accessories"
+            :size-x="sizeX"
+            :size-y="sizeY"
+            :src="'acc-' + avatar?.accessory2"
         />
     </div>
 </template>
@@ -22,7 +49,7 @@ import type { Avatar } from '~~/types/data';
 
 defineProps({
     avatar: Object as PropType<Avatar>,
-      sizeX: String,
+    sizeX: String,
     sizeY: String,
 });
 </script>
@@ -31,7 +58,7 @@ defineProps({
 .head {
     position: absolute;
     z-index: 100;
-     width: var(--size-x);
+    width: var(--size-x);
     height: var(--size-y);
 }
 </style>
