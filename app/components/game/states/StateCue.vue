@@ -7,12 +7,12 @@
         {{ JSON.stringify(voted) }}
         <br><br>
     </template>
-    <div class="cue-wrapper"><div class="cue-giver">{{ clue?.player.username }}</div> said <div class="cue-text">{{ clue?.clue }}</div></div>
     <game-info
         :game="game"
         :lobby="lobby"
         only-word
     />
+    <div class="cue-wrapper"><div class="cue-giver">{{ clue?.player.username }}</div> said <div class="cue-text">{{ clue?.clue }}</div></div>
     <vote/>
     <div class="timer">
         Time until continue: {{ timeRemaining }}s

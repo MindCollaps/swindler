@@ -81,6 +81,7 @@
             primary-color="success500"
             @click="recreateLobby()"
         >Extend Lobby</common-button>
+        <heart/>
     </div>
     <div v-else>
         Loading
@@ -89,6 +90,7 @@
 
 <script setup lang="ts">
 import { useLobbySocket } from '~/composables/sockets/lobby';
+import Heart from '~/components/game/Heart.vue';
 import { useStore } from '~/store';
 import { socket } from '~/components/socket';
 import CreateFakeUser from '~/components/game/CreateFakeUser.vue';
