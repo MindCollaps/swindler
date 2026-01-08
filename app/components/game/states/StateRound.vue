@@ -71,7 +71,7 @@ function submitGuess() {
 </script>
 
 <style scoped lang="scss">
-.cue {
+.clue {
     margin-top: 32px;
     margin-bottom: 32px;
 }
