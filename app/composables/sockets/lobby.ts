@@ -80,7 +80,7 @@ export function useLobbySocket(lobbyId: string, options?: { onDisconnect: () => 
         lobbySocket.connect();
 
         onBeforeRouteLeave((to, from, next) => {
-            const allowedPrefixes = ['/game/', '/lobby/'];
+            const allowedPrefixes = [`/game/${ lobbyId }`, `/lobby/${ lobbyId }`];
 
             const goingOutsideGame = !allowedPrefixes.some(prefix => to.path.startsWith(prefix));
 

@@ -25,7 +25,7 @@
         />
         <br>
         <template v-if="store?.me?.developer">
-            {{ JSON.stringify(store?.me) }}
+            {{ JSON.stringify(store?.me) }}<br><br>{{ JSON.stringify(lobby) }}
         </template>
         <br>
         Wordlists
@@ -70,11 +70,17 @@
             @click="emitReady"
         >{{ ready ? 'Unready' : 'Ready' }}</common-button>
         <common-button
-            v-if="owner && ready && allReady"
+            v-if="owner && ready && allReady && !lobby?.gameStarted"
             class="start-button"
             primary-color="success500"
             @click="startGame()"
         >Start Game</common-button>
+        <common-button
+            v-if="owner && lobby?.gameStarted && !lobby.gameRunning"
+            class="start-button"
+            primary-color="success500"
+            @click="recreateLobby()"
+        >Extend Lobby</common-button>
     </div>
     <div v-else>
         Loading
@@ -148,6 +154,10 @@ function emitReady() {
 
 function startGame() {
     lobbySocket.emit('start');
+}
+
+function recreateLobby() {
+    lobbySocket.emit('recreate');
 }
 
 function addWordList(id: number) {

@@ -17,7 +17,7 @@ export async function chooseRandomWord(wordLists: number[]): Promise<LobbyWord> 
     const wordIndex = Math.floor(Math.random() * wordList.words.length);
     const word = wordList.words[wordIndex];
     if (!word) throw new Error('selected word empty');
-    return word;
+    return { ...word, wordListName: wordList.name };
 }
 
 export async function getCachedWordList(id: number): Promise<LobbyWordList> {

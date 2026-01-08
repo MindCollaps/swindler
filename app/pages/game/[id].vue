@@ -68,8 +68,11 @@ gameSocket.on('heart', () => {
 watch(() => game.value?.cueEndTime, newVal => {
     if (timerInterval) clearInterval(timerInterval);
     if (newVal) {
+        // Adjust for potential clock skew by using a relative offset if possible,
+        // but since cueEndTime is absolute server time, we rely on Date.now().
+        // To make it more robust, we ensure the timer runs immediately and clears properly.
         updateTimer();
-        timerInterval = setInterval(updateTimer, 1000);
+        timerInterval = setInterval(updateTimer, 500); // Update more frequently for smoother countdown
         isReady.value = false;
     }
     else {
@@ -80,10 +83,17 @@ watch(() => game.value?.cueEndTime, newVal => {
 function updateTimer() {
     if (!game.value?.cueEndTime) {
         timeRemaining.value = 0;
+        if (timerInterval) clearInterval(timerInterval);
         return;
     }
-    const diff = Math.ceil((game.value.cueEndTime - Date.now()) / 1000);
-    timeRemaining.value = diff > 0 ? diff - 1 : 0;
+    // Calculate difference between server target time and local time.
+    // Assuming reasonable clock sync. If clocks are widely off, we'd need a server-offset calculation.
+    const diff = Math.max(0, Math.ceil((game.value.cueEndTime - Date.now()) / 1000));
+    timeRemaining.value = diff;
+    
+    if (diff === 0 && timerInterval) {
+        clearInterval(timerInterval);
+    }
 }
 
 function skipWait() {
@@ -162,5 +172,6 @@ onMounted(() => {
 
 .game {
     padding: 32px;
+    width: 100%
 }
 </style>

@@ -1,9 +1,10 @@
 import type { Namespace } from 'socket.io';
 import { withLock, getGameAndLobby, getGame, saveGame, saveLobby, lobbyTimeouts, waitForNewRound } from './helper';
 import { GameEventType, GameState, WinReason } from '../../../types/redis';
-import type { Lobby, Game } from '../../../types/redis';
+import type { Lobby, Game, LobbyGame } from '../../../types/redis';
 import { nextPlayer, chooseImposter, makeTurnOrder } from './rules';
 import { chooseRandomWord } from './words';
+import { calculateLobbyStats } from './stats';
 
 export async function createGame(lobby: Lobby) {
     const turnOrder = makeTurnOrder(lobby.players);
@@ -60,6 +61,8 @@ export async function proceedFromVote(id: string, namespace: Namespace) {
 
         // Log VotedCorrectly / VotedIncorrectly
         votes.forEach(v => {
+            if (v.initiatorId === game.imposter) return; // Imposter wont receive event
+
             if (v.receiverId === game.imposter) {
                 lobby.gameEvents.push({
                     initiatorId: v.initiatorId,
@@ -84,7 +87,7 @@ export async function proceedFromVote(id: string, namespace: Namespace) {
             }
         });
 
-        await saveLobby(id, lobby);
+        await gameEnd(id, lobby, game);
 
         namespace.emit('gameEnd', {
             votedPlayer: votedPlayer,
@@ -177,6 +180,8 @@ export async function proceedFromImposterVote(id: string, namespace: Namespace) 
         const imposterPlayer = lobby.players.find(p => p.id === game.imposter);
         const wasCorrect = game.imposterGuess?.toLowerCase() === game.word.word.toLowerCase();
 
+        await gameEnd(id, lobby, game);
+
         namespace.emit('gameEnd', {
             votedPlayer: undefined,
             imposterPlayer: imposterPlayer,
@@ -184,4 +189,13 @@ export async function proceedFromImposterVote(id: string, namespace: Namespace) 
             votes: [],
         });
     });
+}
+
+async function gameEnd(id: string, lobby: Lobby, game: Game) {
+    lobby.stats = calculateLobbyStats(lobby);
+    lobby.gameRunning = false;
+    lobby.gameStarted = true;
+    lobby.players.forEach(p => p.ready = false);
+
+    await saveLobby(id, lobby);
 }

@@ -25,7 +25,7 @@ export function calculateLobbyStats(lobby: Lobby): LobbyStat[] {
     addStat('Worst Detective', 'error', 'incorrect votes', GameEventType.VotedIncorrectly, 'initiatorId');
     addStat('Most Loved', 'primary', 'hearts', GameEventType.ReceivedUpVote, 'receiverId');
     addStat('Most Sus', 'warning', 'votes', GameEventType.ReceivedDownVote, 'receiverId');
-    addStat('Paranoid', 'info', 'calls', GameEventType.SaysImposter, 'initiatorId');
+    addStat('Most Paranoid', 'info', 'calls', GameEventType.SaysImposter, 'initiatorId');
 
     return stats.slice(0, 3);
 }

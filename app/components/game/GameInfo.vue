@@ -16,7 +16,7 @@
             v-if="!game?.imposter"
             class="word"
         >
-            Word: {{ game?.word?.word }}
+            {{ game?.word?.word }} <span v-if="game?.word?.wordListName" class="word-list">({{ game?.word?.wordListName }})</span>
         </div>
         <template v-if="!onlyWord">
             <div
@@ -79,6 +79,12 @@ defineProps({
         font-size: 1.5rem;
         font-weight: bold;
         text-align: center;
+    }
+
+    .word-list {
+        font-weight: normal;
+        font-size: 0.8em;
+        opacity: 0.7;
     }
 
     .myturn {

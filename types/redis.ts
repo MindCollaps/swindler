@@ -31,6 +31,7 @@ export interface ReidsLobbyPlayer {
     username: string;
     ready: boolean;
     fakeUser: boolean;
+    connected: boolean;
 }
 
 export interface FakeUser {
@@ -73,6 +74,7 @@ export interface Game {
 export interface LobbyWord {
     id: number;
     word: string;
+    wordListName?: string;
 }
 
 export interface LobbyWordList {
@@ -82,7 +84,7 @@ export interface LobbyWordList {
     words: LobbyWord[];
 }
 
-export interface LobbyGame extends Omit<Game, 'imposter' | 'specialGameMode' | 'word' | 'turnOrder'> {
+export interface LobbyGame extends Omit<Game, 'imposter' | 'specialGameMode' | 'word'> {
     word?: LobbyWord;
     imposter: boolean;
     imposterGuess?: string;
@@ -119,7 +121,7 @@ export interface GameEvent {
 export enum GameEventType {
     VotedCorrectly,
     VotedIncorrectly,
-    // VotedAbstain,
+    VotedAbstain,
     SaysImposter,
     ReceivedUpVote,
     ReceivedDownVote,
@@ -145,5 +147,5 @@ export interface Voted {
 
 export interface Vote {
     voted: boolean;
-    num: number;
+    voters: number[];
 }

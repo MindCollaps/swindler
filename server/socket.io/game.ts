@@ -7,7 +7,6 @@ import {
     waitForNextRound, lobbyTimeouts, gameLobbyTtl,
 } from '../utils/game/helper';
 import { checkVoteImposter, isTurn, isRoundOver } from '../utils/game/rules';
-import { calculateLobbyStats } from '../utils/game/stats';
 import { createGame, proceedFromVote, proceedFromCue, proceedFromRoundEnd, proceedFromImposterVote } from '../utils/game/lifecycle';
 
 export { waitForNextRound, gameLobbyTtl, createGame, proceedFromVote, proceedFromCue, proceedFromRoundEnd, proceedFromImposterVote };
@@ -24,16 +23,16 @@ export async function sendVoted(socket: Socket<DefaultEventsMap, DefaultEventsMa
 
     const voted: Voted = {
         up: {
-            num: upVotes.length,
             voted: upVotes.find(x => x.initiatorId == socket.user?.userId) != undefined,
+            voters: upVotes.map(x => x.initiatorId),
         },
         down: {
-            num: downVotes.length,
             voted: downVotes.find(x => x.initiatorId == socket.user?.userId) != undefined,
+            voters: downVotes.map(x => x.initiatorId),
         },
         imposter: {
-            num: imposterVotes.length,
             voted: imposterVotes.find(x => x.initiatorId == socket.user?.userId) != undefined,
+            voters: imposterVotes.map(x => x.initiatorId),
         },
     };
 
@@ -77,12 +76,23 @@ export async function vote(socket: Socket<DefaultEventsMap, DefaultEventsMap, De
                 }
             }
 
-            if (lobby.gameEvents.find(x => x.initiatorId == socket.user?.userId &&
+            const existingVoteIndex = lobby.gameEvents.findIndex(x => x.initiatorId == socket.user?.userId &&
                 x.type == eventType &&
                 x.turn == game.turn &&
                 x.round == game.round &&
                 x.gameNumber == lobby.gameNumber &&
-                x.receiverId == game.turn)) {
+                x.receiverId == game.turn);
+
+            if (existingVoteIndex !== -1) {
+                // Remove existing vote (Toggle)
+                lobby.gameEvents.splice(existingVoteIndex, 1);
+                await saveLobby(id, lobby);
+                
+                const unvoteData = {
+                    vote: eventNumber,
+                    userId: socket.user?.userId,
+                };
+                socket.broadcast.emit('unvote', unvoteData);
                 return;
             }
 
@@ -105,7 +115,11 @@ export async function vote(socket: Socket<DefaultEventsMap, DefaultEventsMap, De
             }
 
             await saveLobby(id, lobby);
-            socket.broadcast.emit('vote', eventNumber);
+            const voteData = {
+                vote: eventNumber,
+                userId: socket.user?.userId,
+            };
+            socket.broadcast.emit('vote', voteData);
         }
     });
 }
@@ -122,25 +136,39 @@ export async function voteForPlayer(socket: Socket<DefaultEventsMap, DefaultEven
         if (!player) return;
 
         // Check if already voted
-        if (lobby.gameEvents.find(x => x.initiatorId == socket.user?.userId &&
+        const existingVoteIndex = lobby.gameEvents.findIndex(x => x.initiatorId == socket.user?.userId &&
             x.type == GameEventType.VotedForPlayer &&
-            x.gameNumber == lobby.gameNumber)) {
-            return;
+            x.gameNumber == lobby.gameNumber);
+
+        if (existingVoteIndex !== -1) {
+            const existingVote = lobby.gameEvents[existingVoteIndex];
+            if (existingVote) {
+                // Check if voted for same person -> Unvote
+                if (existingVote.receiverId === targetId) {
+                    lobby.gameEvents.splice(existingVoteIndex, 1);
+                } else {
+                    // Change vote
+                    existingVote.receiverId = targetId;
+                    existingVote.triggered = new Date();
+                }
+            }
+        } else {
+            const gameEvent: GameEvent = {
+                initiatorId: socket.user.userId,
+                receiverId: targetId,
+                round: game.round,
+                turn: game.turn,
+                triggered: new Date(),
+                type: GameEventType.VotedForPlayer,
+                gameNumber: lobby.gameNumber,
+            };
+            lobby.gameEvents.push(gameEvent);
         }
 
-        const gameEvent: GameEvent = {
-            initiatorId: socket.user.userId,
-            receiverId: targetId,
-            round: game.round,
-            turn: game.turn,
-            triggered: new Date(),
-            type: GameEventType.VotedForPlayer,
-            gameNumber: lobby.gameNumber,
-        };
-
-        lobby.gameEvents.push(gameEvent);
-
         await saveLobby(id, lobby);
+
+        // Emit updated lobby to everyone so they see votes
+        namespace.emit('lobby', lobby);
 
         // Check if everyone voted
         const votes = lobby.gameEvents.filter(x => x.type == GameEventType.VotedForPlayer && x.gameNumber == lobby.gameNumber);
@@ -313,7 +341,7 @@ export async function nextGame(socket: Socket<DefaultEventsMap, DefaultEventsMap
         }
         else {
             game.gameState = GameState.LobbyEnd;
-            lobby.stats = calculateLobbyStats(lobby);
+            lobby.gameRunning = false;
             await saveGame(id, game);
             await saveLobby(id, lobby);
             namespace.emit('lobby', lobby);
@@ -331,13 +359,14 @@ export async function sendGame(socket: Socket<DefaultEventsMap, DefaultEventsMap
     const lobbyGame: LobbyGame = {
         round: game.round,
         turn: game.turn,
-        word: (isImposter && game.gameState !== GameState.GameEnd && game.gameState !== GameState.ImposterVote) ? undefined : game.word,
+        ...(isImposter && game.gameState !== GameState.GameEnd && game.gameState !== GameState.ImposterVote ? { wordOrder: game.word } : { word: game.word }),
         imposter: isImposter,
         gameState: game.gameState,
         cueEndTime: game.cueEndTime,
         readyToContinue: game.readyToContinue,
         imposterGuess: game.imposterGuess,
         winReason: game.winReason,
+        turnOrder: game.turnOrder,
     };
 
     socket.emit('game', lobbyGame);

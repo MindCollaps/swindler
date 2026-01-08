@@ -15,24 +15,23 @@
             </div>
             <div class=list>
                 <div
-                    class="item"
-                    :class="game?.turn === store.me?.userid && showTurn ? 'current-turn' : ''"
-                >
-                    You
-                    <div
-                        v-if="showReady"
-                        class="item-ready"
-                    >{{ lobby.players.find(x => isSameUser({ id: x.id, fakeUser: x.fakeUser }, { id: store.me?.userid ?? 0, fakeUser: store.me?.fakeUser ?? false }))?.ready ? 'Ready' : 'Waiting...' }}</div>
-                </div>
-                <div
-                    v-for="player in lobby.players.filter(x => !isSameUser({ id: x.id, fakeUser: x.fakeUser }, { id: store.me?.userid ?? 0, fakeUser: store.me?.fakeUser ?? false }))"
+                    v-for="player in sortedPlayers"
                     :key="player.id"
                     class="item"
-                    :class="game?.turn === player.id && showTurn ? 'current-turn' : ''"
+                    :class="{ 
+                        'current-turn': game?.turn === player.id && showTurn,
+                        'is-me': isSameUser({ id: player.id, fakeUser: player.fakeUser }, { id: store.me?.userid ?? 0, fakeUser: store.me?.fakeUser ?? false })
+                    }"
                 >
-                    {{ player.username }}
+                    <span v-if="isSameUser({ id: player.id, fakeUser: player.fakeUser }, { id: store.me?.userid ?? 0, fakeUser: store.me?.fakeUser ?? false })">You</span>
+                    <span v-else>{{ player.username }}</span>
+
                     <div
-                        v-if="showReady"
+                        v-if="!player.connected && player.connected !== undefined && player.connected !== null"
+                        class="item-ready disconnected"
+                    >Disconnected</div>
+                    <div
+                        v-else-if="showReady"
                         class="item-ready"
                     >{{ player.ready ? 'Ready' : 'Waiting...' }}</div>
                 </div>
@@ -59,9 +58,23 @@ defineProps({
 const route = useRoute();
 const lobbyId = route.params.id as string;
 
+const store = useStore();
 const { lobby, game } = useGameSocket(lobbyId);
 
-const store = useStore();
+const sortedPlayers = computed(() => {
+    if (!lobby.value || !lobby.value.players) return [];
+
+    const players = [...lobby.value.players];
+    
+    // During game, sort by turn order if available
+    if (game.value?.turnOrder && game.value.turnOrder.length > 0) {
+        return game.value.turnOrder
+            .map(id => players.find(p => p.id === id))
+            .filter((p): p is NonNullable<typeof p> => !!p);
+    }
+    
+    return players;
+});
 </script>
 
 <style scoped lang="scss">
@@ -98,6 +111,11 @@ const store = useStore();
             .item-ready {
                 font-size: 12px;
                 font-style: italic;
+            }
+
+            .item-ready.disconnected {
+                color: $error500;
+                background: none;
             }
         }
     }
