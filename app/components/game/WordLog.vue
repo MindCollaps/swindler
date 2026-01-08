@@ -10,7 +10,10 @@
                 <span class="name">{{ msg.username }}:</span>
                 <span class="word">{{ msg.word }}</span>
             </div>
-            <div v-if="messages.length == 0" class="message">Empty</div>
+            <div
+                v-if="messages.length === 0"
+                class="message"
+            >Empty</div>
         </div>
     </div>
 </template>

@@ -1,7 +1,7 @@
 import type { Namespace } from 'socket.io';
 import { withLock, getGameAndLobby, getGame, saveGame, saveLobby, lobbyTimeouts, waitForNewRound } from './helper';
 import { GameEventType, GameState, WinReason } from '../../../types/redis';
-import type { Lobby, Game, LobbyGame } from '../../../types/redis';
+import type { Lobby, Game } from '../../../types/redis';
 import { nextPlayer, chooseImposter, makeTurnOrder } from './rules';
 import { chooseRandomWord } from './words';
 import { calculateLobbyStats } from './stats';

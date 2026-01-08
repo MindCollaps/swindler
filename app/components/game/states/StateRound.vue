@@ -29,8 +29,8 @@
                 <common-input-text
                     v-model="guessInputValue"
                     class="input-field"
-                    @keyup.enter="submitGuess"
                     placeholder="Guess the word"
+                    @keyup.enter="submitGuess"
                 />
                 <common-button
                     class="submit-input"

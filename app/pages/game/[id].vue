@@ -73,7 +73,7 @@ function updateTimer() {
     // Assuming reasonable clock sync. If clocks are widely off, we'd need a server-offset calculation.
     const diff = Math.max(0, Math.ceil((game.value.cueEndTime - Date.now()) / 1000));
     timeRemaining.value = diff;
-    
+
     if (diff === 0 && timerInterval) {
         clearInterval(timerInterval);
     }
@@ -140,7 +140,7 @@ onMounted(() => {
 
 <style lang="scss">
 .game {
-    padding: 32px;
-    width: 100%
+    width: 100%;
+    padding: 32px
 }
 </style>

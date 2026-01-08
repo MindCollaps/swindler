@@ -34,7 +34,7 @@ const addVote = (vote: number, selfVoted: boolean = false, voterId?: number) => 
     }
 
     if (!voted.value) return;
-    
+
     // Helper to safely add voter
     const addVoter = (list: number[], id?: number) => {
         if (id !== undefined && !list.includes(id)) {
@@ -69,14 +69,14 @@ const addVote = (vote: number, selfVoted: boolean = false, voterId?: number) => 
     if (selfVoted) {
         if (!gameSocket) return;
         gameSocket.emit('vote', vote);
-        
-        // Optimistic update handled by addVote caller or response? 
+
+        // Optimistic update handled by addVote caller or response?
         // Logic below adds self to voters list immediately
         const store = useStore();
         if (store.me?.userid) {
             // Check if already voted to determine if we are adding or removing
             let alreadyVoted = false;
-            switch(vote) {
+            switch (vote) {
                 case 1: alreadyVoted = voted.value.down.voters.includes(store.me.userid); break;
                 case 2: alreadyVoted = voted.value.up.voters.includes(store.me.userid); break;
                 case 3: alreadyVoted = voted.value.imposter.voters.includes(store.me.userid); break;
@@ -87,7 +87,7 @@ const addVote = (vote: number, selfVoted: boolean = false, voterId?: number) => 
                 return; // Stop here, we removed it locally
             }
 
-            switch(vote) {
+            switch (vote) {
                 case 1: addVoter(voted.value.down.voters, store.me.userid); break;
                 case 2: addVoter(voted.value.up.voters, store.me.userid); break;
                 case 3: addVoter(voted.value.imposter.voters, store.me.userid); break;
@@ -121,7 +121,7 @@ const removeVote = (vote: number, selfVoted: boolean = false, voterId?: number) 
             removeVoter(voted.value.imposter.voters, voterId);
             break;
     }
-}
+};
 
 const gameResults = ref<any>(null);
 const hasVotedForPlayer = ref(false);
@@ -192,7 +192,7 @@ export function useGameSocket(lobbyId: string, options: { onHeart?: () => void }
         });
         gameSocket.on('vote', value => {
             if (typeof value === 'object' && value.vote && value.vote != 4) {
-                 addVote(value.vote, false, value.userId);
+                addVote(value.vote, false, value.userId);
             }
             else if (typeof value === 'number' && value != 4) {
                 // Initial fallback or if logic changes

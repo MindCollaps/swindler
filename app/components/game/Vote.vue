@@ -2,19 +2,33 @@
     <div class="vote-wrap">
         <div class="vote-buttons">
             <div class="vote-button">
-                <common-button :disabled="myTurn" icon="material-symbols:thumb-up-sharp"
-                    :type="!voted?.up.voted ? 'transparent' : 'primary'" icon-width="32px" @click="addVote(2, true)" />
+                <common-button
+                    :disabled="myTurn"
+                    icon="material-symbols:thumb-up-sharp"
+                    icon-width="32px"
+                    :type="!voted?.up.voted ? 'transparent' : 'primary'"
+                    @click="addVote(2, true)"
+                />
                 <div class="vote-button-description">{{ voted?.up.voters.length ?? 0 > 0 ? getVotersNames(voted?.up.voters) : 'Empty' }}</div>
             </div>
-             <div class="vote-button">
-                <common-button :disabled="myTurn" icon="material-symbols:thumb-down-sharp"
-                    :type="!voted?.down.voted ? 'transparent' : 'primary'" icon-width="32px" @click="addVote(1, true)" />
+            <div class="vote-button">
+                <common-button
+                    :disabled="myTurn"
+                    icon="material-symbols:thumb-down-sharp"
+                    icon-width="32px"
+                    :type="!voted?.down.voted ? 'transparent' : 'primary'"
+                    @click="addVote(1, true)"
+                />
                 <div class="vote-button-description">{{ voted?.down.voters.length ?? 0 > 0 ? getVotersNames(voted?.down.voters) : 'Empty' }}</div>
             </div>
         </div>
-         <div class="imposter-button">
-            <common-button @click="addVote(3, true)" :type="!voted?.imposter.voted ? 'transparent' : 'primary'"
-                icon="material-symbols:comedy-mask-rounded" icon-width="32px" />
+        <div class="imposter-button">
+            <common-button
+                icon="material-symbols:comedy-mask-rounded"
+                icon-width="32px"
+                :type="!voted?.imposter.voted ? 'transparent' : 'primary'"
+                @click="addVote(3, true)"
+            />
             <div class="vote-button-description">{{ voted?.imposter.voters.length ?? 0 > 0 ? getVotersNames(voted?.imposter.voters) : 'Empty' }}</div>
         </div>
     </div>
@@ -49,20 +63,21 @@ function getVotersNames(voterIds: number[] | undefined): string {
 }
 
 .imposter-button {
-    margin-top: 16px;
-    width: 100%;
     display: flex;
-    align-items: center;
     flex-direction: column;
-    justify-content: center;
     gap: 8px;
+    align-items: center;
+    justify-content: center;
+
+    width: 100%;
+    margin-top: 16px;
 }
 
 .vote-buttons {
-    width: 100%;
     display: flex;
-    justify-content: center;
     gap: 64px;
+    justify-content: center;
+    width: 100%;
 }
 
 .vote-button {
@@ -74,7 +89,7 @@ function getVotersNames(voterIds: number[] | undefined): string {
 .vote-button-description {
     padding: 16px;
     border-radius: 16px;
-    background: $darkgray900;
     text-align: center;
+    background: $darkgray900;
 }
 </style>

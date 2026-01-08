@@ -24,7 +24,7 @@
 
         <common-button
             class="home-btn"
-            :to="`/lobby/${lobby?.token}`"
+            :to="`/lobby/${ lobby?.token }`"
         >Back to Lobby</common-button>
     </div>
 </template>
@@ -61,6 +61,7 @@ const displayStats = computed(() => {
     flex-wrap: wrap;
     gap: 20px;
     justify-content: center;
+
     max-width: 1200px;
     margin: 20px 0;
 }

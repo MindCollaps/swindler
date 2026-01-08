@@ -87,7 +87,7 @@ export async function vote(socket: Socket<DefaultEventsMap, DefaultEventsMap, De
                 // Remove existing vote (Toggle)
                 lobby.gameEvents.splice(existingVoteIndex, 1);
                 await saveLobby(id, lobby);
-                
+
                 const unvoteData = {
                     vote: eventNumber,
                     userId: socket.user?.userId,
@@ -146,13 +146,15 @@ export async function voteForPlayer(socket: Socket<DefaultEventsMap, DefaultEven
                 // Check if voted for same person -> Unvote
                 if (existingVote.receiverId === targetId) {
                     lobby.gameEvents.splice(existingVoteIndex, 1);
-                } else {
+                }
+                else {
                     // Change vote
                     existingVote.receiverId = targetId;
                     existingVote.triggered = new Date();
                 }
             }
-        } else {
+        }
+        else {
             const gameEvent: GameEvent = {
                 initiatorId: socket.user.userId,
                 receiverId: targetId,

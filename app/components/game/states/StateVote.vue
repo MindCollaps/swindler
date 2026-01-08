@@ -38,25 +38,23 @@ const sortedPlayers = computed(() => {
     if (!props.lobby || !props.lobby.players) return [];
 
     const players = [...props.lobby.players];
-    
+
     // During game, sort by turn order if available
     if (props.game?.turnOrder && props.game.turnOrder.length > 0) {
         return props.game.turnOrder
             .map(id => players.find(p => p.id === id))
             .filter((p): p is NonNullable<typeof p> => !!p);
     }
-    
+
     return players;
 });
 
 function getVotersNames(playerId: number): string {
     if (!props.lobby || !props.lobby.gameEvents) return '';
-    
-    const votes = props.lobby.gameEvents.filter(x => 
-        x.type === GameEventType.VotedForPlayer && 
+
+    const votes = props.lobby.gameEvents.filter(x => x.type === GameEventType.VotedForPlayer &&
         x.gameNumber === props.lobby?.gameNumber &&
-        x.receiverId === playerId
-    );
+        x.receiverId === playerId);
 
     if (votes.length === 0) return '';
 
@@ -87,8 +85,8 @@ function getVotersNames(playerId: number): string {
 
     .actions {
         display: flex;
-        align-items: center;
         gap: 8px;
+        align-items: center;
 
         .voters {
             font-size: 0.8rem;

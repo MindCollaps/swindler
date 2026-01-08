@@ -6,6 +6,7 @@ import { createLock, IoredisAdapter } from 'redlock-universal';
 import type { Lobby } from '../../types/redis';
 import { createGame, gameLobbyTtl, giveClue, sendGame, sendVoted, vote, skipWait, voteForPlayer, nextGame, guessWord } from './game';
 import { isSameUser } from '../../app/utils/user';
+import type { Avatar } from '~~/types/data';
 
 export default async function lobbyHandler(namespace: Namespace, socket: Socket, id: string) {
     const userId = socket.user?.userId;
@@ -49,7 +50,8 @@ export default async function lobbyHandler(namespace: Namespace, socket: Socket,
                 player.connected = true;
                 player.ready = false;
             }
-        } else {
+        }
+        else {
             if (lobbyData.gameRunning) {
                 socket.emit('gameIsRunning');
                 return;
@@ -101,10 +103,11 @@ export default async function lobbyHandler(namespace: Namespace, socket: Socket,
             if (player) {
                 player.connected = false;
             }
-        } else {
+        }
+        else {
             lobbyData.players = lobbyData.players.filter(e => !isSameUser(e, { id: userId, fakeUser: fakeUser }));
         }
-        
+
         setRedisSync(`lobby-${ id }`, JSON.stringify(lobbyData), gameLobbyTtl);
 
         namespace.emit('players', lobbyData.players);
@@ -128,7 +131,7 @@ export default async function lobbyHandler(namespace: Namespace, socket: Socket,
     asyncWordlist();
 }
 
-async function ready(socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>, id: string, ready: boolean) {
+async function ready(socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>, id: string, value: { avatar: Avatar; ready: boolean }) {
     const resource = `locks:lobby-${ id }`;
     const lock = createLock({
         adapter: new IoredisAdapter(redisClient),
@@ -151,7 +154,8 @@ async function ready(socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultE
 
         if (!player) return;
 
-        player.ready = ready;
+        player.ready = value.ready;
+        player.avatar = value.avatar;
 
         setRedisSync(`lobby-${ id }`, JSON.stringify(lobby), gameLobbyTtl);
         socket.broadcast.emit('players', lobby.players);
@@ -195,7 +199,7 @@ async function lobbyRecreate(socket: Socket<DefaultEventsMap, DefaultEventsMap, 
     lobby.wordLists = [];
     lobby.gameRules.games += lobby.gameRules.games;
     setRedisSync(`lobby-${ id }`, JSON.stringify(lobby), gameLobbyTtl);
-    
+
     socket.emit('lobby', lobbyData);
     socket.broadcast.emit('lobby', lobbyData);
 }

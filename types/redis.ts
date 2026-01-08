@@ -1,3 +1,5 @@
+import type { Avatar } from './data';
+
 export interface Lobby {
     players: ReidsLobbyPlayer[];
     founder: ReidsLobbyPlayer;
@@ -32,6 +34,7 @@ export interface ReidsLobbyPlayer {
     ready: boolean;
     fakeUser: boolean;
     connected: boolean;
+    avatar?: Avatar;
 }
 
 export interface FakeUser {

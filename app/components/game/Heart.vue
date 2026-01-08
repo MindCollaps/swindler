@@ -8,7 +8,13 @@
         >
             ❤️
         </div>
-        <common-button class="heart-button" icon-width="42px" type="transparent" @click="sendHeart()" icon="material-symbols:favorite"/>
+        <common-button
+            class="heart-button"
+            icon="material-symbols:favorite"
+            icon-width="42px"
+            type="transparent"
+            @click="sendHeart()"
+        />
     </teleport>
 </template>
 
@@ -23,14 +29,14 @@ const heartRefs = ref<HTMLElement[]>([]);
 const heartsInUse = ref<{ id: number }[]>([]);
 const freeHearts = ref<{ id: number }[]>([]);
 
-const {addVote, gameSocket} = useGameSocket(lobbyId, { onHeart: animateHeart });
+const { addVote, gameSocket } = useGameSocket(lobbyId, { onHeart: animateHeart });
 
 gameSocket.on('heart', () => {
     animateHeart();
 });
 
 function sendHeart() {
-    addVote(4,true);
+    addVote(4, true);
     animateHeart();
 }
 
@@ -84,23 +90,24 @@ onMounted(() => {
     color: #ff6b9d;
 
     opacity: 1;
-    
+
     @include mobile {
-         left: 93vw;
-         bottom: 3vh;
+        bottom: 3vh;
+        left: 93vw;
     }
 }
 
 .heart-button {
     position: fixed;
+    z-index: 1001;
     bottom: 3vh;
     left: 97vw;
-    z-index: 1001;
+
     color: #ff6b9d;
 
     @include mobile {
-         left: 93vw;
-         bottom: 4vh;
+        bottom: 4vh;
+        left: 93vw;
     }
 }
 </style>

@@ -5,7 +5,7 @@
         </div>
         <div
             v-if="lobby"
-            class="list"
+            class="playerlist-wrap"
         >
             <div
                 v-if="showReady"
@@ -13,18 +13,30 @@
             >
                 Players {{ lobby.players.filter(x => x.ready).length }} / {{ lobby.players.length }} Ready
             </div>
-            <div class=list>
+            <div class="player-list">
                 <div
                     v-for="player in sortedPlayers"
                     :key="player.id"
                     class="item"
-                    :class="{ 
+                    :class="{
                         'current-turn': game?.turn === player.id && showTurn,
-                        'is-me': isSameUser({ id: player.id, fakeUser: player.fakeUser }, { id: store.me?.userid ?? 0, fakeUser: store.me?.fakeUser ?? false })
+                        'is-me': isSameUser({ id: player.id, fakeUser: player.fakeUser }, { id: store.me?.userid ?? 0, fakeUser: store.me?.fakeUser ?? false }),
+                    }"
+                    :style="{
+                        '--avatar-size': avatarSize,
+                        '--avatar-gap': gap,
                     }"
                 >
-                    <span v-if="isSameUser({ id: player.id, fakeUser: player.fakeUser }, { id: store.me?.userid ?? 0, fakeUser: store.me?.fakeUser ?? false })">You</span>
-                    <span v-else>{{ player.username }}</span>
+                    <div class="avatar-username">
+                        <avatar-model
+                            v-if="player.ready && player.avatar"
+                            :avatar="player.avatar"
+                            :size-x="avatarSize + 'px'"
+                            :size-y="avatarSize + 'px'"
+                        />
+                        <span v-if="isSameUser({ id: player.id, fakeUser: player.fakeUser }, { id: store.me?.userid ?? 0, fakeUser: store.me?.fakeUser ?? false })">You</span>
+                        <span v-else>{{ player.username }}</span>
+                    </div>
 
                     <div
                         v-if="!player.connected && player.connected !== undefined && player.connected !== null"
@@ -44,6 +56,7 @@
 import { isSameUser } from '~/utils/user';
 import { useGameSocket } from '~/composables/sockets/game';
 import { useStore } from '~/store';
+import AvatarModel from '../avatar/Avatar-Model.vue';
 
 defineProps({
     showReady: {
@@ -55,6 +68,9 @@ defineProps({
         default: false,
     },
 });
+const avatarSize = '64';
+const gap = '16';
+
 const route = useRoute();
 const lobbyId = route.params.id as string;
 
@@ -65,14 +81,14 @@ const sortedPlayers = computed(() => {
     if (!lobby.value || !lobby.value.players) return [];
 
     const players = [...lobby.value.players];
-    
+
     // During game, sort by turn order if available
     if (game.value?.turnOrder && game.value.turnOrder.length > 0) {
         return game.value.turnOrder
             .map(id => players.find(p => p.id === id))
             .filter((p): p is NonNullable<typeof p> => !!p);
     }
-    
+
     return players;
 });
 </script>
@@ -88,7 +104,7 @@ const sortedPlayers = computed(() => {
         font-weight: bold;
     }
 
-    .list {
+    .playerlist-wrap {
         display: flex;
         flex-direction: column;
         gap: 8px;
@@ -97,15 +113,38 @@ const sortedPlayers = computed(() => {
             font-weight: 600;
         }
 
-        .list {
+        .player-list {
             display: flex;
             flex-direction: column;
-            gap: 4px;
+            gap: 8px;
+
+            padding: 16px;
+            border-radius: 16px;
+
+            background: $darkgray900;
 
             .item {
                 display: flex;
+                align-items: center;
                 justify-content: space-between;
+
+                height: calc(var(--avatar-size) * 1px + 8px);
+                padding: 8px;
+                border-radius: 16px;
+
                 font-size: 14px;
+
+                background: $darkgray950;
+
+                .avatar-username {
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+
+                    span {
+                        margin-left: calc((var(--avatar-size) + var(--avatar-gap)) * 1px);
+                    }
+                }
             }
 
             .item-ready {
