@@ -14,14 +14,14 @@
             :src="'hair-' + avatar?.hair"
         />
         <a-part
-         v-if="!placeHolder"
+            v-if="!placeHolder"
             class="eyes"
             :size-x="sizeX"
             :size-y="sizeY"
             :src="'eyes-' + avatar?.eyes"
         />
         <a-part
-         v-if="avatar?.hair && !placeHolder"
+            v-if="avatar?.hair && !placeHolder"
             class="mouth"
             :size-x="sizeX"
             :size-y="sizeY"
