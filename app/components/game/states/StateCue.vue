@@ -7,6 +7,11 @@
         {{ JSON.stringify(voted) }}
         <br><br>
     </template>
+    <game-info
+        :game="game"
+        :lobby="lobby"
+        only-word
+    />
     <div class="cue-wrapper"><div class="cue-giver">{{ clue?.player.username }}</div> said <div class="cue-text">{{ clue?.clue }}</div></div>
     <vote/>
     <div class="timer">
@@ -25,6 +30,7 @@
 <script setup lang="ts">
 import Vote from '~/components/game/Vote.vue';
 import WordLog from '~/components/game/WordLog.vue';
+import GameInfo from '../GameInfo.vue';
 import { useStore } from '~/store';
 import type { LobbyGame, Lobby, Voted, GivingClue } from '~~/types/redis';
 import type { GameStateEmits } from '~~/types/game-state';

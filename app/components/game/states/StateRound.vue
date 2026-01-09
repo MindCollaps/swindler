@@ -1,38 +1,17 @@
 <template>
     <div class="state-round">
-        <div class="info">
-            <div class="round">
-                Round {{ game?.round }}
-            </div>
-            <div
-                v-if="!game?.imposter"
-                class="word"
-            >
-                Word: {{ game?.word?.word }}
-            </div>
-            <div
-                v-if="myTurn"
-                class="myturn"
-            >
-                Your Turn
-            </div>
-            <div
-                v-else
-                class="othersturn"
-            >
-                {{ turnName }}'s turn
-            </div>
-            <div
-                v-if="game?.imposter"
-                class="imposter"
-            >
-                You are the imposter!
-            </div>
-            <div
-                v-else
-                class="notimposter"
-            >You are not the imposter</div>
-        </div>
+        <template v-if="store.me?.developer">
+            {{ JSON.stringify(game) }}
+            <br><br>
+            {{ JSON.stringify(lobby) }}
+            <br><br>
+        </template>
+        <game-info
+            :game="game"
+            :lobby="lobby"
+            :my-turn="myTurn"
+            :turn-name="turnName"
+        />
         <player-list
             :lobby="lobby"
             show-turn
@@ -57,6 +36,7 @@
                     v-model="guessInputValue"
                     class="input-field"
                     placeholder="Guess the word"
+                    @keyup.enter="submitGuess"
                 />
                 <common-button
                     class="submit-input"
@@ -73,8 +53,10 @@
 import PlayerList from '~/components/game/PlayerList.vue';
 import Clue from '~/components/game/Clue.vue';
 import WordLog from '~/components/game/WordLog.vue';
+import GameInfo from '../GameInfo.vue';
 import type { LobbyGame, Lobby } from '~~/types/redis';
 import type { GameStateEmits } from '~~/types/game-state';
+import { useStore } from '~/store';
 
 defineProps<{
     game: LobbyGame | null;
@@ -84,6 +66,8 @@ defineProps<{
 }>();
 
 const emit = defineEmits<GameStateEmits>();
+
+const store = useStore();
 
 const showGuessInput = ref(false);
 const guessInputValue = ref('');
@@ -97,50 +81,6 @@ function submitGuess() {
 </script>
 
 <style scoped lang="scss">
-.info {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    gap: 16px;
-    margin-bottom: 32px;
-
-    .round {
-        grid-column: 2;
-        font-size: 1.5rem;
-        font-weight: bold;
-        text-align: center;
-    }
-
-    .myturn {
-        grid-column: 1;
-        font-weight: bold;
-        color: $success500;
-    }
-
-    .othersturn {
-        grid-column: 1;
-        font-weight: bold;
-        color: $primary300;
-    }
-
-    .imposter {
-        grid-column: 1;
-        font-weight: bold;
-        color: $error500;
-    }
-
-    .notimposter {
-        grid-column: 1;
-        font-weight: bold;
-        color: $success300;
-    }
-
-    .word {
-        grid-column: 2;
-        font-size: 1.2rem;
-        text-align: center;
-    }
-}
-
 .clue {
     margin-top: 32px;
     margin-bottom: 32px;

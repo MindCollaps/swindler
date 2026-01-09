@@ -10,16 +10,22 @@
                 <span class="name">{{ msg.username }}:</span>
                 <span class="word">{{ msg.word }}</span>
             </div>
+            <div
+                v-if="messages.length === 0"
+                class="message"
+            >Empty</div>
         </div>
     </div>
 </template>
 
 <script setup lang="ts">
 import { useGameSocket } from '~/composables/sockets/game';
+import { useStore } from '~/store';
 
 const route = useRoute();
 const lobbyId = route.params.id as string;
 
+const store = useStore();
 const { lobby } = useGameSocket(lobbyId);
 
 const messages = computed(() => {
@@ -31,8 +37,9 @@ const messages = computed(() => {
         .filter(w => w.gameNumber === currentGameNumber)
         .map(w => {
             const player = lobby.value?.players.find(p => p.id === w.playerId);
+            const isMe = store.me?.userid === w.playerId;
             return {
-                username: player ? player.username : 'Unknown',
+                username: isMe ? 'You' : (player ? player.username : 'Unknown'),
                 word: w.word,
                 round: w.round,
                 turn: w.turn,

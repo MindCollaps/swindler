@@ -1,6 +1,8 @@
+import type { Avatar } from './data';
+
 export interface Lobby {
-    players: ReidsLobbyPlayer[];
-    founder: ReidsLobbyPlayer;
+    players: RedisLobbyPlayer[];
+    founder: RedisLobbyPlayer;
     founded: Date;
     token: string;
     public: boolean;
@@ -21,16 +23,18 @@ export interface LobbyStat {
     title: string;
     class: string;
     unit: string;
-    player?: ReidsLobbyPlayer;
+    player?: RedisLobbyPlayer;
     count: number;
     message: string;
 }
 
-export interface ReidsLobbyPlayer {
+export interface RedisLobbyPlayer {
     id: number;
     username: string;
     ready: boolean;
     fakeUser: boolean;
+    connected: boolean;
+    avatar?: Avatar;
 }
 
 export interface FakeUser {
@@ -73,6 +77,7 @@ export interface Game {
 export interface LobbyWord {
     id: number;
     word: string;
+    wordListName?: string;
 }
 
 export interface LobbyWordList {
@@ -82,7 +87,7 @@ export interface LobbyWordList {
     words: LobbyWord[];
 }
 
-export interface LobbyGame extends Omit<Game, 'imposter' | 'specialGameMode' | 'word' | 'turnOrder'> {
+export interface LobbyGame extends Omit<Game, 'imposter' | 'specialGameMode' | 'word'> {
     word?: LobbyWord;
     imposter: boolean;
     imposterGuess?: string;
@@ -91,7 +96,7 @@ export interface LobbyGame extends Omit<Game, 'imposter' | 'specialGameMode' | '
 
 export interface GivingClue {
     clue: string;
-    player: ReidsLobbyPlayer;
+    player: RedisLobbyPlayer;
 }
 
 export interface PlayedGame extends Omit<Game, 'round' | 'turn'> {
@@ -119,7 +124,6 @@ export interface GameEvent {
 export enum GameEventType {
     VotedCorrectly,
     VotedIncorrectly,
-    // VotedAbstain,
     SaysImposter,
     ReceivedUpVote,
     ReceivedDownVote,
@@ -145,5 +149,5 @@ export interface Voted {
 
 export interface Vote {
     voted: boolean;
-    num: number;
+    voters: number[];
 }

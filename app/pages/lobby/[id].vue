@@ -1,7 +1,7 @@
 <template>
     <common-lobby-not-found v-if="lobbyNotFound"/>
     <div v-else-if="!store?.me?.loggedIn && socket.connected">
-        <create-fake-user :lobby-id="lobbyId"/>
+        <common-box><create-fake-user :lobby-id="lobbyId"/></common-box>
     </div>
     <div
         v-else-if="connected && store?.me?.loggedIn"
@@ -25,8 +25,14 @@
         />
         <br>
         <template v-if="store?.me?.developer">
-            {{ JSON.stringify(store?.me) }}
+            {{ JSON.stringify(store?.me) }}<br><br>{{ JSON.stringify(lobby) }}
         </template>
+        <avatar-creator
+            :avatar
+            :disabled="ready"
+            size-x="400px"
+            size-y="400px"
+        />
         <br>
         Wordlists
         <div
@@ -66,14 +72,22 @@
             </div>
         </div>
         <common-button
-            :primary-color="ready ? 'success500' : 'warning600'"
+            :primary-color="ready ? 'error500' : 'success500'"
             @click="emitReady"
         >{{ ready ? 'Unready' : 'Ready' }}</common-button>
         <common-button
-            v-if="owner && ready && allReady"
+            v-if="owner && ready && allReady && !lobby?.gameStarted"
             class="start-button"
+            primary-color="success500"
             @click="startGame()"
         >Start Game</common-button>
+        <common-button
+            v-if="owner && lobby?.gameStarted && !lobby.gameRunning"
+            class="start-button"
+            primary-color="success500"
+            @click="recreateLobby()"
+        >Extend Lobby</common-button>
+        <heart/>
     </div>
     <div v-else>
         Loading
@@ -82,11 +96,15 @@
 
 <script setup lang="ts">
 import { useLobbySocket } from '~/composables/sockets/lobby';
+import Heart from '~/components/game/Heart.vue';
 import { useStore } from '~/store';
 import { socket } from '~/components/socket';
 import CreateFakeUser from '~/components/game/CreateFakeUser.vue';
 import PlayerList from '~/components/game/PlayerList.vue';
 import { useClipboard } from '@vueuse/core';
+import AvatarCreator from '~/components/avatar/Avatar-Creator.vue';
+import type { Avatar } from '~~/types/data';
+import CommonBox from '~/components/common/CommonBox.vue';
 
 const store = useStore();
 
@@ -94,8 +112,21 @@ const route = useRoute();
 const lobbyId: string = route.params.id as string;
 const uri = ref('');
 
-onMounted(() => {
-    uri.value = `${ window.location.origin }/lobby/${ lobbyId }`;
+const avatar: Ref<Avatar> = ref({
+    body: 4,
+    eyes: 6,
+    cloth: 2,
+    mouth: 2,
+    hair: 6,
+    accessory1: 3,
+    accessory2: undefined,
+});
+
+const avatarCookie = useCookie<Avatar>('avatar', {
+    path: '/',
+    sameSite: 'lax',
+    secure: true,
+    maxAge: 60 * 60 * 24 * 360,
 });
 
 const { copy } = useClipboard();
@@ -133,20 +164,33 @@ const allReady: ComputedRef<boolean> = computed(() => {
 });
 
 onMounted(() => {
+    uri.value = `${ window.location.origin }/lobby/${ lobbyId }`;
     if (!lobby.value) {
         nextTick(() => lobbySocket.emit('lobby'));
+    }
+
+    if (avatarCookie.value) {
+        avatar.value = avatarCookie.value;
     }
 });
 
 function emitReady() {
-    lobbySocket.emit('ready', !ready.value);
+    lobbySocket.emit('ready', { avatar: avatar.value, ready: !ready.value });
 
     const me = lobby.value?.players.find(x => x.id == store?.me?.userid);
-    if (me) me.ready = !ready.value;
+    if (me) {
+        me.ready = !ready.value;
+        me.avatar = avatar.value;
+        avatarCookie.value = avatar.value;
+    }
 }
 
 function startGame() {
     lobbySocket.emit('start');
+}
+
+function recreateLobby() {
+    lobbySocket.emit('recreate');
 }
 
 function addWordList(id: number) {

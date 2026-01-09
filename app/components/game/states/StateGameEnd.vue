@@ -48,7 +48,7 @@
         class="next-game"
         @click="$emit('nextGame')"
     >
-        Next Game
+        {{ lobby?.gameNumber === lobby?.gameRules.games ? 'End game' : 'Next Game' }}
     </common-button>
 
     <word-log/>

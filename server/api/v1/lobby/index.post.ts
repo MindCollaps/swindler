@@ -39,6 +39,7 @@ export default defineEventHandler(async event => {
             username,
             ready: false,
             fakeUser,
+            connected: true,
         },
         gameRules: {
             maxPlayers: 4,

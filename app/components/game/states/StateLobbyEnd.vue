@@ -24,15 +24,12 @@
 
         <common-button
             class="home-btn"
-            to="/"
-        >Back to Home</common-button>
-
-        <word-log/>
+            :to="`/lobby/${ lobby?.token }`"
+        >Back to Lobby</common-button>
     </div>
 </template>
 
 <script setup lang="ts">
-import WordLog from '~/components/game/WordLog.vue';
 import type { GameStateEmits } from '~~/types/game-state';
 import type { Lobby } from '~~/types/redis';
 
@@ -52,6 +49,7 @@ const displayStats = computed(() => {
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: center;
 
     padding: 20px;
 
@@ -64,7 +62,6 @@ const displayStats = computed(() => {
     gap: 20px;
     justify-content: center;
 
-    width: 100%;
     max-width: 1200px;
     margin: 20px 0;
 }
@@ -75,21 +72,26 @@ const displayStats = computed(() => {
     align-items: center;
     justify-content: center;
 
-    width: 20vmax;
-    height: 20vmax;
+    width: 13vw;
+    height: 13vw;
     padding: 20px;
     border: 2px solid transparent;
     border-radius: 16px;
 
+    @include mobile {
+        width: 30vw;
+        height: 30vw;
+    }
+
     background: $darkgray800;
 
     h3 {
-        margin-bottom: 10px;
+        margin-bottom: 8px;
         font-size: 1.2rem;
     }
 
     .player-name {
-        margin-bottom: 5px;
+        margin-bottom: 16px;
         font-size: 1.5rem;
         font-weight: bold;
         color: #fff;

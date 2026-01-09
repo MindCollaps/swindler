@@ -28,31 +28,83 @@ let connected: Ref<boolean> = ref(false);
 let lobbyNotFound: Ref<boolean> = ref(false);
 let disconnect = () => { };
 
-const addVote = (vote: number, selfVoted: boolean = false) => {
+const addVote = (vote: number, selfVoted: boolean = false, voterId?: number) => {
     if (!voted.value) {
         resetVote();
     }
 
     if (!voted.value) return;
+    const store = useStore();
+
+    const addVoter = (list: number[], id?: number) => {
+        if (id !== undefined && !list.includes(id)) {
+            list.push(id);
+        }
+    };
 
     switch (vote as number) {
         case 1:
-            voted.value.down.num += 1;
             if (selfVoted) {
                 voted.value.down.voted = selfVoted;
+                addVoter(voted.value.down.voters, store.me?.userid);
             }
+            if (voterId !== undefined) addVoter(voted.value.down.voters, voterId);
             break;
         case 2:
-            voted.value.up.num += 1;
             if (selfVoted) {
                 voted.value.up.voted = selfVoted;
+                addVoter(voted.value.up.voters, store.me?.userid);
             }
+            if (voterId !== undefined) addVoter(voted.value.up.voters, voterId);
             break;
         case 3:
-            voted.value.imposter.num += 1;
             if (selfVoted) {
                 voted.value.imposter.voted = selfVoted;
+                addVoter(voted.value.imposter.voters, store.me?.userid);
             }
+            if (voterId !== undefined) addVoter(voted.value.imposter.voters, voterId);
+            break;
+    }
+
+    if (selfVoted) {
+        if (!gameSocket) return;
+        gameSocket.emit('vote', vote);
+    }
+};
+
+const removeVote = (vote: number, selfVoted: boolean = false, voterId?: number) => {
+    if (!voted.value) return;
+    const store = useStore();
+
+    const removeVoter = (list: number[], id?: number) => {
+        if (id === undefined) return;
+        const index = list.indexOf(id);
+        if (index > -1) {
+            list.splice(index, 1);
+        }
+    };
+
+    switch (vote) {
+        case 1:
+            if (selfVoted) {
+                voted.value.down.voted = false;
+                removeVoter(voted.value.down.voters, store.me?.userid);
+            }
+            removeVoter(voted.value.down.voters, voterId);
+            break;
+        case 2:
+            if (selfVoted) {
+                voted.value.up.voted = false;
+                removeVoter(voted.value.up.voters, store.me?.userid);
+            }
+            removeVoter(voted.value.up.voters, voterId);
+            break;
+        case 3:
+            if (selfVoted) {
+                voted.value.imposter.voted = false;
+                removeVoter(voted.value.imposter.voters, store.me?.userid);
+            }
+            removeVoter(voted.value.imposter.voters, voterId);
             break;
     }
 
@@ -130,8 +182,16 @@ export function useGameSocket(lobbyId: string, options: { onHeart?: () => void }
             }
         });
         gameSocket.on('vote', value => {
-            if (value as number != 4) {
+            if (typeof value === 'object' && value.vote && value.vote != 4) {
+                addVote(value.vote, false, value.userId);
+            }
+            else if (typeof value === 'number' && value != 4) {
                 addVote(value);
+            }
+        });
+        gameSocket.on('unvote', value => {
+            if (typeof value === 'object' && value.vote && value.userId) {
+                removeVote(value.vote, false, value.userId);
             }
         });
         gameSocket.on('voted', value => {
@@ -181,14 +241,14 @@ export function useGameSocket(lobbyId: string, options: { onHeart?: () => void }
 
     onMounted(connect);
 
-    return { gameSocket, lobby, game, voted, addVote, myTurn, disconnect, connected, clue, skipWait, voteForPlayer, gameResults, nextGame, hasVotedForPlayer, guessWord, lobbyNotFound };
+    return { gameSocket, lobby, game, voted, addVote, removeVote, myTurn, disconnect, connected, clue, skipWait, voteForPlayer, gameResults, nextGame, hasVotedForPlayer, guessWord, lobbyNotFound };
 }
 
 function resetVote() {
     voted.value = {
-        down: { num: 0, voted: false },
-        up: { num: 0, voted: false },
-        imposter: { num: 0, voted: false },
+        down: { voters: [], voted: false },
+        up: { voters: [], voted: false },
+        imposter: { voters: [], voted: false },
     };
 }
 

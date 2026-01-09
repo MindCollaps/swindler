@@ -13,12 +13,7 @@
             @skipWait="skipWait"
             @voteForPlayer="voteForPlayer"
         />
-        <heart
-            v-for="heart in hearts"
-            :key="heart.id"
-            :x="heart.x"
-            :y="heart.y"
-        />
+        <heart/>
     </div>
     <div v-else>
         Loading...
@@ -26,7 +21,6 @@
 </template>
 
 <script setup lang="ts">
-import Heart from '~/components/game/Heart.vue';
 import { GameState } from '~~/types/redis';
 import { useGameSocket } from '~/composables/sockets/game';
 
@@ -38,6 +32,7 @@ import StateVote from '~/components/game/states/StateVote.vue';
 import StateImposterVote from '~/components/game/states/StateImposterVote.vue';
 import StateGameEnd from '~/components/game/states/StateGameEnd.vue';
 import StateLobbyEnd from '~/components/game/states/StateLobbyEnd.vue';
+import Heart from '~/components/game/Heart.vue';
 
 definePageMeta({
     layout: 'empty',
@@ -52,18 +47,6 @@ const { gameSocket: gameSocket, game, connected, lobby, myTurn, clue, voteForPla
 const timeRemaining = ref(0);
 const isReady = ref(false);
 let timerInterval: ReturnType<typeof setInterval> | null = null;
-
-const hearts = ref<{ id: number; x: number; y: number }[]>([]);
-let heartId = 0;
-
-
-gameSocket.on('heart', () => {
-    const id = heartId++;
-    hearts.value.push({ id, x: Math.random() * 90, y: Math.random() * 90 });
-    setTimeout(() => {
-        hearts.value = hearts.value.filter(h => h.id !== id);
-    }, 2000);
-});
 
 watch(() => game.value?.cueEndTime, newVal => {
     if (timerInterval) clearInterval(timerInterval);
@@ -80,10 +63,16 @@ watch(() => game.value?.cueEndTime, newVal => {
 function updateTimer() {
     if (!game.value?.cueEndTime) {
         timeRemaining.value = 0;
+        if (timerInterval) clearInterval(timerInterval);
         return;
     }
-    const diff = Math.ceil((game.value.cueEndTime - Date.now()) / 1000);
-    timeRemaining.value = diff > 0 ? diff - 1 : 0;
+
+    const diff = Math.max(0, Math.ceil((game.value.cueEndTime - Date.now()) / 1000));
+    timeRemaining.value = diff;
+
+    if (diff === 0 && timerInterval) {
+        clearInterval(timerInterval);
+    }
 }
 
 function skipWait() {
@@ -146,21 +135,8 @@ onMounted(() => {
 </script>
 
 <style lang="scss">
-.heart {
-    pointer-events: none;
-
-    position: fixed;
-    z-index: 1000;
-    bottom: 1vh;
-    left: 95vw;
-
-    font-size: 2rem;
-    color: #ff6b9d;
-
-    opacity: 1;
-}
-
 .game {
-    padding: 16px;
+    width: 100%;
+    padding: 32px;
 }
 </style>

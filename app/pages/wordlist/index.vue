@@ -17,51 +17,63 @@
             </div>
         </div>
 
-        <div>
-            <common-input-text
-                v-model="name"
+        <div class="input">
+            <p>New Wordlist</p>
+            <div>
+                <common-input-text v-model="name">
+                    Name
+                </common-input-text>
+            </div>
+
+            <div>
+                <common-input-text v-model="description">
+                    Description
+                </common-input-text>
+            </div>
+
+            <p>Words (one per line)</p>
+            <div class="textfield">
+                <textarea
+                    v-model="words"
+                    cols="40"
+                    name="Words"
+                    rows="5"
+                />
+            </div>
+
+            <p>Access Settings</p>
+
+            <div
+                v-if="store.me?.admin"
+                class="checkbox"
             >
-                Name
-            </common-input-text>
-        </div>
+                <common-checkbox
+                    v-model="isCustom"
+                    class="item"
+                >Custom</common-checkbox>
 
-        <div>
-            <common-input-text
-                v-model="description"
+                <common-checkbox
+                    v-model="isDefault"
+                    class="item"
+                >Default</common-checkbox>
+                <common-checkbox
+                    v-model="isPublic"
+                    class="item"
+                >Public</common-checkbox>
+            </div>
+
+            <div
+                v-else
+                class="checkbox"
             >
-                Description
-            </common-input-text>
+                <common-checkbox
+                    v-model="isPublic"
+                    class="item"
+                >Public</common-checkbox>
+            </div>
         </div>
 
-        <div v-if="store.me?.admin">
-            <common-checkbox
-                v-model="isCustom"
-            >Custom</common-checkbox>
-
-            <common-checkbox
-                v-model="isDefault"
-            >Default</common-checkbox>
-            <common-checkbox
-                v-model="isPublic"
-            >Public</common-checkbox>
-        </div>
-
-        <div v-else>
-            <common-checkbox
-                v-model="isPublic"
-            >Public</common-checkbox>
-        </div>
-
-        <div>
-            <textarea
-                v-model="words"
-                cols="40"
-                name="Words"
-                rows="5"
-            />
-        </div>
-
-        <div>
+        <div class="input">
             <common-button @click="createWordlist">Create</common-button>
         </div>
     </div>
@@ -184,6 +196,32 @@ onMounted(() => {
             .actions {
                 display: flex;
                 gap: 8px;
+            }
+        }
+    }
+
+    .input {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+
+        padding: 10px;
+        border-radius: 5px;
+
+        .textfield {
+            padding: 10px;
+            border-radius: 4px;
+        }
+
+        .checkbox {
+            display: flex;
+            flex-direction: row;
+            gap: 10px;
+            justify-content: center;
+
+            .item {
+                margin-right: 5px;
+                padding: 10px;
             }
         }
     }
