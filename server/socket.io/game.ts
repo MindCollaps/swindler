@@ -6,7 +6,7 @@ import {
     getGameAndLobby, getGame, saveGame, saveLobby, withLock,
     waitForNextRound, lobbyTimeouts, gameLobbyTtl,
 } from '../utils/game/helper';
-import { checkVoteImposter, isTurn, isRoundOver } from '../utils/game/rules';
+import { checkVoteImposter, isTurn } from '../utils/game/rules';
 import { createGame, proceedFromVote, proceedFromCue, proceedFromRoundEnd, proceedFromImposterVote } from '../utils/game/lifecycle';
 
 export { waitForNextRound, gameLobbyTtl, createGame, proceedFromVote, proceedFromCue, proceedFromRoundEnd, proceedFromImposterVote };
@@ -84,7 +84,7 @@ export async function vote(socket: Socket<DefaultEventsMap, DefaultEventsMap, De
                 x.receiverId == game.turn);
 
             if (existingVoteIndex !== -1) {
-                // Remove existing vote (Toggle)
+                // Remove existing vote
                 lobby.gameEvents.splice(existingVoteIndex, 1);
                 await saveLobby(id, lobby);
 
@@ -213,10 +213,6 @@ export async function giveClue(socket: Socket<DefaultEventsMap, DefaultEventsMap
 
             socket.emit('givingClue', clue);
             socket.broadcast.emit('givingClue', clue);
-
-            if (isRoundOver(game)) {
-                game.round += 1;
-            }
         }
         else return;
 
@@ -361,7 +357,7 @@ export async function sendGame(socket: Socket<DefaultEventsMap, DefaultEventsMap
     const lobbyGame: LobbyGame = {
         round: game.round,
         turn: game.turn,
-        ...(isImposter && game.gameState !== GameState.GameEnd && game.gameState !== GameState.ImposterVote ? { wordOrder: game.word } : { word: game.word }),
+        ...(isImposter && game.gameState !== GameState.GameEnd && game.gameState !== GameState.ImposterVote ? { } : { word: game.word }),
         imposter: isImposter,
         gameState: game.gameState,
         cueEndTime: game.cueEndTime,

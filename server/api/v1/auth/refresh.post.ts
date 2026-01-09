@@ -42,13 +42,18 @@ export default defineEventHandler(async event => {
 
     // Update active sockets for this user to match the new timestamp
     if (socketServer) {
-        const sockets = await socketServer.fetchSockets();
-        for (const socket of sockets) {
+        try {
+            const sockets = await socketServer.fetchSockets();
+            for (const socket of sockets) {
             // @ts-expect-error raw socket type vs remote socket
-            if (socket.user?.userId === userId && socket.user?.random === random) {
+                if (socket.user?.userId === userId && socket.user?.random === random) {
                 // @ts-expect-error user property is writable on the socket instance
-                socket.user.timeStamp = iat;
+                    socket.user.timeStamp = iat;
+                }
             }
+        }
+        catch (e) {
+            console.error(e);
         }
     }
 

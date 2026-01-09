@@ -69,8 +69,7 @@ function updateTimer() {
         if (timerInterval) clearInterval(timerInterval);
         return;
     }
-    // Calculate difference between server target time and local time.
-    // Assuming reasonable clock sync. If clocks are widely off, we'd need a server-offset calculation.
+
     const diff = Math.max(0, Math.ceil((game.value.cueEndTime - Date.now()) / 1000));
     timeRemaining.value = diff;
 
@@ -141,6 +140,6 @@ onMounted(() => {
 <style lang="scss">
 .game {
     width: 100%;
-    padding: 32px
+    padding: 32px;
 }
 </style>

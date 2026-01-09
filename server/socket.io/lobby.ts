@@ -48,7 +48,7 @@ export default async function lobbyHandler(namespace: Namespace, socket: Socket,
             const player = lobbyData.players[existingPlayerIndex];
             if (player) {
                 player.connected = true;
-                player.ready = false;
+                player.ready = lobbyData.gameRunning;
             }
         }
         else {
@@ -191,13 +191,13 @@ async function lobbyRecreate(socket: Socket<DefaultEventsMap, DefaultEventsMap, 
     if (!lobbyData || !socket.user) return;
     const lobby: Lobby = JSON.parse(lobbyData);
 
-    if (lobby.gameRunning && !lobby.gameStarted) return;
+    if (!lobby.gameRunning && lobby.gameStarted) return;
 
     if (!isOwner(lobby, { id: socket.user.userId, fakeUser: socket.user.fakeUser })) return;
 
     lobby.gameStarted = false;
     lobby.wordLists = [];
-    lobby.gameRules.games += lobby.gameRules.games;
+    lobby.gameRules.games++;
     setRedisSync(`lobby-${ id }`, JSON.stringify(lobby), gameLobbyTtl);
 
     socket.emit('lobby', lobbyData);

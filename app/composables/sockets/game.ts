@@ -34,8 +34,8 @@ const addVote = (vote: number, selfVoted: boolean = false, voterId?: number) => 
     }
 
     if (!voted.value) return;
+    const store = useStore();
 
-    // Helper to safely add voter
     const addVoter = (list: number[], id?: number) => {
         if (id !== undefined && !list.includes(id)) {
             list.push(id);
@@ -44,23 +44,23 @@ const addVote = (vote: number, selfVoted: boolean = false, voterId?: number) => 
 
     switch (vote as number) {
         case 1:
-            // voted.value.down.num += 1;
             if (selfVoted) {
                 voted.value.down.voted = selfVoted;
+                addVoter(voted.value.down.voters, store.me?.userid);
             }
             if (voterId) addVoter(voted.value.down.voters, voterId);
             break;
         case 2:
-            // voted.value.up.num += 1;
             if (selfVoted) {
                 voted.value.up.voted = selfVoted;
+                addVoter(voted.value.up.voters, store.me?.userid);
             }
             if (voterId) addVoter(voted.value.up.voters, voterId);
             break;
         case 3:
-            // voted.value.imposter.num += 1;
             if (selfVoted) {
                 voted.value.imposter.voted = selfVoted;
+                addVoter(voted.value.imposter.voters, store.me?.userid);
             }
             if (voterId) addVoter(voted.value.imposter.voters, voterId);
             break;
@@ -69,35 +69,12 @@ const addVote = (vote: number, selfVoted: boolean = false, voterId?: number) => 
     if (selfVoted) {
         if (!gameSocket) return;
         gameSocket.emit('vote', vote);
-
-        // Optimistic update handled by addVote caller or response?
-        // Logic below adds self to voters list immediately
-        const store = useStore();
-        if (store.me?.userid) {
-            // Check if already voted to determine if we are adding or removing
-            let alreadyVoted = false;
-            switch (vote) {
-                case 1: alreadyVoted = voted.value.down.voters.includes(store.me.userid); break;
-                case 2: alreadyVoted = voted.value.up.voters.includes(store.me.userid); break;
-                case 3: alreadyVoted = voted.value.imposter.voters.includes(store.me.userid); break;
-            }
-
-            if (alreadyVoted) {
-                removeVote(vote, true, store.me.userid);
-                return; // Stop here, we removed it locally
-            }
-
-            switch (vote) {
-                case 1: addVoter(voted.value.down.voters, store.me.userid); break;
-                case 2: addVoter(voted.value.up.voters, store.me.userid); break;
-                case 3: addVoter(voted.value.imposter.voters, store.me.userid); break;
-            }
-        }
     }
 };
 
 const removeVote = (vote: number, selfVoted: boolean = false, voterId?: number) => {
     if (!voted.value) return;
+    const store = useStore();
 
     const removeVoter = (list: number[], id?: number) => {
         if (id === undefined) return;
@@ -109,17 +86,31 @@ const removeVote = (vote: number, selfVoted: boolean = false, voterId?: number) 
 
     switch (vote) {
         case 1:
-            if (selfVoted) voted.value.down.voted = false;
+            if (selfVoted) {
+                voted.value.down.voted = false;
+                removeVoter(voted.value.down.voters, store.me?.userid);
+            }
             removeVoter(voted.value.down.voters, voterId);
             break;
         case 2:
-            if (selfVoted) voted.value.up.voted = false;
+            if (selfVoted) {
+                voted.value.up.voted = false;
+                removeVoter(voted.value.up.voters, store.me?.userid);
+            }
             removeVoter(voted.value.up.voters, voterId);
             break;
         case 3:
-            if (selfVoted) voted.value.imposter.voted = false;
+            if (selfVoted) {
+                voted.value.imposter.voted = false;
+                removeVoter(voted.value.imposter.voters, store.me?.userid);
+            }
             removeVoter(voted.value.imposter.voters, voterId);
             break;
+    }
+
+    if (selfVoted) {
+        if (!gameSocket) return;
+        gameSocket.emit('vote', vote);
     }
 };
 
@@ -195,7 +186,6 @@ export function useGameSocket(lobbyId: string, options: { onHeart?: () => void }
                 addVote(value.vote, false, value.userId);
             }
             else if (typeof value === 'number' && value != 4) {
-                // Initial fallback or if logic changes
                 addVote(value);
             }
         });
@@ -251,7 +241,7 @@ export function useGameSocket(lobbyId: string, options: { onHeart?: () => void }
 
     onMounted(connect);
 
-    return { gameSocket, lobby, game, voted, addVote, myTurn, disconnect, connected, clue, skipWait, voteForPlayer, gameResults, nextGame, hasVotedForPlayer, guessWord, lobbyNotFound };
+    return { gameSocket, lobby, game, voted, addVote, removeVote, myTurn, disconnect, connected, clue, skipWait, voteForPlayer, gameResults, nextGame, hasVotedForPlayer, guessWord, lobbyNotFound };
 }
 
 function resetVote() {

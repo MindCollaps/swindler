@@ -158,6 +158,7 @@ export async function proceedFromRoundEnd(id: string, namespace: Namespace) {
         game.gameState = GameState.Round;
         delete game.cueEndTime;
         delete game.readyToContinue;
+        game.round += 1;
 
         await saveGame(id, game);
 

@@ -7,7 +7,7 @@
                     icon="material-symbols:thumb-up-sharp"
                     icon-width="32px"
                     :type="!voted?.up.voted ? 'transparent' : 'primary'"
-                    @click="addVote(2, true)"
+                    @click="triggerVote(2, !voted?.up.voted)"
                 />
                 <div class="vote-button-description">{{ voted?.up.voters.length ?? 0 > 0 ? getVotersNames(voted?.up.voters) : 'Empty' }}</div>
             </div>
@@ -17,7 +17,7 @@
                     icon="material-symbols:thumb-down-sharp"
                     icon-width="32px"
                     :type="!voted?.down.voted ? 'transparent' : 'primary'"
-                    @click="addVote(1, true)"
+                    @click="triggerVote(1, !voted?.down.voted)"
                 />
                 <div class="vote-button-description">{{ voted?.down.voters.length ?? 0 > 0 ? getVotersNames(voted?.down.voters) : 'Empty' }}</div>
             </div>
@@ -27,7 +27,7 @@
                 icon="material-symbols:comedy-mask-rounded"
                 icon-width="32px"
                 :type="!voted?.imposter.voted ? 'transparent' : 'primary'"
-                @click="addVote(3, true)"
+                @click="triggerVote(3, !voted?.imposter.voted)"
             />
             <div class="vote-button-description">{{ voted?.imposter.voters.length ?? 0 > 0 ? getVotersNames(voted?.imposter.voters) : 'Empty' }}</div>
         </div>
@@ -42,7 +42,7 @@ const route = useRoute();
 const lobbyId = route.params.id as string;
 const store = useStore();
 
-const { voted, addVote, myTurn, lobby } = useGameSocket(lobbyId);
+const { voted, addVote, removeVote, myTurn, lobby } = useGameSocket(lobbyId);
 
 function getVotersNames(voterIds: number[] | undefined): string {
     if (!voterIds || voterIds.length === 0 || !lobby.value) return '';
@@ -52,6 +52,15 @@ function getVotersNames(voterIds: number[] | undefined): string {
         const player = lobby.value?.players.find(p => p.id === id);
         return player ? player.username : 'Unknown';
     }).join(', ');
+}
+
+function triggerVote(id: number, add: boolean | undefined) {
+    if (add) {
+        addVote(id, true);
+    }
+    else {
+        removeVote(id, true);
+    }
 }
 </script>
 

@@ -57,12 +57,12 @@ export function isRoundOver(game: Game): boolean {
 }
 
 export function isTurn(game: Game, userId: number) {
-    return game.turn == userId;
+    return game.turn === userId;
 }
 
 export function checkVoteImposter(game: Game, lobby: Lobby): boolean {
-    return lobby.gameEvents.filter(x => x.type == GameEventType.SaysImposter &&
-        x.turn == game.turn &&
-        x.round == game.round &&
-        x.gameNumber == lobby.gameNumber).length > lobby.players.length / 2;
+    return lobby.gameEvents.filter(x => x.type === GameEventType.SaysImposter &&
+        x.turn === game.turn &&
+        x.round === game.round &&
+        x.gameNumber === lobby.gameNumber).length > lobby.players.length / 2;
 }

@@ -29,9 +29,9 @@ export async function getCachedWordList(id: number): Promise<LobbyWordList> {
             throw new Error('Wordlist id not found');
         }
 
-        const returnWortlist = wordList[0];
-        if (!returnWortlist) throw new Error('wordlist is empty');
-        return returnWortlist;
+        const returnWordList = wordList[0];
+        if (!returnWordList) throw new Error('wordlist is empty');
+        return returnWordList;
     }
 
     const wordList: LobbyWordList = JSON.parse(wordListData);
@@ -40,7 +40,7 @@ export async function getCachedWordList(id: number): Promise<LobbyWordList> {
 }
 
 export async function cacheWordLists(wordLists: number[], skipSearch: boolean = false): Promise<LobbyWordList[] | undefined> {
-    const searchLists: number[] = [];
+    let searchLists: number[] = [];
 
     if (!skipSearch) {
         const exists: number[] = [];
@@ -52,9 +52,9 @@ export async function cacheWordLists(wordLists: number[], skipSearch: boolean = 
             }
         }
 
-        const searchLists = wordLists.filter(n => !exists.includes(n));
+        searchLists = wordLists.filter(n => !exists.includes(n));
 
-        if (searchLists.length == 0) return;
+        if (searchLists.length === 0) return;
     }
     else {
         for (const list of wordLists) {
