@@ -17,8 +17,7 @@ OUTPUT_JSON_DIR = '../app/utils'
 OUTPUT_FILENAME = 'avatar-atlas.webp'
 OUTPUT_MAP_FILENAME = 'avatarAtlas.json'
 
-# Order as requested: acc, body, cloth, eyes, hair, mouth
-CATEGORIES = ['acc', 'body', 'cloth', 'eyes', 'hair', 'mouth']
+CATEGORIES = ['acc', 'body', 'cloth', 'eyes', 'hair', 'mouth', 'extra']
 
 def get_sort_key(filename):
     # Extract the number from 'acc-1.png'

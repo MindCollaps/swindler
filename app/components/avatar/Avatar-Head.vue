@@ -7,19 +7,21 @@
         }"
     >
         <a-part
-            v-if="avatar?.hair"
+            v-if="avatar?.hair && !placeHolder"
             class="hair"
             :size-x="sizeX"
             :size-y="sizeY"
             :src="'hair-' + avatar?.hair"
         />
         <a-part
+            v-if="!placeHolder"
             class="eyes"
             :size-x="sizeX"
             :size-y="sizeY"
             :src="'eyes-' + avatar?.eyes"
         />
         <a-part
+            v-if="avatar?.hair && !placeHolder"
             class="mouth"
             :size-x="sizeX"
             :size-y="sizeY"
@@ -39,6 +41,13 @@
             :size-y="sizeY"
             :src="'acc-' + avatar?.accessory2"
         />
+        <a-part
+            v-if="placeHolder"
+            class="accessories"
+            :size-x="sizeX"
+            :size-y="sizeY"
+            src="extra-1"
+        />
     </div>
 </template>
 
@@ -51,6 +60,7 @@ defineProps({
     avatar: Object as PropType<Avatar>,
     sizeX: String,
     sizeY: String,
+    placeHolder: Boolean,
 });
 </script>
 
