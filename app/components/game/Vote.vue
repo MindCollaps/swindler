@@ -93,6 +93,8 @@ function triggerVote(id: number, add: boolean | undefined) {
     display: flex;
     flex-direction: column;
     gap: 16px;
+    align-items: center;
+    justify-content: center;
 }
 
 .vote-button-description {

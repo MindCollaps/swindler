@@ -29,7 +29,7 @@
                 >
                     <div class="avatar-username">
                         <avatar-model
-                            v-if="player.ready && player.avatar"
+                            v-if="player.avatar"
                             :avatar="player.avatar"
                             :size-x="avatarSize + 'px'"
                             :size-y="avatarSize + 'px'"

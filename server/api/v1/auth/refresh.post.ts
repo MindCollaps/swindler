@@ -5,6 +5,13 @@ import { userSessionAvailableMS } from '~~/server/utils/auth';
 import type { UserSession } from '~~/types/data';
 import { socketServer } from '~~/server/plugins/socket.io.server';
 
+declare module 'socket.io' {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    interface RemoteSocket<EmitEvents, SocketData> {
+        user?: UserSession;
+    }
+}
+
 export default defineEventHandler(async event => {
     const token = getCookie(event, authCookieName);
     if (!token) {
@@ -45,9 +52,7 @@ export default defineEventHandler(async event => {
         try {
             const sockets = await socketServer.fetchSockets();
             for (const socket of sockets) {
-            // @ts-expect-error raw socket type vs remote socket
                 if (socket.user?.userId === userId && socket.user?.random === random) {
-                // @ts-expect-error user property is writable on the socket instance
                     socket.user.timeStamp = iat;
                 }
             }

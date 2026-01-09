@@ -6,7 +6,8 @@ import { createLock, IoredisAdapter } from 'redlock-universal';
 import type { Lobby } from '../../types/redis';
 import { createGame, gameLobbyTtl, giveClue, sendGame, sendVoted, vote, skipWait, voteForPlayer, nextGame, guessWord } from './game';
 import { isSameUser } from '../../app/utils/user';
-import type { Avatar } from '~~/types/data';
+import { AVATAR_DEFINITIONS } from '../../types/data';
+import type { Avatar } from '../../types/data';
 
 export default async function lobbyHandler(namespace: Namespace, socket: Socket, id: string) {
     const userId = socket.user?.userId;
@@ -48,7 +49,7 @@ export default async function lobbyHandler(namespace: Namespace, socket: Socket,
             const player = lobbyData.players[existingPlayerIndex];
             if (player) {
                 player.connected = true;
-                player.ready = lobbyData.gameRunning;
+                player.ready = false;
             }
         }
         else {
@@ -150,6 +151,8 @@ async function ready(socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultE
 
         if (lobby.gameRunning) return;
 
+        if (!validateAvatar(value.avatar)) return;
+
         const player = lobby.players.find(x => isSameUser(x, { id: socket.user?.userId ?? 0, fakeUser: socket.user?.fakeUser ?? false }));
 
         if (!player) return;
@@ -191,7 +194,7 @@ async function lobbyRecreate(socket: Socket<DefaultEventsMap, DefaultEventsMap, 
     if (!lobbyData || !socket.user) return;
     const lobby: Lobby = JSON.parse(lobbyData);
 
-    if (!lobby.gameRunning && lobby.gameStarted) return;
+    if (lobby.gameRunning || !lobby.gameStarted) return;
 
     if (!isOwner(lobby, { id: socket.user.userId, fakeUser: socket.user.fakeUser })) return;
 
@@ -200,8 +203,8 @@ async function lobbyRecreate(socket: Socket<DefaultEventsMap, DefaultEventsMap, 
     lobby.gameRules.games++;
     setRedisSync(`lobby-${ id }`, JSON.stringify(lobby), gameLobbyTtl);
 
-    socket.emit('lobby', lobby);
-    socket.broadcast.emit('lobby', lobby);
+    socket.emit('lobby', lobbyData);
+    socket.broadcast.emit('lobby', lobbyData);
 }
 
 async function addWordlist(socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>, id: string, value: any) {
@@ -241,4 +244,31 @@ async function removeWordlist(socket: Socket<DefaultEventsMap, DefaultEventsMap,
 
 function isOwner(lobby: Lobby, user: { id: number; fakeUser: boolean }) {
     return isSameUser(lobby.founder, user);
+}
+
+function validateAvatar(avatar: any): boolean {
+    if (!avatar || typeof avatar !== 'object') return false;
+
+    // Check for unknown keys
+    const allowedKeys = Object.keys(AVATAR_DEFINITIONS);
+    const existingKeys = Object.keys(avatar);
+    for (const key of existingKeys) {
+        if (!allowedKeys.includes(key)) return false;
+    }
+
+    // Iterate over strict definitions
+    // We cast to any to avoid complex typing for the iteration in this utility
+    for (const [key, def] of Object.entries(AVATAR_DEFINITIONS)) {
+        const value = avatar[key];
+        const definition = def as { max: number; optional: boolean };
+
+        if (!definition.optional && value === undefined) return false;
+
+        if (value !== undefined) {
+            if (typeof value !== 'number' || !Number.isInteger(value) || value < 0 || value > definition.max) {
+                return false;
+            }
+        }
+    }
+    return true;
 }

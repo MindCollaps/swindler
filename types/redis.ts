@@ -124,7 +124,6 @@ export interface GameEvent {
 export enum GameEventType {
     VotedCorrectly,
     VotedIncorrectly,
-    VotedAbstain,
     SaysImposter,
     ReceivedUpVote,
     ReceivedDownVote,

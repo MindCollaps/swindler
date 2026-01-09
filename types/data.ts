@@ -7,6 +7,7 @@ export interface UserSession {
     timeStamp: number;
     fakeUser: boolean;
     developer: boolean;
+    random: string;
 }
 
 export const AVATAR_DEFINITIONS = {
