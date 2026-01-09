@@ -48,21 +48,21 @@ const addVote = (vote: number, selfVoted: boolean = false, voterId?: number) => 
                 voted.value.down.voted = selfVoted;
                 addVoter(voted.value.down.voters, store.me?.userid);
             }
-            if (voterId) addVoter(voted.value.down.voters, voterId);
+            if (voterId !== undefined) addVoter(voted.value.down.voters, voterId);
             break;
         case 2:
             if (selfVoted) {
                 voted.value.up.voted = selfVoted;
                 addVoter(voted.value.up.voters, store.me?.userid);
             }
-            if (voterId) addVoter(voted.value.up.voters, voterId);
+            if (voterId !== undefined) addVoter(voted.value.up.voters, voterId);
             break;
         case 3:
             if (selfVoted) {
                 voted.value.imposter.voted = selfVoted;
                 addVoter(voted.value.imposter.voters, store.me?.userid);
             }
-            if (voterId) addVoter(voted.value.imposter.voters, voterId);
+            if (voterId !== undefined) addVoter(voted.value.imposter.voters, voterId);
             break;
     }
 

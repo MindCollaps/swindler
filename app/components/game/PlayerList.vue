@@ -39,7 +39,7 @@
                     </div>
 
                     <div
-                        v-if="!player.connected && player.connected !== undefined && player.connected !== null"
+                        v-if="player.connected === false"
                         class="item-ready disconnected"
                     >Disconnected</div>
                     <div

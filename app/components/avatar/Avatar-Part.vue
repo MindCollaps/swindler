@@ -22,7 +22,7 @@ const style = computed(() => {
     // specific handling to support legacy paths if any, though we will update callers
     const cleanSrc = props.src.split('/').pop()?.replace('.png', '') || '';
     // Format is "category-id"
-    const match = cleanSrc.match(/^([a-z]+)-(\d+)$/);
+    const match = cleanSrc.match(/^([a-z]+)-(\d+)$/i);
     if (!match || !match[1] || !match[2]) return {};
 
     const category = match[1];

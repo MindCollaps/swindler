@@ -41,6 +41,7 @@ function sendHeart() {
 }
 
 function animateHeart() {
+    if (freeHearts.value.length === 0) return;
     const heart = freeHearts.value.at(0);
     if (!heart) return;
 

@@ -1,4 +1,4 @@
-import type { Lobby, LobbyStat, ReidsLobbyPlayer, GameEvent } from '../../../types/redis';
+import type { Lobby, LobbyStat, RedisLobbyPlayer, GameEvent } from '../../../types/redis';
 import { GameEventType } from '../../../types/redis';
 
 export function calculateLobbyStats(lobby: Lobby): LobbyStat[] {
@@ -30,7 +30,7 @@ export function calculateLobbyStats(lobby: Lobby): LobbyStat[] {
     return stats.slice(0, 3);
 }
 
-export function getStatWinner(events: GameEvent[], type: GameEventType, field: 'initiatorId' | 'receiverId', players: ReidsLobbyPlayer[]) {
+export function getStatWinner(events: GameEvent[], type: GameEventType, field: 'initiatorId' | 'receiverId', players: RedisLobbyPlayer[]) {
     const counts = new Map<number, number>();
     events.filter(e => e.type === type).forEach(e => {
         const id = e[field];

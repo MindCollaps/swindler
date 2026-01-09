@@ -1,7 +1,7 @@
-import type { Game, Lobby, ReidsLobbyPlayer } from '../../../types/redis';
+import type { Game, Lobby, RedisLobbyPlayer } from '../../../types/redis';
 import { GameEventType } from '../../../types/redis';
 
-export function chooseImposter(players: ReidsLobbyPlayer[]): number {
+export function chooseImposter(players: RedisLobbyPlayer[]): number {
     if (players.length === 0) throw new Error('players cant be 0');
 
     // Create a Uint32Array of length 1 for the random index
@@ -12,7 +12,7 @@ export function chooseImposter(players: ReidsLobbyPlayer[]): number {
     return players[randomIndex]!.id;
 }
 
-export function makeTurnOrder(players: ReidsLobbyPlayer[]): number[] {
+export function makeTurnOrder(players: RedisLobbyPlayer[]): number[] {
     const ids = players.map(p => p.id);
 
     // Fisher-Yates shuffle

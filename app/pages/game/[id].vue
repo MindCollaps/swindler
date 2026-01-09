@@ -51,11 +51,8 @@ let timerInterval: ReturnType<typeof setInterval> | null = null;
 watch(() => game.value?.cueEndTime, newVal => {
     if (timerInterval) clearInterval(timerInterval);
     if (newVal) {
-        // Adjust for potential clock skew by using a relative offset if possible,
-        // but since cueEndTime is absolute server time, we rely on Date.now().
-        // To make it more robust, we ensure the timer runs immediately and clears properly.
         updateTimer();
-        timerInterval = setInterval(updateTimer, 500); // Update more frequently for smoother countdown
+        timerInterval = setInterval(updateTimer, 1000);
         isReady.value = false;
     }
     else {

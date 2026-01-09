@@ -1,8 +1,8 @@
 import type { Avatar } from './data';
 
 export interface Lobby {
-    players: ReidsLobbyPlayer[];
-    founder: ReidsLobbyPlayer;
+    players: RedisLobbyPlayer[];
+    founder: RedisLobbyPlayer;
     founded: Date;
     token: string;
     public: boolean;
@@ -23,12 +23,12 @@ export interface LobbyStat {
     title: string;
     class: string;
     unit: string;
-    player?: ReidsLobbyPlayer;
+    player?: RedisLobbyPlayer;
     count: number;
     message: string;
 }
 
-export interface ReidsLobbyPlayer {
+export interface RedisLobbyPlayer {
     id: number;
     username: string;
     ready: boolean;
@@ -96,7 +96,7 @@ export interface LobbyGame extends Omit<Game, 'imposter' | 'specialGameMode' | '
 
 export interface GivingClue {
     clue: string;
-    player: ReidsLobbyPlayer;
+    player: RedisLobbyPlayer;
 }
 
 export interface PlayedGame extends Omit<Game, 'round' | 'turn'> {

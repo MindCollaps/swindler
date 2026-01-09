@@ -200,8 +200,8 @@ async function lobbyRecreate(socket: Socket<DefaultEventsMap, DefaultEventsMap, 
     lobby.gameRules.games++;
     setRedisSync(`lobby-${ id }`, JSON.stringify(lobby), gameLobbyTtl);
 
-    socket.emit('lobby', lobbyData);
-    socket.broadcast.emit('lobby', lobbyData);
+    socket.emit('lobby', lobby);
+    socket.broadcast.emit('lobby', lobby);
 }
 
 async function addWordlist(socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>, id: string, value: any) {
