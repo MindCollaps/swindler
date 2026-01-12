@@ -3,15 +3,15 @@
 ## Development Environment
 
 ```bash
-sudo docker compose -f docker-compose.dev.yml up -d
+cp .env.example .env
 ```
 
 ```bash
-bun run db-push
+curl -fsSL https://bun.sh/install | bash
 ```
 
 ```bash
-bun run dev
+bun dev
 ```
 
 ## Security Features
