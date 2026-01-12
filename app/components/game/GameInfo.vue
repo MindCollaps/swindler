@@ -17,7 +17,7 @@
             class="word"
         >
             <span class="word">
-                {{ game?.word?.word }} 
+                {{ game?.word?.word }}
             </span>
 
             <span

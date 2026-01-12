@@ -21,7 +21,7 @@ const { gameSocket } = useGameSocket(lobbyId);
 
 function sendClue() {
     if (clue.value.length < 1) {
-        alert("You have to give a clue!")
+        alert('You have to give a clue!');
         return;
     }
 
