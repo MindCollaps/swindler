@@ -20,6 +20,11 @@ const lobbyId = route.params.id as string;
 const { gameSocket } = useGameSocket(lobbyId);
 
 function sendClue() {
+    if (clue.value.length < 1) {
+        alert("You have to give a clue!")
+        return;
+    }
+
     gameSocket.emit('giveClue', clue.value);
     clue.value = '';
 }
