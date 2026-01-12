@@ -179,6 +179,11 @@ async function lobbyStart(socket: Socket<DefaultEventsMap, DefaultEventsMap, Def
 
     if (lobby.players.filter(x => x.ready).length != lobby.players.length) return;
 
+    if (lobby.wordLists.length < 1) {
+        socket.emit('errorMessage', 'You need to select at least one wordlist!');
+        return;
+    }
+
     lobby.gameStarted = true;
     lobby.gameRunning = true;
     setRedisSync(`lobby-${ id }`, JSON.stringify(lobby), gameLobbyTtl);

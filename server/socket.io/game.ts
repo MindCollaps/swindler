@@ -184,6 +184,11 @@ export async function voteForPlayer(socket: Socket<DefaultEventsMap, DefaultEven
 }
 
 export async function giveClue(socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>, id: string, value: any, namespace: Namespace) {
+    if (value.length < 1) {
+        socket.emit('errorMessage', 'You have to give a clue!');
+        return;
+    }
+
     await withLock(id, 'game', async () => {
         const { game, lobby } = await getGameAndLobby(id);
 
