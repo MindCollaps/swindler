@@ -16,7 +16,11 @@
             v-if="!game?.imposter"
             class="word"
         >
-            {{ game?.word?.word }} <span
+            <span class="word">
+                {{ game?.word?.word }} 
+            </span>
+
+            <span
                 v-if="game?.word?.wordListName"
                 class="word-list"
             >({{ game?.word?.wordListName }})</span>
@@ -85,8 +89,9 @@ defineProps({
     }
 
     .word-list {
-        font-size: 0.8em;
+        font-size: 2.5rem;
         font-weight: normal;
+        vertical-align: middle;
         opacity: 0.7;
     }
 
@@ -122,6 +127,7 @@ defineProps({
 
         font-size: 3rem;
         text-align: center;
+        vertical-align: middle;
 
         background: $darkgray900;
     }
