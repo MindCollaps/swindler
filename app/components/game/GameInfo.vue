@@ -13,7 +13,7 @@
             Game {{ lobby?.gameNumber }}
         </div>
         <div
-            v-if="!game?.imposter"
+            v-if="!game?.imposter && game?.word"
             class="word"
         >
             {{ game?.word?.word }} <span
@@ -41,7 +41,7 @@
                 You are the imposter!
             </div>
             <div
-                v-else
+                v-else-if="!spectator"
                 class="notimposter"
             >You are not the imposter</div>
         </template>
@@ -61,6 +61,7 @@ defineProps({
         type: Boolean,
         default: false,
     },
+    spectator: Boolean,
 });
 </script>
 

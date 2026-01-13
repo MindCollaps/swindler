@@ -15,8 +15,9 @@
             {{ gameResults.wasCorrect ? 'You correctly voted the imposter!' : 'You failed to vote the imposter' }}
         </div>
         <div class="info">
-            <div class="imposter-was">Imposter was: {{ gameResults.imposterPlayer?.username }}</div>
-            <div class="word">The word was: {{ game?.word?.word }}</div>
+            <div>Imposter was: {{ gameResults.imposterPlayer?.username }}</div>
+            <div v-if="game?.winReason === WinReason.Guessed">Imposter guessed: {{ game?.imposterGuess }}</div>
+            <div>The word was: {{ game?.word?.word }}</div>
         </div>
         <div
             v-if="game?.winReason === WinReason.Voted"
@@ -46,11 +47,19 @@
     <common-button
         v-if="store.me?.userid === lobby?.founder.id"
         class="next-game"
+        primary-color="success500"
         @click="$emit('nextGame')"
     >
         {{ lobby?.gameNumber === lobby?.gameRules.games ? 'End game' : 'Next Game' }}
     </common-button>
-
+    <common-button
+        v-if="store.me?.userid === lobby?.founder.id"
+        class="return-to-lobby"
+        primary-color="error500"
+        @click="$emit('returnToLobby')"
+    >
+        Return to lobby
+    </common-button>
     <word-log/>
 </template>
 
@@ -59,7 +68,6 @@ import WordLog from '~/components/game/WordLog.vue';
 import { useStore } from '~/store';
 import { WinReason } from '~~/types/redis';
 import type { LobbyGame, Lobby } from '~~/types/redis';
-import type { GameStateEmits } from '~~/types/game-state';
 
 const props = defineProps<{
     game: LobbyGame | null;
@@ -67,7 +75,9 @@ const props = defineProps<{
     gameResults: any;
 }>();
 
-defineEmits<GameStateEmits>();
+defineEmits<{
+    (e: 'nextGame' | 'returnToLobby'): void;
+}>();
 
 const store = useStore();
 
@@ -87,6 +97,10 @@ const iWin = computed(() => {
 
 <style scoped lang="scss">
 .info {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+
     margin-top: 16px;
     padding: 16px;
     border-radius: 8px;
@@ -94,11 +108,6 @@ const iWin = computed(() => {
     font-size: 1.2em;
 
     background: $darkgray900;
-
-    .imposter-was,
-    .word {
-        margin-top: 8px;
-    }
 }
 
 .voted-out {
@@ -117,6 +126,10 @@ const iWin = computed(() => {
 }
 
 .next-game {
+    margin-top: 16px;
+}
+
+.return-to-lobby {
     margin-top: 16px;
 }
 

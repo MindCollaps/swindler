@@ -3,7 +3,7 @@
         <div class="vote-buttons">
             <div class="vote-button">
                 <common-button
-                    :disabled="myTurn"
+                    :disabled="myTurn || spectator"
                     icon="material-symbols:thumb-up-sharp"
                     icon-width="32px"
                     :type="!voted?.up.voted ? 'transparent' : 'primary'"
@@ -13,7 +13,7 @@
             </div>
             <div class="vote-button">
                 <common-button
-                    :disabled="myTurn"
+                    :disabled="myTurn || spectator"
                     icon="material-symbols:thumb-down-sharp"
                     icon-width="32px"
                     :type="!voted?.down.voted ? 'transparent' : 'primary'"
@@ -24,6 +24,7 @@
         </div>
         <div class="imposter-button">
             <common-button
+                :disabled="spectator"
                 icon="material-symbols:comedy-mask-rounded"
                 icon-width="32px"
                 :type="!voted?.imposter.voted ? 'transparent' : 'primary'"
@@ -38,6 +39,9 @@
 import { useGameSocket } from '~/composables/sockets/game';
 import { useStore } from '~/store';
 
+defineProps<{
+    spectator: boolean;
+}>();
 const route = useRoute();
 const lobbyId = route.params.id as string;
 const store = useStore();

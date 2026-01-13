@@ -1,10 +1,8 @@
 import type { Namespace, Socket, DefaultEventsMap } from 'socket.io';
 import { prisma } from '../utils/prisma';
 import { LobbysWordListSelect } from '../../types/fetch';
-import { getRedisSync, redisClient, setRedisSync } from '../utils/backend/redis';
-import { createLock, IoredisAdapter } from 'redlock-universal';
-import type { Lobby } from '../../types/redis';
-import { createGame, gameLobbyTtl, giveClue, sendGame, sendVoted, vote, skipWait, voteForPlayer, nextGame, guessWord } from './game';
+import { createGame, giveClue, sendGame, sendVoted, vote, skipWait, voteForPlayer, nextGame, guessWord, returnToLobby } from './game';
+import { isOwner, withLock, getLobby, saveLobby } from '../utils/game/helper';
 import { isSameUser } from '../../app/utils/user';
 import { AVATAR_DEFINITIONS } from '../../types/data';
 import type { Avatar } from '../../types/data';
@@ -14,32 +12,19 @@ export default async function lobbyHandler(namespace: Namespace, socket: Socket,
     const username = socket.user?.username;
     const fakeUser = socket.user?.fakeUser;
 
+    let abortConnection = false;
+
     if (!userId || !username || fakeUser == undefined) {
         console.log('No user id found!');
         return;
     }
 
-    const resource = `locks:lobby-${ id }`;
+    await withLock(id, 'lobby', async () => {
+        const lobbyData = await getLobby(id);
 
-    const lock = createLock({
-        adapter: new IoredisAdapter(redisClient),
-        key: resource,
-        ttl: 20000,
-    });
-
-    let lobbyData: Lobby;
-
-    try {
-        const handle = await lock.acquire();
-
-        const cachedLobby = await getRedisSync(`lobby-${ id }`);
-
-        if (!cachedLobby) {
+        if (!lobbyData) {
             socket.emit('redirect', '/lobby');
             return;
-        }
-        else {
-            lobbyData = JSON.parse(cachedLobby);
         }
 
         const existingPlayerIndex = lobbyData.players.findIndex(e => isSameUser(e, { id: userId, fakeUser: fakeUser }));
@@ -49,12 +34,13 @@ export default async function lobbyHandler(namespace: Namespace, socket: Socket,
             const player = lobbyData.players[existingPlayerIndex];
             if (player) {
                 player.connected = true;
-                player.ready = false;
+                player.ready = lobbyData.gameRunning; // Ready wont be reset if the game is running
             }
         }
         else {
             if (lobbyData.gameRunning) {
                 socket.emit('gameIsRunning');
+                abortConnection = true;
                 return;
             }
             // Add new player
@@ -67,18 +53,20 @@ export default async function lobbyHandler(namespace: Namespace, socket: Socket,
             });
         }
 
-        setRedisSync(`lobby-${ id }`, JSON.stringify(lobbyData), gameLobbyTtl);
-        await lock.release(handle);
+        await saveLobby(id, lobbyData);
 
         socket.emit('lobby', lobbyData);
         socket.broadcast.emit('players', lobbyData.players);
-    }
-    catch (e) {
-        console.error('Failed to acquire lock for lobby update', e);
+    });
+
+    socket.on('game', () => sendGame(socket, id));
+
+    if (abortConnection) {
+        return;
     }
 
     socket.on('start', () => lobbyStart(socket, id));
-    socket.on('recreate', () => lobbyRecreate(socket, id));
+    socket.on('continue', () => lobbyContinue(socket, id));
     socket.on('addWord', value => addWordlist(socket, id, value));
     socket.on('removeWord', value => removeWordlist(socket, id, value));
     socket.on('giveClue', value => giveClue(socket, id, value, namespace));
@@ -87,31 +75,31 @@ export default async function lobbyHandler(namespace: Namespace, socket: Socket,
     socket.on('voteForPlayer', value => voteForPlayer(socket, id, value, namespace));
     socket.on('nextGame', () => nextGame(socket, id, namespace));
     socket.on('ready', value => ready(socket, id, value));
+    socket.on('returnToLobby', () => returnToLobby(socket, id));
 
     socket.on('guessWord', value => guessWord(socket, id, value, namespace));
-
-    socket.on('game', () => sendGame(socket, id));
 
     sendVoted(socket, id);
 
     socket.on('disconnect', async () => {
-        const cachedLobby = await getRedisSync(`lobby-${ id }`);
-        if (!cachedLobby || !socket.user) return;
-        const lobbyData: Lobby = JSON.parse(cachedLobby);
+        await withLock(id, 'lobby', async () => {
+            const lobbyData = await getLobby(id);
+            if (!lobbyData || !socket.user) return;
 
-        if (lobbyData.gameRunning) {
-            const player = lobbyData.players.find(e => isSameUser(e, { id: userId, fakeUser: fakeUser }));
-            if (player) {
-                player.connected = false;
+            if (lobbyData.gameRunning) {
+                const player = lobbyData.players.find(e => isSameUser(e, { id: userId, fakeUser: fakeUser }));
+                if (player) {
+                    player.connected = false;
+                }
             }
-        }
-        else {
-            lobbyData.players = lobbyData.players.filter(e => !isSameUser(e, { id: userId, fakeUser: fakeUser }));
-        }
+            else {
+                lobbyData.players = lobbyData.players.filter(e => !isSameUser(e, { id: userId, fakeUser: fakeUser }));
+            }
 
-        setRedisSync(`lobby-${ id }`, JSON.stringify(lobbyData), gameLobbyTtl);
+            await saveLobby(id, lobbyData);
 
-        namespace.emit('players', lobbyData.players);
+            namespace.emit('players', lobbyData.players);
+        });
     });
 
     const asyncWordlist = async () => {
@@ -133,21 +121,10 @@ export default async function lobbyHandler(namespace: Namespace, socket: Socket,
 }
 
 async function ready(socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>, id: string, value: { avatar: Avatar; ready: boolean }) {
-    const resource = `locks:lobby-${ id }`;
-    const lock = createLock({
-        adapter: new IoredisAdapter(redisClient),
-        key: resource,
-        ttl: 20000,
-    });
+    await withLock(id, 'lobby', async () => {
+        const lobby = await getLobby(id);
 
-    const handle = await lock.acquire();
-
-    try {
-        const lobbyData = await getRedisSync(`lobby-${ id }`) as string;
-
-        if (!lobbyData || !socket.user) return;
-
-        const lobby: Lobby = JSON.parse(lobbyData);
+        if (!lobby || !socket.user) return;
 
         if (lobby.gameRunning) return;
 
@@ -160,91 +137,91 @@ async function ready(socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultE
         player.ready = value.ready;
         player.avatar = value.avatar;
 
-        setRedisSync(`lobby-${ id }`, JSON.stringify(lobby), gameLobbyTtl);
+        await saveLobby(id, lobby);
         socket.broadcast.emit('players', lobby.players);
-    }
-    finally {
-        await lock.release(handle);
-    }
+    });
 }
 
 async function lobbyStart(socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>, id: string) {
-    const lobbyData = await getRedisSync(`lobby-${ id }`);
-    if (!lobbyData || !socket.user) return;
-    const lobby: Lobby = JSON.parse(lobbyData);
+    await withLock(id, 'lobby', async () => {
+        const lobby = await getLobby(id);
+        if (!lobby || !socket.user) return;
 
-    if (lobby.gameRunning) return;
+        if (lobby.gameRunning) return;
 
-    if (!isOwner(lobby, { id: socket.user.userId, fakeUser: socket.user.fakeUser })) return;
+        if (!isOwner(lobby, { id: socket.user.userId, fakeUser: socket.user.fakeUser })) return;
 
-    if (lobby.players.filter(x => x.ready).length != lobby.players.length) return;
+        if (lobby.players.filter(x => x.ready).length != lobby.players.length) return;
 
-    lobby.gameStarted = true;
-    lobby.gameRunning = true;
-    setRedisSync(`lobby-${ id }`, JSON.stringify(lobby), gameLobbyTtl);
+        lobby.gameStarted = true;
+        lobby.gameRunning = true;
+        await saveLobby(id, lobby);
 
-    await createGame(lobby);
+        await createGame(lobby);
 
-    socket.emit('start');
-    socket.broadcast.emit('start');
+        socket.emit('start');
+        socket.broadcast.emit('start');
+    });
 }
 
-async function lobbyRecreate(socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>, id: string) {
-    const lobbyData = await getRedisSync(`lobby-${ id }`);
-    if (!lobbyData || !socket.user) return;
-    const lobby: Lobby = JSON.parse(lobbyData);
+async function lobbyContinue(socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>, id: string) {
+    await withLock(id, 'lobby', async () => {
+        const lobby = await getLobby(id);
+        if (!lobby || !socket.user) return;
 
-    if (lobby.gameRunning || !lobby.gameStarted) return;
+        if (lobby.gameRunning || !lobby.gameStarted) return;
 
-    if (!isOwner(lobby, { id: socket.user.userId, fakeUser: socket.user.fakeUser })) return;
+        if (!isOwner(lobby, { id: socket.user.userId, fakeUser: socket.user.fakeUser })) return;
 
-    lobby.gameStarted = false;
-    lobby.wordLists = [];
-    lobby.gameRules.games++;
-    setRedisSync(`lobby-${ id }`, JSON.stringify(lobby), gameLobbyTtl);
+        lobby.gameRunning = true;
+        lobby.gameNumber += 1;
+        lobby.round = 1;
+        await saveLobby(id, lobby);
 
-    socket.emit('lobby', lobbyData);
-    socket.broadcast.emit('lobby', lobbyData);
+        await createGame(lobby);
+
+        socket.emit('start');
+        socket.broadcast.emit('start');
+    });
 }
 
 async function addWordlist(socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>, id: string, value: any) {
-    const lobbyData = await getRedisSync(`lobby-${ id }`);
-    if (!lobbyData || !socket.user) return;
-    const lobby: Lobby = JSON.parse(lobbyData);
+    await withLock(id, 'lobby', async () => {
+        const lobby = await getLobby(id);
+        if (!lobby || !socket.user) return;
 
-    if (lobby.gameRunning) return;
+        if (lobby.gameRunning) return;
 
-    if (!isOwner(lobby, { id: socket.user.userId, fakeUser: socket.user.fakeUser })) return;
+        if (!isOwner(lobby, { id: socket.user.userId, fakeUser: socket.user.fakeUser })) return;
 
-    if (lobby.wordLists.indexOf(value) == -1) {
-        lobby.wordLists.push(value);
-        setRedisSync(`lobby-${ id }`, JSON.stringify(lobby), gameLobbyTtl);
+        if (lobby.wordLists.indexOf(value) == -1) {
+            lobby.wordLists.push(value);
+            await saveLobby(id, lobby);
 
-        socket.emit('lobbyWordLists', lobby.wordLists);
-        socket.broadcast.emit('lobbyWordLists', lobby.wordLists);
-    }
+            socket.emit('lobbyWordLists', lobby.wordLists);
+            socket.broadcast.emit('lobbyWordLists', lobby.wordLists);
+        }
+    });
 }
 
 async function removeWordlist(socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>, id: string, value: any) {
-    const lobbyData = await getRedisSync(`lobby-${ id }`);
-    if (!lobbyData || !socket.user) return;
-    const lobby: Lobby = JSON.parse(lobbyData);
+    await withLock(id, 'lobby', async () => {
+        const lobby = await getLobby(id);
+        if (!lobby || !socket.user) return;
 
-    if (lobby.gameRunning) return;
+        if (lobby.gameRunning) return;
 
-    if (!isOwner(lobby, { id: socket.user.userId, fakeUser: socket.user.fakeUser })) return;
-    if (lobby.wordLists.indexOf(value) != -1) {
-        lobby.wordLists = lobby.wordLists.filter(x => x != value);
-        setRedisSync(`lobby-${ id }`, JSON.stringify(lobby), gameLobbyTtl);
+        if (!isOwner(lobby, { id: socket.user.userId, fakeUser: socket.user.fakeUser })) return;
+        if (lobby.wordLists.indexOf(value) != -1) {
+            lobby.wordLists = lobby.wordLists.filter(x => x != value);
+            await saveLobby(id, lobby);
 
-        socket.emit('lobbyWordLists', lobby.wordLists);
-        socket.broadcast.emit('lobbyWordLists', lobby.wordLists);
-    }
+            socket.emit('lobbyWordLists', lobby.wordLists);
+            socket.broadcast.emit('lobbyWordLists', lobby.wordLists);
+        }
+    });
 }
 
-function isOwner(lobby: Lobby, user: { id: number; fakeUser: boolean }) {
-    return isSameUser(lobby.founder, user);
-}
 
 function validateAvatar(avatar: any): boolean {
     if (!avatar || typeof avatar !== 'object') return false;

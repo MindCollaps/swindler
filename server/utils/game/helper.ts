@@ -1,6 +1,7 @@
 import { getRedisSync, redisClient, setRedisSync } from '../backend/redis';
 import { createLock, IoredisAdapter } from 'redlock-universal';
 import type { Lobby, Game } from '../../../types/redis';
+import { isSameUser } from '../../../app/utils/user';
 
 export const waitForNextRound = 20 * 1000;
 export const waitForNewRound = 5 * 1000;
@@ -51,4 +52,8 @@ export async function withLock<T>(id: string, type: 'game' | 'lobby', fn: () => 
     finally {
         await lock.release(handle);
     }
+}
+
+export function isOwner(lobby: Lobby, user: { id: number; fakeUser: boolean }) {
+    return isSameUser(lobby.founder, user);
 }

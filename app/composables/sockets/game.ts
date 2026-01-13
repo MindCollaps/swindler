@@ -25,6 +25,7 @@ const disconnectGameSocket = () => {
 // From Lobby
 let lobby: Ref<Lobby | null> = ref(null);
 let connected: Ref<boolean> = ref(false);
+let spectator: Ref<boolean> = ref(false);
 let lobbyNotFound: Ref<boolean> = ref(false);
 let disconnect = () => { };
 
@@ -119,12 +120,13 @@ const hasVotedForPlayer = ref(false);
 
 export function useGameSocket(lobbyId: string, options: { onHeart?: () => void } = {}) {
     if (!gameSocket) {
-        const { lobbySocket, lobby: lobbyLobby, connected: lobbyConnected, disconnect: lobbyDisconnect, lobbyNotFound: lobbyNotFoundLobby } = useLobbySocket(lobbyId, { onDisconnect: disconnectGameSocket });
+        const { lobbySocket, lobby: lobbyLobby, connected: lobbyConnected, disconnect: lobbyDisconnect, lobbyNotFound: lobbyNotFoundLobby, spectator: lspec } = useLobbySocket(lobbyId, { onDisconnect: disconnectGameSocket });
         gameSocket = lobbySocket;
         connected = lobbyConnected;
         lobby = lobbyLobby;
         disconnect = lobbyDisconnect;
         lobbyNotFound = lobbyNotFoundLobby;
+        spectator = lspec;
     }
 
     const skipWait = () => {
@@ -149,6 +151,8 @@ export function useGameSocket(lobbyId: string, options: { onHeart?: () => void }
 
     const connect = () => {
         if (!gameSocket) return;
+
+        const router = useRouter();
 
         if (options.onHeart) {
             gameSocket.on('vote', value => {
@@ -237,11 +241,19 @@ export function useGameSocket(lobbyId: string, options: { onHeart?: () => void }
             if (!game.value) return;
             game.value.gameState = GameState.LobbyEnd;
         });
+        gameSocket.on('returnToLobby', () => {
+            game.value = null;
+            resetVote();
+            gameResults.value = null;
+            hasVotedForPlayer.value = false;
+
+            router.push(`/lobby/${ lobbyId }`);
+        });
     };
 
     onMounted(connect);
 
-    return { gameSocket, lobby, game, voted, addVote, removeVote, myTurn, disconnect, connected, clue, skipWait, voteForPlayer, gameResults, nextGame, hasVotedForPlayer, guessWord, lobbyNotFound };
+    return { gameSocket, lobby, game, voted, addVote, removeVote, myTurn, disconnect, connected, clue, skipWait, voteForPlayer, gameResults, nextGame, hasVotedForPlayer, guessWord, lobbyNotFound, spectator };
 }
 
 function resetVote() {

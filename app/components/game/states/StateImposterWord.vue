@@ -3,7 +3,10 @@
         v-if="!game?.imposter"
         class="guess"
     >
-        <div class="word">
+        <div
+            v-if="!spectator"
+            class="word"
+        >
             Word: {{ game?.word?.word }}
         </div>
         The Imposter thinks '{{ game?.imposterGuess?.toLowerCase() }}' is the word.
@@ -22,6 +25,7 @@ import type { GameStateEmits } from '~~/types/game-state';
 
 defineProps<{
     game: LobbyGame | null;
+    spectator: boolean;
 }>();
 
 defineEmits<GameStateEmits>();

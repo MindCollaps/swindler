@@ -4,21 +4,14 @@ Digimon
 Dojo
 Dragonball
 Ghibli
-Goku
-Gundam
-Hokage
 Isekai
-JoJo
 Jutsu
-Kaiju
 Katana
 Kimono
-Kunai
 Luffy
 Manga
 Mecha
 Miyazaki
-Nami
 Naruto
 Ninja
 Otaku
@@ -29,7 +22,6 @@ Samurai
 Sasuke
 Sensei
 Shinigami
-Shinobi
 Shonen
 Sushi
 Titan
@@ -37,5 +29,3 @@ Vegeta
 Waifu
 Yandere
 Yokai
-YuGiOh
-Zoro

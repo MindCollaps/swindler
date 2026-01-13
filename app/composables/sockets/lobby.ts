@@ -9,6 +9,7 @@ const lobby: Ref<Lobby | null> = ref(null);
 const wordLists: Ref<FetchingWordList[] | null> = ref(null);
 const connected: Ref<boolean> = ref(false);
 const lobbyNotFound: Ref<boolean> = ref(false);
+const spectator: Ref<boolean> = ref(false);
 
 const disconnect = () => {
     if (lobbySocket) {
@@ -75,6 +76,18 @@ export function useLobbySocket(lobbyId: string, options?: { onDisconnect: () => 
                 lobby.value.players = value;
             }
         });
+        lobbySocket.on('gameIsRunning', value => {
+            spectator.value = true;
+            console.log('Game is running, switched to spectator mode.');
+        });
+        lobbySocket.on('returnToLobby', value => {
+            if (spectator.value) {
+                spectator.value = false;
+                lobbySocket?.disconnect();
+                lobbySocket = undefined;
+                router.push(`/lobby/${ lobbyId }`);
+            }
+        });
 
         lobbyNotFound.value = false;
         lobbySocket.connect();
@@ -94,5 +107,5 @@ export function useLobbySocket(lobbyId: string, options?: { onDisconnect: () => 
 
     onMounted(connect);
 
-    return { lobbySocket, lobby, wordLists, disconnect, connected, lobbyNotFound };
+    return { lobbySocket, lobby, wordLists, disconnect, connected, lobbyNotFound, spectator };
 }

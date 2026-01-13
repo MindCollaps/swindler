@@ -13,11 +13,12 @@
         only-word
     />
     <div class="cue-wrapper"><div class="cue-giver">{{ clue?.player.username }}</div> said <div class="cue-text">{{ clue?.clue }}</div></div>
-    <vote/>
+    <vote :spectator="spectator"/>
     <div class="timer">
         Time until continue: {{ timeRemaining }}s
     </div>
     <common-button
+        v-if="!spectator"
         class="skip-wait"
         :disabled="isReady"
         @click="$emit('skipWait')"
@@ -42,6 +43,7 @@ defineProps<{
     clue: GivingClue | null;
     timeRemaining: number;
     isReady: boolean;
+    spectator: boolean;
 }>();
 
 defineEmits<GameStateEmits>();
