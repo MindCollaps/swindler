@@ -21,7 +21,7 @@
             :src="'eyes-' + avatar?.eyes"
         />
         <a-part
-            v-if="avatar?.hair && !placeHolder"
+            v-if="!placeHolder"
             class="mouth"
             :size-x="sizeX"
             :size-y="sizeY"

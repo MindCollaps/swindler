@@ -10,6 +10,7 @@
             :game="game"
             :lobby="lobby"
             :my-turn="myTurn"
+            :spectator="spectator"
             :turn-name="turnName"
         />
         <player-list
@@ -63,6 +64,7 @@ defineProps<{
     lobby: Lobby | null;
     myTurn: boolean;
     turnName: string;
+    spectator: boolean;
 }>();
 
 const emit = defineEmits<GameStateEmits>();

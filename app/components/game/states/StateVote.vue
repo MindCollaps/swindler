@@ -10,6 +10,8 @@
             <div class="actions">
                 <span class="voters">{{ getVotersNames(player.id) }}</span>
                 <common-button
+                    :disabled="spectator"
+                    :primary-color="iVoted(player.id) ? 'darkgray600': 'primary500'"
                     @click="$emit('voteForPlayer', player.id)"
                 >Vote</common-button>
             </div>
@@ -29,6 +31,7 @@ const props = defineProps<{
     game: LobbyGame | null;
     lobby: Lobby | null;
     hasVotedForPlayer: boolean;
+    spectator: boolean;
 }>();
 
 defineEmits<GameStateEmits>();
@@ -48,6 +51,15 @@ const sortedPlayers = computed(() => {
 
     return players;
 });
+
+function iVoted(playerId: number): boolean {
+    if (!props.lobby || !props.lobby.gameEvents) return false;
+
+    return props.lobby.gameEvents.some(x => x.type === GameEventType.VotedForPlayer &&
+        x.gameNumber === props.lobby?.gameNumber &&
+        x.initiatorId === store.me?.userid &&
+        x.receiverId === playerId);
+}
 
 function getVotersNames(playerId: number): string {
     if (!props.lobby || !props.lobby.gameEvents) return '';
