@@ -9,12 +9,15 @@
         "vscode": {
             "extensions": [
                 "eamodio.gitlens",
-                "vscode-icons-team.vscode-icons"
+                "vscode-icons-team.vscode-icons",
+                "Nuxtr.nuxt-vscode-extentions",
+                "wart.ariake-dark",
+                "dbaeumer.vscode-eslint",
+                "stylelint.vscode-stylelint"
             ]
         }
     },
     "forwardPorts": [3000, 51212],
-    "remoteUser": "root",
     "postCreateCommand": "bash .devcontainer/setup.sh",
     "workspaceFolder": "/workspaces/swindler"
 }
