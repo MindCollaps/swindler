@@ -14,6 +14,13 @@ curl -fsSL https://bun.sh/install | bash
 bun dev
 ```
 
+To create a fresh version, delete the current containers and database volumes
+```bash
+bun dev:down
+rm -rf db/ redis/
+bun dev
+```
+
 ## Security Features
 
 This project includes several security features to protect against common web vulnerabilities:
