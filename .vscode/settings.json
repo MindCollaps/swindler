@@ -1,0 +1,25 @@
+{
+  "editor.formatOnSave": false,
+
+  // 2. Enable "Fix All" actions on save
+  // This triggers the same logic as "bun lint:fix"
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit",
+    "source.fixAll.stylelint": "explicit"
+  },
+
+  // 3. Ensure the linters actually check Vue files
+  "eslint.validate": [
+    "javascript",
+    "javascriptreact",
+    "typescript",
+    "typescriptreact",
+    "vue"
+  ],
+  "stylelint.validate": [
+    "css",
+    "less",
+    "postcss",
+    "vue" 
+  ]
+}
