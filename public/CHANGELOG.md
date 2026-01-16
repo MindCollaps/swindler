@@ -4,17 +4,15 @@
 
 ### ✨ New Features
 - 👁️ **Spectator Mode**: Players can now spectate ongoing games without participating
-- 🎮 **Lobby Return**: Games can now be returned to the lobby and continued afterward
+- 🎮 **Lobby Return**: Games can now be returned to the lobby and continued afterward with more people
 - 💾 **Persistent Results**: Game results are now saved and persistent
 - 🎭 **Imposter Reveal**: See the imposter's guess displayed in the game end screen
 - 🗨️ **Toast Notifications**: Added a common toast component for error messages and notifications
 - 📊 **Version Display**: Version information now shown as a dedicated component
+- 🔄 **Changelog**: The changelog you are reading is displayed
 
 ### 🎨 UI & Visual Improvements
 - 🙎 **Avatar Update**: Added 1 new character body to the avatar atlas
-- 👄 **Mouth Animation**: Characters now have animated mouths
-- 🔄 **Avatar Turning**: Avatars can now turn and face different directions
-- 📝 **Wordlist Display**: Centered wordlist name for better visual alignment
 - 🔤 **Font Fixes**: Corrected font styling across the application
 
 ### 🐛 Bug Fixes & Improvements
@@ -24,12 +22,12 @@
 - 🎯 **Error Handling**: Implemented basic error handler to emit error messages to frontend (#51, #48)
 - 📋 **Wordlist Fix**: Centered wordlist name display (#50)
 - 🎲 **Game State**: Various game state management improvements (#46, #54)
+- 🕵️ **Avatar Local Sotrage**: The avatar is now safed in the local storage instead of in a cookie
 
-### 🏗️ Developer Experience
-- 🐳 **Devcontainer**: Added devcontainer configuration for smoother GitHub Codespaces experience
+### 🏗️ Developer Experience {develop}
+- �️ **Avatar Atlas**: Added `add` command to easily add new avatar parts
+- �🐳 **Devcontainer**: Added devcontainer configuration for smoother GitHub Codespaces experience
 - 🐋 **Docker Performance**: Docker environment now uses dev-only optimizations
 - 🔧 **Redis Configuration**: Fixed Redis setup and configuration
 - 📖 **Documentation**: Updated README with correct dev setup instructions
-- 🎨 **Formatting**: Added formatting configuration for consistent code style
-- ✅ **Linting**: Applied linting fixes across the codebase
 
