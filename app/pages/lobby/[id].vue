@@ -33,9 +33,9 @@
             show-ready
         />
         <br>
-        <template v-if="store?.me?.developer">
+        <dev-only>
             {{ JSON.stringify(store?.me) }}<br><br>{{ JSON.stringify(lobby) }}
-        </template>
+        </dev-only>
         <avatar-creator
             :avatar
             :disabled="ready"
