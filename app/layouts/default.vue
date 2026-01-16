@@ -14,6 +14,7 @@
             <nuxt-loading-indicator :color="colorsList.primary300"/>
             <slot/>
         </div>
+        <common-toast-container/>
         <div class="version">
             v{{ config.public.version }}
         </div>

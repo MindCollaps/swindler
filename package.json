@@ -54,6 +54,7 @@
     "redlock-universal": "^0.7.7",
     "socket.io": "^4.8.3",
     "socket.io-client": "^4.8.3",
+    "uuid": "^13.0.0",
     "vite-svg-loader": "^5.1.0",
     "vite-tsconfig-paths": "^6.0.3",
     "vue": "^3.5.26",

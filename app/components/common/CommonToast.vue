@@ -1,99 +1,77 @@
 <template>
-    <transition name="slide-fade">
-        <div
-            v-if="isVisible"
-            class="toast-container"
-        >
-            <div class="toast">
-                <div class="toast-header">
-                    <info-icon
-                        v-if="type==='info'"
-                        class="toast-icon toast-icon--info"
-                    />
-                    <warning-icon
-                        v-else-if="type==='warning'"
-                        class="toast-icon toast-icon--warning"
-                    />
-                    <error-icon
-                        v-else-if="type==='error'"
-                        class="toast-icon toast-icon--error"
-                    />
-                    <success-icon
-                        v-else-if="type==='success'"
-                        class="toast-icon toast-icon--success"
-                    />
-
-                    <strong class="toast-title">{{ title }}</strong>
-
-                    <button
-                        aria-label="Close"
-                        class="toast-close"
-                        type="button"
-                        @click="emit('close')"
-                    >
-                        ×
-                    </button>
-                </div>
-                <div
-                    v-if="$slots.default"
-                    class="toast-content"
-                >
-                    <slot/>
-                </div>
+    <div class="toast">
+        <div class="toast-header">
+            <div
+                v-if="toast.mode === ToastMode.Info"
+                class="toast-icon toast-icon--info"
+            >
+                <Icon name="material-symbols:info"/>
             </div>
+
+            <div
+                v-else-if="toast.mode === ToastMode.Warning"
+                class="toast-icon toast-icon--warning"
+            >
+                <Icon name="material-symbols:warning"/>
+            </div>
+
+            <div
+                v-else-if="toast.mode === ToastMode.Error"
+                class="toast-icon toast-icon--error"
+            >
+                <Icon name="material-symbols:error"/>
+            </div>
+
+            <div
+                v-else-if="toast.mode === ToastMode.Success"
+                class="toast-icon toast-icon--success"
+            >
+                <Icon name="material-symbols:check-circle"/>
+            </div>
+
+            <strong class="toast-title">{{ toast.title }}</strong>
+
+            <button
+                aria-label="Close"
+                class="toast-close"
+                type="button"
+                @click="emit('close')"
+            >
+                ×
+            </button>
         </div>
-    </transition>
+        <div
+            v-if="toast.message"
+            class="toast-content"
+        >
+            {{ toast.message }}
+        </div>
+    </div>
 </template>
 
 
 <script setup lang="ts">
-import type { PropType } from 'vue';
-import SuccessIcon from '../../../public/resources/success.svg?component';
-import InfoIcon from '../../../public/resources/info.svg?component';
-import WarningIcon from '../../../public/resources/warning.svg?component';
-import ErrorIcon from '../../../public/resources/error.svg?component';
+import { ToastMode } from '~~/types/toast';
+import type { Toast } from '~~/types/toast';
 
-defineProps({
-    type: {
-        type: String as PropType<'success' | 'info' | 'warning' | 'error'>,
-        default: 'info',
-    },
-    title: {
-        type: String,
-        default: 'Info',
-    },
-    isVisible: {
-        type: Boolean,
-    },
-});
+defineProps<{
+    toast: Toast;
+}>();
 
-const emit = defineEmits({
-    close() {
-        return true;
-    },
-});
-
-defineSlots<{
-    default(): any;
+const emit = defineEmits<{
+    close: [];
 }>();
 </script>
 
 <style scoped lang="scss">
-    .toast-container {
-        position: fixed;
-        z-index: 9999;
-        right: 2rem;
-        bottom: 2rem;
-    }
-
     .toast {
         display: flex;
         flex-direction: column;
 
         min-width: 300px;
         max-width: 400px;
-        padding: 1rem 1.25rem;
-        border-radius: 0.5rem;
+        padding: 16px 20px;
+        border-radius: 8px;
 
         background: rgb(255 255 255 / 95%);
         backdrop-filter: blur(10px);
@@ -101,21 +79,21 @@ defineSlots<{
 
         &-header {
             display: flex;
-            gap: 0.75rem;
+            gap: 12px;
             align-items: center;
         }
 
         &-title {
             flex: 1;
-            font-size: 0.95rem;
+            font-size: 15px;
             font-weight: 600;
             color: #1a1a1a;
         }
 
         &-icon {
             flex-shrink: 0;
-            width: 1.5rem;
-            height: 1.5rem;
+            width: 24px;
+            height: 24px;
 
             &--success {
                 color: #22c55e;
@@ -142,13 +120,13 @@ defineSlots<{
             align-items: center;
             justify-content: center;
 
-            width: 1.5rem;
-            height: 1.5rem;
+            width: 24px;
+            height: 24px;
             padding: 0;
             border: none;
-            border-radius: 0.25rem;
+            border-radius: 4px;
 
-            font-size: 1.5rem;
+            font-size: 24px;
             font-weight: 300;
             line-height: 1;
             color: #6b7280;
@@ -166,9 +144,9 @@ defineSlots<{
         }
 
         &-content {
-            margin-top: 0.5rem;
-            padding-left: 2.25rem;
-            font-size: 0.875rem;
+            margin-top: 8px;
+            padding-left: 36px;
+            font-size: 14px;
             color: #4b5563;
         }
     }

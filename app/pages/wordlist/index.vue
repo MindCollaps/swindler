@@ -82,10 +82,11 @@
 <script lang="ts" setup>
 import type { FetchingWordList } from '~~/types/fetch';
 import { useStore } from '~/store';
+import { ToastMode } from '~~/types/toast';
 
 const store = useStore();
-
 const router = useRouter();
+const { showToast } = useToastManager();
 
 const wordLists = ref<FetchingWordList[]>();
 
@@ -116,8 +117,43 @@ async function getWordlists() {
 
 async function createWordlist() {
     try {
+        if (!name.value) {
+            showToast({
+                mode: ToastMode.Error,
+                message: 'You have to give the wordlist a name!',
+            });
+
+            return;
+        }
+
+        if (!description.value) {
+            showToast({
+                mode: ToastMode.Error,
+                message: 'You have to give the wordlist a description!',
+            });
+
+            return;
+        }
+
+        if (!isCustom.value && !isPublic.value && !isDefault.value) {
+            showToast({
+                mode: ToastMode.Error,
+                message: 'You have to select the access m ode!',
+            });
+
+            return;
+        }
+
         const wordArray = words.value?.split('\n');
         console.log(wordArray);
+        if (!wordArray || wordArray.length < 1) {
+            showToast({
+                mode: ToastMode.Error,
+                message: 'You have to add at least one word to the wordlist!',
+            });
+
+            return;
+        }
 
         const result = await $fetch.raw('/api/v1/wordlists', {
             method: 'POST',
@@ -131,15 +167,26 @@ async function createWordlist() {
             }),
         });
         if (result.ok) {
-            alert('Success!');
+            showToast({
+                mode: ToastMode.Success,
+                message: 'The wordlist has been created',
+            });
+
+            // TODO: refresh page / clear user input
         }
         else {
-            alert(result.statusText);
+            showToast({
+                mode: ToastMode.Error,
+                message: result.statusText,
+            });
         }
     }
     catch (e) {
         console.log(e);
-        alert(e);
+        showToast({
+            mode: ToastMode.Error,
+            message: String(e),
+        });
     }
 }
 
@@ -150,15 +197,24 @@ async function deleteWordlist(id: number) {
         });
 
         if (result.ok) {
-            alert('Success!');
+            showToast({
+                mode: ToastMode.Success,
+                message: 'The wordlist was deleted successfully!',
+            });
         }
         else {
-            alert(result.statusText);
+            showToast({
+                mode: ToastMode.Error,
+                message: 'Failed to delete the wordlist :(',
+            });
         }
     }
     catch (e) {
         console.log(e);
-        alert(e);
+        showToast({
+            mode: ToastMode.Error,
+            message: 'Failed to delete the wordlist :(',
+        });
     }
 }
 
