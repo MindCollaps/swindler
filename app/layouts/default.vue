@@ -34,7 +34,9 @@ useLayout();
 
 <style lang="scss">
 @use "~/scss/layout";
+</style>
 
+<style scoped lang="scss">
 .version {
     pointer-events: none;
 
@@ -46,9 +48,7 @@ useLayout();
     font-size: 0.8rem;
     color: rgb(255, 255, 255, 0.3);
 }
-</style>
 
-<style scoped lang="scss">
 .header {
     position: sticky;
 
