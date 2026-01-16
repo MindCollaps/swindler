@@ -45,7 +45,7 @@
         <div class="save-avatar-wrap"><common-button
             v-if="spectator"
             class="save-avatar"
-            @click="saveAvatarToCookie"
+            @click="saveAvatar"
         >Save Avatar</common-button></div>
         <div
             v-if="!spectator"
@@ -121,7 +121,7 @@ import { useStore } from '~/store';
 import { socket } from '~/components/socket';
 import CreateFakeUser from '~/components/game/CreateFakeUser.vue';
 import PlayerList from '~/components/game/PlayerList.vue';
-import { useClipboard } from '@vueuse/core';
+import { useClipboard, useLocalStorage } from '@vueuse/core';
 import AvatarCreator from '~/components/avatar/Avatar-Creator.vue';
 import type { Avatar } from '~~/types/data';
 import CommonBox from '~/components/common/CommonBox.vue';
@@ -143,11 +143,14 @@ const avatar: Ref<Avatar> = ref({
     accessory2: undefined,
 });
 
-const avatarCookie = useCookie<Avatar>('avatar', {
-    path: '/',
-    sameSite: 'lax',
-    secure: true,
-    maxAge: 60 * 60 * 24 * 360,
+const avatarStorage = useLocalStorage<Avatar>('avatar', {
+    body: 4,
+    eyes: 6,
+    cloth: 2,
+    mouth: 2,
+    hair: 6,
+    accessory1: 3,
+    accessory2: undefined,
 });
 
 const { copy } = useClipboard();
@@ -190,13 +193,13 @@ onMounted(() => {
         nextTick(() => lobbySocket.emit('lobby'));
     }
 
-    if (avatarCookie.value) {
-        avatar.value = avatarCookie.value;
+    if (avatarStorage.value) {
+        avatar.value = avatarStorage.value;
     }
 });
 
-function saveAvatarToCookie() {
-    avatarCookie.value = avatar.value;
+function saveAvatar() {
+    avatarStorage.value = avatar.value;
 }
 
 function emitReady() {
@@ -206,7 +209,7 @@ function emitReady() {
     if (me) {
         me.ready = !ready.value;
         me.avatar = avatar.value;
-        avatarCookie.value = avatar.value;
+        avatarStorage.value = avatar.value;
     }
 }
 
