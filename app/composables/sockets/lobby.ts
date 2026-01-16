@@ -89,6 +89,10 @@ export function useLobbySocket(lobbyId: string, options?: { onDisconnect: () => 
             }
         });
 
+        lobbySocket.on('errorMessage', message => {
+            alert(message);
+        });
+
         lobbyNotFound.value = false;
         lobbySocket.connect();
 
