@@ -1,12 +1,12 @@
 <template>
-    <template v-if="store.me?.developer">
+    <dev-only>
         {{ JSON.stringify(game) }}
         <br><br>
         {{ JSON.stringify(lobby) }}
         <br><br>
         {{ JSON.stringify(voted) }}
         <br><br>
-    </template>
+    </dev-only>
     <game-info
         :game="game"
         :lobby="lobby"
@@ -32,7 +32,6 @@
 import Vote from '~/components/game/Vote.vue';
 import WordLog from '~/components/game/WordLog.vue';
 import GameInfo from '../GameInfo.vue';
-import { useStore } from '~/store';
 import type { LobbyGame, Lobby, Voted, GivingClue } from '~~/types/redis';
 import type { GameStateEmits } from '~~/types/game-state';
 
@@ -47,8 +46,6 @@ defineProps<{
 }>();
 
 defineEmits<GameStateEmits>();
-
-const store = useStore();
 </script>
 
 <style scoped lang="scss">

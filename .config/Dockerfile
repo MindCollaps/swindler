@@ -23,18 +23,20 @@ ENV PORT=3000
 
 RUN apk add --no-cache wget
 
+RUN npm install -g prisma
+
 RUN addgroup -S app && adduser -S app -G app
 
 RUN chown app:app /app
 
-COPY --chown=app:app package.json ./
-COPY --chown=app:app --from=builder /app/node_modules ./node_modules
-
 COPY --chown=app:app --from=builder /app/.output ./.output
 COPY --chown=app:app --from=builder /app/public ./public
 COPY --chown=app:app prisma ./prisma
-COPY --chown=app:app prisma.config.ts ./prisma.config.ts
+# Create a production prisma config to avoid needing full dependencies
+RUN echo "module.exports = { schema: 'prisma/schema.prisma', migrations: { path: 'prisma/migrations' }, datasource: { url: process.env.DATABASE_URL } }" > prisma.config.js
+
 COPY --chown=app:app .config/wordlists ./.config/wordlists
+
 COPY --chown=app:app .config/entrypoint.sh ./entrypoint.sh
 
 RUN chmod +x ./entrypoint.sh

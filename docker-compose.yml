@@ -1,6 +1,8 @@
 services:
   swindler-app:
-    image: ghcr.io/mindcollaps/swindler:latest
+    build:
+      context: .
+      dockerfile: .config/Dockerfile
     container_name: swindler-app
     environment:
       - NODE_ENV=production
