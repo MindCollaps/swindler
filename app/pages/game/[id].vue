@@ -47,7 +47,7 @@ const route = useRoute();
 
 const lobbyId = route.params.id as string;
 
-const { gameSocket: gameSocket, game, connected, lobby, myTurn, clue, voteForPlayer, gameResults, nextGame, hasVotedForPlayer, guessWord, voted, lobbyNotFound, spectator } = useGameSocket(lobbyId);
+const { gameSocket, game, connected, lobby, myTurn, clue, voteForPlayer, gameResults, nextGame, hasVotedForPlayer, guessWord, voted, lobbyNotFound, spectator } = useGameSocket(lobbyId);
 
 const timeRemaining = ref(0);
 const isReady = ref(false);

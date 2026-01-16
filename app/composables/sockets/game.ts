@@ -204,8 +204,8 @@ export function useGameSocket(lobbyId: string, options: { onHeart?: () => void }
         gameSocket.on('roundEnd', () => {
             if (!game.value) return;
             if (!gameSocket) return;
-            resetVote();
             game.value.gameState = GameState.RoundEnd;
+            resetVote();
         });
         gameSocket.on('givingClue', value => {
             if (!game.value) return;
@@ -241,13 +241,13 @@ export function useGameSocket(lobbyId: string, options: { onHeart?: () => void }
             if (!game.value) return;
             game.value.gameState = GameState.LobbyEnd;
         });
-        gameSocket.on('returnToLobby', () => {
+        gameSocket.on('returnToLobby', async () => {
+            await router.push(`/lobby/${ lobbyId }`);
+
             game.value = null;
             resetVote();
             gameResults.value = null;
             hasVotedForPlayer.value = false;
-
-            router.push(`/lobby/${ lobbyId }`);
         });
     };
 
