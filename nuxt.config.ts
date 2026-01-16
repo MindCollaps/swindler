@@ -22,7 +22,7 @@ export default defineNuxtConfig({
             websocket: true,
         },
     },
-    compatibilityDate: '2025-12-12',
+    compatibilityDate: '2026-01-01',
     devtools: { enabled: true },
     modules: [
         '@nuxt/devtools',
