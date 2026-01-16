@@ -16,6 +16,8 @@ import ViewVersion from '~/components/views/ViewVersion.vue';
 
 defineSlots<{ default: () => any }>();
 
+const config = useRuntimeConfig();
+
 useLayout();
 </script>
 
