@@ -36,7 +36,11 @@ Can the Crewmates catch the Swindler, or will the Swindler blend in and guess th
 ### Quick Start
 
 1.  **Clone the repository**
-2.  **Environment Setup**
+2.  **Environment Setup**  
+    Install bun:
+    ```bash
+    curl -fsSL https://bun.sh/install | bash
+    ```
     Copy the example environment file:
     ```bash
     cp .env.example .env
@@ -47,6 +51,20 @@ Can the Crewmates catch the Swindler, or will the Swindler blend in and guess th
     bun dev
     ```
     This command spins up the Docker containers and starts the Nuxt development server.
+
+### Tips
+
+#### Reset Docker Containers
+To start with fresh Docker containers and volumes, remove the existing containers and database volumes:
+
+```bash
+bun dev:down
+rm -rf db/ redis/
+```
+Then start the new containers:
+```bash
+bun dev
+```
 
 ---
 
