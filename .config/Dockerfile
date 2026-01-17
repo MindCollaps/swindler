@@ -10,9 +10,7 @@ COPY package.json bun.lock tsconfig.json ./
 RUN bun install
 
 COPY . .
-ARG DATABASE_URL=postgresql://swindler:swindler@db:5432/swindler
-ENV DATABASE_URL=${DATABASE_URL}
-RUN bun run prisma generate && bun run prepare && node node_modules/nuxt/bin/nuxt.mjs build
+RUN DATABASE_URL="postgresql://dummy:dummy@localhost:5432/dummy" bun run prisma generate && bun run prepare && node node_modules/nuxt/bin/nuxt.mjs build
 
 
 FROM node:20-alpine AS runner
@@ -32,9 +30,7 @@ RUN chown app:app /app
 COPY --chown=app:app --from=builder /app/.output ./.output
 COPY --chown=app:app --from=builder /app/public ./public
 COPY --chown=app:app prisma ./prisma
-# Create a production prisma config to avoid needing full dependencies
-RUN echo "module.exports = { schema: 'prisma/schema.prisma', migrations: { path: 'prisma/migrations' }, datasource: { url: process.env.DATABASE_URL } }" > prisma.config.js
-
+COPY --chown=app:app .config/prisma.config.js ./prisma.config.js
 COPY --chown=app:app .config/wordlists ./.config/wordlists
 
 COPY --chown=app:app .config/entrypoint.sh ./entrypoint.sh

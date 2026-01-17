@@ -2,6 +2,7 @@ import { ToastMode } from '~~/types/toast';
 import type { Toast, ShowToastOptions } from '~~/types/toast';
 import { useStore } from '~/store';
 import { v4 } from 'uuid';
+import type { Socket } from 'socket.io-client';
 
 export function useToastManager() {
     const store = useStore();
@@ -26,5 +27,37 @@ export function useToastManager() {
         showToast,
         removeToast,
     };
+}
+
+export function registerToastManager(socket: Socket) {
+    const { showToast } = useToastManager();
+
+    socket.on('errorMessage', message => {
+        showToast({
+            mode: ToastMode.Error,
+            message: message,
+        });
+    });
+
+    socket.on('infoMessage', message => {
+        showToast({
+            mode: ToastMode.Info,
+            message: message,
+        });
+    });
+
+    socket.on('warningMessage', message => {
+        showToast({
+            mode: ToastMode.Warning,
+            message: message,
+        });
+    });
+
+    socket.on('successMessage', message => {
+        showToast({
+            mode: ToastMode.Success,
+            message: message,
+        });
+    });
 }
 

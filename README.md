@@ -11,7 +11,7 @@ Can the Crewmates catch the Swindler, or will the Swindler blend in and guess th
 1.  **Lobby**: Create or join a lobby with friends.
 2.  **The Word**: At the start of a round, everyone gets the same secret word, except the Imposter.
 3.  **Clues**: Players take turns giving a single-word clue related to the secret word.
-4.  **Vote**: After the clues, players discuss and vote on who they distinguish as the Imposter.
+4.  **Vote**: After the clues, players discuss and vote on who they identify as the Imposter.
 5.  **Win Conditions**:
     *   **Crewmates Win**: If they correctly vote out the Imposter (and the Imposter fails to guess the word).
     *   **Imposter Wins**: If the Crewmates fail to vote them out, or if the Imposter correctly guesses the secret word after being caught.

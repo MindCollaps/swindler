@@ -12,14 +12,19 @@ import { createGame, proceedFromVote, proceedFromCue, proceedFromRoundEnd, proce
 export { waitForNextRound, gameLobbyTtl, createGame, proceedFromVote, proceedFromCue, proceedFromRoundEnd, proceedFromImposterVote };
 
 export async function returnToLobby(socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>, id: string) {
-    const { game, lobby } = await getGameAndLobby(id);
-    if (!lobby || !socket.user?.userId || !game) return;
-
-    if (!(game.gameState == GameState.GameEnd || game.gameState == GameState.LobbyEnd)) return;
-
-    if (!isOwner(lobby, { id: socket.user.userId, fakeUser: socket.user.fakeUser })) return;
-
     await withLock(id, 'game', async () => {
+        const { game, lobby } = await getGameAndLobby(id);
+        if (!lobby || !socket.user?.userId || !game) return;
+
+        if (!(game.gameState == GameState.GameEnd || game.gameState == GameState.LobbyEnd)) return;
+
+        if (!isOwner(lobby, { id: socket.user.userId, fakeUser: socket.user.fakeUser })) return;
+
+        if (lobby.players.filter(x => x.ready).length != lobby.players.length) {
+            socket.emit('errorMessage', 'Not all players are ready!');
+            return;
+        }
+
         lobby.gameRunning = false;
 
         await saveLobby(id, lobby);

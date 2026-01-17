@@ -14,16 +14,14 @@
         </div>
         <div
             v-if="!game?.imposter && game?.word"
-            class="word"
+            class="word-wrap"
         >
-            <span class="word">
-                {{ game?.word?.word }}
-            </span>
+            <div class="word">{{ game?.word?.word }}</div>
 
-            <span
+            <div
                 v-if="game?.word?.wordListName"
                 class="word-list"
-            >({{ game?.word?.wordListName }})</span>
+            >({{ game?.word?.wordListName }})</div>
         </div>
         <template v-if="!onlyWord">
             <div
@@ -89,13 +87,6 @@ defineProps({
         text-align: center;
     }
 
-    .word-list {
-        font-size: 2.5rem;
-        font-weight: normal;
-        vertical-align: middle;
-        opacity: 0.7;
-    }
-
     .myturn {
         grid-column: 1;
         font-weight: bold;
@@ -120,17 +111,27 @@ defineProps({
         color: $success300;
     }
 
-    .word {
+    .word-wrap {
         grid-column: 2;
 
         padding: 16px;
         border-radius: 16px;
 
-        font-size: 3rem;
         text-align: center;
         vertical-align: middle;
 
         background: $darkgray900;
+
+        .word {
+            font-size: 3rem;
+        }
+
+        .word-list {
+            font-size: 2rem;
+            font-weight: normal;
+            vertical-align: middle;
+            opacity: 0.7;
+        }
     }
 }
 </style>

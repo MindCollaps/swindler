@@ -34,7 +34,7 @@ export default async function lobbyHandler(namespace: Namespace, socket: Socket,
             const player = lobbyData.players[existingPlayerIndex];
             if (player) {
                 player.connected = true;
-                player.ready = lobbyData.gameRunning; // Ready wont be reset if the game is running
+                player.ready = lobbyData.gameRunning; // Ready wont be reset if the game is running (game is running = false | wont be set to false(reset))
             }
         }
         else {
@@ -151,7 +151,10 @@ async function lobbyStart(socket: Socket<DefaultEventsMap, DefaultEventsMap, Def
 
         if (!isOwner(lobby, { id: socket.user.userId, fakeUser: socket.user.fakeUser })) return;
 
-        if (lobby.players.filter(x => x.ready).length != lobby.players.length) return;
+        if (lobby.players.filter(x => x.ready).length != lobby.players.length) {
+            socket.emit('errorMessage', 'Not all players are ready!');
+            return;
+        }
 
         if (lobby.wordLists.length < 1) {
             socket.emit('errorMessage', 'You need to select at least one wordlist!');

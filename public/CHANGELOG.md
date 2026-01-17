@@ -22,7 +22,7 @@
 - 🎯 **Error Handling**: Implemented basic error handler to emit error messages to frontend (#51, #48)
 - 📋 **Wordlist Fix**: Centered wordlist name display (#50)
 - 🎲 **Game State**: Various game state management improvements (#46, #54)
-- 🕵️ **Avatar Local Sotrage**: The avatar is now safed in the local storage instead of in a cookie
+- 🕵️ **Avatar Local Sotrage**: The avatar is now saved in the local Storage instead of in a cookie
 
 ### 🏗️ Developer Experience {develop}
 - �️ **Avatar Atlas**: Added `add` command to easily add new avatar parts
@@ -30,4 +30,3 @@
 - 🐋 **Docker Performance**: Docker environment now uses dev-only optimizations
 - 🔧 **Redis Configuration**: Fixed Redis setup and configuration
 - 📖 **Documentation**: Updated README with correct dev setup instructions
-
