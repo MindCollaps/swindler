@@ -186,6 +186,21 @@ async function lobbyContinue(socket: Socket<DefaultEventsMap, DefaultEventsMap, 
 
         if (!isOwner(lobby, { id: socket.user.userId, fakeUser: socket.user.fakeUser })) return;
 
+        if (lobby.players.filter(x => x.ready).length != lobby.players.length) {
+            socket.emit('errorMessage', 'Not all players are ready!');
+            return;
+        }
+
+        if (lobby.wordLists.length < 1) {
+            socket.emit('errorMessage', 'You need to select at least one wordlist!');
+            return;
+        }
+
+        if (lobby.players.length < 2) {
+            socket.emit('errorMessage', 'Not enough players to start');
+            return;
+        }
+
         lobby.gameRunning = true;
         lobby.gameNumber += 1;
         lobby.round = 1;
