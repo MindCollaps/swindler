@@ -9,7 +9,10 @@
         >
             <slot/>
         </div>
-        <div class="input_container">
+        <div
+            class="input_container"
+            :class="{ 'input_container--error': isLengthExceeded && inputLengthCheck }"
+        >
             <label class="input__input">
                 <Icon
                     v-if="icon"
@@ -31,11 +34,21 @@
                 >
             </label>
         </div>
+        <div
+            v-if="inputLengthCheck"
+            class="input_counter"
+            :class="{ 'input_counter--exceeded': isLengthExceeded }"
+        >
+            {{ currentLength }} / {{ maxInputLength }}
+        </div>
     </div>
 </template>
 
 <script setup lang="ts">
-defineProps({
+import { WordSettings } from '~~/types/word';
+
+
+const props = defineProps({
     inputAttrs: {
         type: Object as PropType<Record<string, any>>,
         default: () => {},
@@ -56,6 +69,14 @@ defineProps({
     icon: {
         type: String,
     },
+    maxInputLength: {
+        type: Number, // todo: has to be greater than 1
+        default: WordSettings.MAXLENGTH,
+    },
+    inputLengthCheck: {
+        type: Boolean,
+        default: false,
+    },
 });
 
 defineEmits({
@@ -73,6 +94,9 @@ const focused = defineModel('focused', { type: Boolean });
 const model = defineModel({ type: String, default: null });
 
 const inputRef = ref<HTMLInputElement | null>(null);
+
+const currentLength = computed(() => model.value?.length);
+const isLengthExceeded = computed(() => currentLength.value > props.maxInputLength);
 
 defineExpose({
     input: inputRef,
@@ -115,6 +139,10 @@ defineExpose({
         border-color: $primary500
     }
 
+    &_container--error {
+        border-color: $error500 !important;
+    }
+
     &__input {
         display: flex;
         gap: 12px;
@@ -140,6 +168,20 @@ defineExpose({
                 color: varToRgba('lightgray150', 0.5);
                 opacity: 1
             }
+        }
+    }
+
+    &_counter {
+        margin-top: 4px;
+        margin-bottom: 10px;
+
+        font-size: 11px;
+        color: $lightgray400;
+        text-align: right;
+
+        &--exceeded {
+            font-weight: 700;
+            color: $error500;
         }
     }
 }

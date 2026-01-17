@@ -158,6 +158,11 @@ async function lobbyStart(socket: Socket<DefaultEventsMap, DefaultEventsMap, Def
             return;
         }
 
+        if (lobby.players.length < 2) {
+            socket.emit('errorMessage', 'Not enough players to start');
+            return;
+        }
+
         lobby.gameStarted = true;
         lobby.gameRunning = true;
         await saveLobby(id, lobby);

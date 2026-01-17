@@ -91,13 +91,6 @@ export function useLobbySocket(lobbyId: string, options?: { onDisconnect: () => 
             }
         });
 
-        lobbySocket.on('errorMessage', message => {
-            showToast({
-                mode: ToastMode.Error,
-                message: message,
-            });
-        });
-
         lobbyNotFound.value = false;
         lobbySocket.connect();
 

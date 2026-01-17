@@ -125,9 +125,10 @@ import { useClipboard, useLocalStorage } from '@vueuse/core';
 import AvatarCreator from '~/components/avatar/Avatar-Creator.vue';
 import type { Avatar } from '~~/types/data';
 import CommonBox from '~/components/common/CommonBox.vue';
+import { ToastMode } from '~~/types/toast';
 
 const store = useStore();
-
+const { showToast } = useToastManager();
 const route = useRoute();
 const router = useRouter();
 const lobbyId: string = route.params.id as string;
@@ -214,6 +215,13 @@ function emitReady() {
 }
 
 function startGame() {
+    if (!lobby.value || lobby.value?.players.length < 2) {
+        showToast({
+            mode: ToastMode.Error,
+            message: 'Not enough players to start',
+        });
+        return;
+    }
     lobbySocket.emit('start');
 }
 
