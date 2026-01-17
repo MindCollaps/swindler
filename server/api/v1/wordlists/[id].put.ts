@@ -30,6 +30,22 @@ export default defineEventHandler(async event => {
 
     const postData = validationResult.data;
 
+    // only admins can create default system wordlists
+    if (postData.isDefault) {
+        await requireAdminAuth(event);
+    }
+    else {
+        postData.isCustom = true; // all created wordlists are custom by default, but admins can change this
+    }
+
+    if (postData.isDefault && !postData.isPublic) {
+        return createApiError('Default wordlists have to be public!', 400);
+    }
+
+    if (postData.isDefault && postData.isCustom) {
+        return createApiError('Default wordlists cannot be custom!', 400);
+    }
+
     const uniqueWords = [...new Set(
         postData.words
             .map(w => w.trim())

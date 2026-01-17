@@ -14,6 +14,7 @@
             <nuxt-loading-indicator :color="colorsList.primary300"/>
             <slot/>
         </div>
+        <common-toast-container/>
         <view-version/>
         <changelog-popup/>
     </div>
