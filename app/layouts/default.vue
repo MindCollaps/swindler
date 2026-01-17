@@ -16,7 +16,6 @@
         </div>
         <common-toast-container/>
         <view-version/>
-        <changelog-popup/>
     </div>
 </template>
 
@@ -24,7 +23,6 @@
 import ViewMenu from '~/components/views/ViewMenu.vue';
 import ViewLogin from '~/components/views/ViewLogin.vue';
 import ViewVersion from '~/components/views/ViewVersion.vue';
-import ChangelogPopup from '~/components/ChangelogPopup.vue';
 import { colorsList } from '#imports';
 
 defineSlots<{ default: () => any }>();

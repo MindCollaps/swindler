@@ -2,8 +2,6 @@ import os
 import math
 import re
 import json
-import sys
-import shutil
 try:
     from PIL import Image
 except ImportError:
@@ -27,40 +25,6 @@ def get_sort_key(filename):
     if match:
         return int(match.group(1))
     return 0
-
-def add_asset(category, path):
-    if category not in CATEGORIES:
-        print(f"Error: Category '{category}' is not valid. Valid categories: {CATEGORIES}")
-        sys.exit(1)
-        
-    if not os.path.exists(path):
-        print(f"Error: File '{path}' does not exist.")
-        sys.exit(1)
-
-    base_path = os.path.dirname(os.path.abspath(__file__))
-    source_path = os.path.join(base_path, SOURCE_DIR)
-    
-    if not os.path.exists(source_path):
-        os.makedirs(source_path)
-
-    # Find next index
-    existing_files = [f for f in os.listdir(source_path) 
-                      if f.startswith(category + '-') and f.endswith('.png')]
-    
-    max_index = 0
-    for f in existing_files:
-        match = re.search(r'-(\d+)\.png$', f)
-        if match:
-            idx = int(match.group(1))
-            if idx > max_index:
-                max_index = idx
-                
-    new_index = max_index + 1
-    new_filename = f"{category}-{new_index}.png"
-    dest_path = os.path.join(source_path, new_filename)
-    
-    print(f"Adding {path} as {new_filename}...")
-    shutil.copy(path, dest_path)
 
 def main():
     # expand paths
@@ -181,12 +145,4 @@ def main():
     print("Done.")
 
 if __name__ == "__main__":
-    if len(sys.argv) > 1 and sys.argv[1] == 'add':
-        if len(sys.argv) != 4:
-            print("Usage: python generate_avatar_atlas.py add <category> <path_to_png>")
-            print(f"Valid categories: {CATEGORIES}")
-            sys.exit(1)
-            
-        add_asset(sys.argv[2], sys.argv[3])
-
     main()
