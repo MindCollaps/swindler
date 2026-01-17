@@ -8,6 +8,7 @@ import {
 } from '../utils/game/helper';
 import { checkVoteImposter, isTurn } from '../utils/game/rules';
 import { createGame, proceedFromVote, proceedFromCue, proceedFromRoundEnd, proceedFromImposterVote } from '../utils/game/lifecycle';
+import { WordSettings } from '~~/types/word';
 
 export { waitForNextRound, gameLobbyTtl, createGame, proceedFromVote, proceedFromCue, proceedFromRoundEnd, proceedFromImposterVote };
 
@@ -209,6 +210,17 @@ export async function voteForPlayer(socket: Socket<DefaultEventsMap, DefaultEven
 export async function giveClue(socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>, id: string, value: any, namespace: Namespace) {
     if (value.length < 1) {
         socket.emit('errorMessage', 'You have to give a clue!');
+        return;
+    }
+
+    const words = value.split(' ');
+    if (words.length > 1) {
+        socket.emit('errorMessage', 'You can only give one word as clue!');
+        return;
+    }
+
+    if (value.length > WordSettings.MAXLENGTH) {
+        socket.emit('errorMessage', `Your clue exceeds the maximum word length of ${ WordSettings.MAXLENGTH } characters!`);
         return;
     }
 
