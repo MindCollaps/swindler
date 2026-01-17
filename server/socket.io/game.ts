@@ -21,11 +21,6 @@ export async function returnToLobby(socket: Socket<DefaultEventsMap, DefaultEven
 
         if (!isOwner(lobby, { id: socket.user.userId, fakeUser: socket.user.fakeUser })) return;
 
-        if (lobby.players.filter(x => x.ready).length != lobby.players.length) {
-            socket.emit('errorMessage', 'Not all players are ready!');
-            return;
-        }
-
         lobby.gameRunning = false;
 
         await saveLobby(id, lobby);
