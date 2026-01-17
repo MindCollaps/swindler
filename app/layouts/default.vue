@@ -15,9 +15,6 @@
             <slot/>
         </div>
         <common-toast-container/>
-        <div class="version">
-            v{{ config.public.version }}
-        </div>
         <view-version/>
     </div>
 </template>
@@ -29,8 +26,6 @@ import ViewVersion from '~/components/views/ViewVersion.vue';
 import { colorsList } from '#imports';
 
 defineSlots<{ default: () => any }>();
-
-const config = useRuntimeConfig();
 
 useLayout();
 </script>

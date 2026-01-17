@@ -14,7 +14,6 @@ export function useToastManager() {
             message: options.message,
             duration: options.duration ?? 8000, // 8 seconds
         };
-        console.log(toast);
 
         return store.addToast(toast);
     };

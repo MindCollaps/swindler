@@ -5,7 +5,7 @@
                 v-for="(toast, index) in toasts"
                 :key="toast.id"
                 class="toast-item"
-                :style="{ bottom: `${ index * 110 + 20 }px` }"
+                :style="{ bottom: `${ (toasts.length - index - 1) * 100 + 32 }px` }"
                 :toast="toast"
                 @close="store.removeToast(toast.id)"
             />
@@ -27,21 +27,16 @@ const { toasts } = storeToRefs(store);
     z-index: 9999;
     right: 32px;
     bottom: 0;
+
+    display: flex;
+    flex-direction: column;
+    gap: 12px
 }
 
 .toast-item {
     position: fixed;
     right: 32px;
-    transition: bottom 0.3s ease, opacity 0.3s ease, transform 0.3s ease;
-}
-
-// Transition group animations
-.toast-list-enter-active {
-    transition: all 0.3s ease;
-}
-
-.toast-list-leave-active {
-    transition: all 0.3s ease;
+    transition: opacity 0.3s ease, transform 0.3s ease;
 }
 
 .toast-list-enter-from {
@@ -50,11 +45,7 @@ const { toasts } = storeToRefs(store);
 }
 
 .toast-list-leave-to {
-    transform: translateX(100%);
+    transform: translateX(300px);
     opacity: 0;
-}
-
-.toast-list-move {
-    transition: all 0.3s ease;
 }
 </style>

@@ -2,34 +2,15 @@
     <div class="toast">
         <div class="toast-header">
             <div
-                v-if="toast.mode === ToastMode.Info"
-                class="toast-icon toast-icon--info"
+                :class="`toast-icon toast-icon--${ toast.mode.toLowerCase() }`"
             >
-                <Icon name="material-symbols:info"/>
+                <Icon
+                    :name="toastIcon[toast.mode]"
+                    size="24px"
+                />
             </div>
 
-            <div
-                v-else-if="toast.mode === ToastMode.Warning"
-                class="toast-icon toast-icon--warning"
-            >
-                <Icon name="material-symbols:warning"/>
-            </div>
-
-            <div
-                v-else-if="toast.mode === ToastMode.Error"
-                class="toast-icon toast-icon--error"
-            >
-                <Icon name="material-symbols:error"/>
-            </div>
-
-            <div
-                v-else-if="toast.mode === ToastMode.Success"
-                class="toast-icon toast-icon--success"
-            >
-                <Icon name="material-symbols:check-circle"/>
-            </div>
-
-            <strong class="toast-title">{{ toast.title }}</strong>
+            <div class="toast-title">{{ toast.title }}</div>
 
             <button
                 aria-label="Close"
@@ -37,7 +18,7 @@
                 type="button"
                 @click="emit('close')"
             >
-                ×
+                <icon name="material-symbols:x-circle-outline"/>
             </button>
         </div>
         <div
@@ -61,6 +42,13 @@ defineProps<{
 const emit = defineEmits<{
     close: [];
 }>();
+
+const toastIcon = {
+    [ToastMode.Info]: 'material-symbols:info',
+    [ToastMode.Warning]: 'material-symbols:warning',
+    [ToastMode.Error]: 'material-symbols:error',
+    [ToastMode.Success]: 'material-symbols:check-circle',
+};
 </script>
 
 <style scoped lang="scss">
@@ -73,9 +61,8 @@ const emit = defineEmits<{
         padding: 16px 20px;
         border-radius: 8px;
 
-        background: rgb(255 255 255 / 95%);
-        backdrop-filter: blur(10px);
-        box-shadow: 0 4px 12px rgb(0 0 0 / 15%), 0 0 0 1px rgb(0 0 0 / 5%);
+        background: $lightgray50;
+        box-shadow: 2px 2px 2px rgb(0,0,0, 0.25);
 
         &-header {
             display: flex;
@@ -87,28 +74,24 @@ const emit = defineEmits<{
             flex: 1;
             font-size: 15px;
             font-weight: 600;
-            color: #1a1a1a;
+            color: $darkgray900;
         }
 
         &-icon {
-            flex-shrink: 0;
-            width: 24px;
-            height: 24px;
-
             &--success {
-                color: #22c55e;
+                color: $success500;
             }
 
             &--error {
-                color: #ef4444;
+                color: $error500;
             }
 
             &--warning {
-                color: #f59e0b;
+                color: $warning500;
             }
 
             &--info {
-                color: #3b82f6;
+                color: $info500;
             }
         }
 
@@ -120,19 +103,18 @@ const emit = defineEmits<{
             align-items: center;
             justify-content: center;
 
-            width: 24px;
-            height: 24px;
-            padding: 0;
+            width: 29px;
+            height: 29px;
+            padding: 4px;
             border: none;
             border-radius: 4px;
 
             font-size: 24px;
             font-weight: 300;
             line-height: 1;
-            color: #6b7280;
+            color: $darkgray700;
 
             opacity: 0.7;
-            background: transparent;
 
             transition: all 0.2s ease;
 
@@ -147,7 +129,7 @@ const emit = defineEmits<{
             margin-top: 8px;
             padding-left: 36px;
             font-size: 14px;
-            color: #4b5563;
+            color: $darkgray800;
         }
     }
 

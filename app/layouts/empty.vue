@@ -3,9 +3,6 @@
         <nuxt-loading-indicator :color="colorsList.primary300"/>
         <slot/>
         <common-toast-container/>
-        <div class="version">
-            v{{ config.public.version }}
-        </div>
         <view-version/>
     </div>
 </template>
@@ -15,8 +12,6 @@ import { colorsList } from '#imports';
 import ViewVersion from '~/components/views/ViewVersion.vue';
 
 defineSlots<{ default: () => any }>();
-
-const config = useRuntimeConfig();
 
 useLayout();
 </script>
