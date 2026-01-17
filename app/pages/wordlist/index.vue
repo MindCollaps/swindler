@@ -138,7 +138,7 @@ async function createWordlist() {
         if (!isCustom.value && !isPublic.value && !isDefault.value) {
             showToast({
                 mode: ToastMode.Error,
-                message: 'You have to select the access mode!',
+                message: 'You have to select the access m ode!',
             });
 
             return;

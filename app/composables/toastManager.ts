@@ -10,7 +10,7 @@ export function useToastManager() {
         const toast: Toast = {
             id: v4(),
             mode: options.mode ?? ToastMode.Info,
-            title: options.title ?? (options.mode ?? ToastMode.Info),
+            title: options.title ?? (options.mode ?? 'Info'),
             message: options.message,
             duration: options.duration ?? 8000, // 8 seconds
         };
