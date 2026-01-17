@@ -23,7 +23,7 @@ export default defineEventHandler(async event => {
     const validationResult = loginSchema.safeParse(body);
     if (!validationResult.success) {
         console.warn(`[Auth:Login] Invalid input from IP: ${ clientIp }`, validationResult.error.issues);
-        throw createApiError('Invalid input', 400, validationResult.error);
+        throw createApiError('Invalid input', 400, validationResult.error.issues);
     }
 
     const { username, password } = validationResult.data;

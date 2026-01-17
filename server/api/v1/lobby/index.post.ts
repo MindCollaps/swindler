@@ -9,7 +9,7 @@ export default defineEventHandler(async event => {
 
     const validationResult = lobbyCreationResponseSchema.safeParse(body);
     if (!validationResult.success) {
-        throw createApiError('Invalid input', 400, validationResult.error);
+        throw createApiError('Invalid input', 400, validationResult.error.issues);
     }
 
     const userId = event.context.user?.userId;
@@ -17,7 +17,7 @@ export default defineEventHandler(async event => {
     const fakeUser = event.context.user?.fakeUser;
 
     if (!userId || !username || fakeUser == undefined) {
-        throw createApiError('Invalid Token', 401, validationResult.error);
+        throw createApiError('Invalid Token', 401);
     }
 
     const token = createToken(8);

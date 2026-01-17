@@ -4,13 +4,12 @@ import { createUser } from '~~/server/utils/backend/user';
 import { checkRateLimit } from '~~/server/utils/backend/rateLimit';
 
 export default defineEventHandler(async event => {
-    // Rate limiting: 3 signup attempts per hour per IP
     const clientIp = getRequestIP(event, { xForwardedFor: true }) || 'unknown';
     console.log(`[Auth:Signup] Signup attempt from IP: ${ clientIp }`);
 
     const isAllowed = await checkRateLimit(`signup:${ clientIp }`, {
-        windowMs: 60 * 60 * 1000, // 1 hour
-        maxRequests: 3,
+        windowMs: 15 * 60 * 1000, // 15 minutes
+        maxRequests: 15,
     });
 
     if (!isAllowed) {
@@ -23,7 +22,7 @@ export default defineEventHandler(async event => {
     const validationResult = signupSchema.safeParse(body);
     if (!validationResult.success) {
         console.warn(`[Auth:Signup] Invalid input from IP: ${ clientIp }`, validationResult.error.issues);
-        throw createApiError('Invalid input', 400, validationResult.error);
+        throw createApiError('Invalid input', 400, validationResult.error.issues);
     }
 
     const { username, password, passwordRepeated, email } = validationResult.data;

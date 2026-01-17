@@ -42,6 +42,8 @@
 </template>
 
 <script lang="ts" setup>
+import { ToastMode } from '~~/types/toast';
+
 const publicV = ref(false);
 const router = useRouter();
 const games: Ref<number> = ref(4);
@@ -56,6 +58,8 @@ interface Response {
     redirect?: string;
     message?: string;
 }
+
+const { showToast } = useToastManager();
 
 async function create() {
     const payload = {
@@ -78,8 +82,18 @@ async function create() {
             router.push(response.redirect);
         }
     }
-    catch (e) {
-        console.log(e);
+    catch (error: any) {
+        let message = error.data?.message || error.data?.statusMessage || error.statusMessage || 'Creation failed';
+
+        if (Array.isArray(error.data?.data)) {
+            message = error.data.data.map((i: any) => i.message).join('\n');
+        }
+
+        showToast({
+            mode: ToastMode.Error,
+            message,
+            duration: 8000,
+        });
     }
 }
 </script>

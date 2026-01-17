@@ -11,9 +11,11 @@
 <script setup lang="ts">
 import { socket } from '~/components/socket';
 import { useLobbySocket } from '~/composables/sockets/lobby';
+import { ToastMode } from '~~/types/toast';
 
 const route = useRoute();
 const lobbyId = route.params.id as string;
+const { showToast } = useToastManager();
 
 const { lobbySocket } = useLobbySocket(lobbyId);
 
@@ -41,8 +43,18 @@ async function join() {
 
         socket.emit('me');
     }
-    catch (error) {
-        console.error('Signup failed', error);
+    catch (error: any) {
+        let message = error.data?.message || error.data?.statusMessage || error.statusMessage || 'Creation failed';
+
+        if (Array.isArray(error.data?.data)) {
+            message = error.data.data.map((i: any) => i.message).join('\n');
+        }
+
+        showToast({
+            mode: ToastMode.Error,
+            message,
+            duration: 8000,
+        });
     }
 }
 </script>

@@ -3,7 +3,7 @@ import { io } from 'socket.io-client';
 import { useRouter } from 'vue-router';
 import type { FetchingWordList } from '~~/types/fetch';
 import type { Lobby } from '~~/types/redis';
-import { ToastMode } from '~~/types/toast';
+import { registerToastManager } from '../toastManager';
 
 let lobbySocket: Socket | undefined;
 const lobby: Ref<Lobby | null> = ref(null);
@@ -28,7 +28,8 @@ export function useLobbySocket(lobbyId: string, options?: { onDisconnect: () => 
         if (!lobbySocket || lobbySocket?.connected) return;
 
         const router = useRouter();
-        const { showToast } = useToastManager();
+
+        registerToastManager(lobbySocket);
 
         lobbySocket.on('connect', () => {
             connected.value = true;
@@ -89,13 +90,6 @@ export function useLobbySocket(lobbyId: string, options?: { onDisconnect: () => 
                 lobbySocket = undefined;
                 router.push(`/lobby/${ lobbyId }`);
             }
-        });
-
-        lobbySocket.on('errorMessage', message => {
-            showToast({
-                mode: ToastMode.Error,
-                message: message,
-            });
         });
 
         lobbyNotFound.value = false;
