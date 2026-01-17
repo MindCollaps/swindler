@@ -11,3 +11,7 @@ export interface FlagWordRequest {
     reason: ReportReason;
     message?: string;
 }
+
+export enum WordSettings {
+    MAXLENGTH = 32,
+}

@@ -9,7 +9,7 @@ export default defineEventHandler(async event => {
     const validationResult = joinSchema.safeParse(body);
     if (!validationResult.success) {
         console.log(validationResult.error);
-        throw createApiError('Invalid input', 400, validationResult.error);
+        throw createApiError('Invalid input', 400, validationResult.error.issues);
     }
 
     const { nickname, lobby } = validationResult.data;

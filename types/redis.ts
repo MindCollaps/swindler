@@ -72,6 +72,14 @@ export interface Game {
     readyToContinue?: number[];
     imposterGuess?: string;
     winReason?: WinReason;
+    gameResults?: GameResults;
+}
+
+export interface GameResults {
+    votedPlayer?: RedisLobbyPlayer;
+    imposterPlayer?: RedisLobbyPlayer;
+    wasCorrect: boolean;
+    votes: GameEvent[];
 }
 
 export interface LobbyWord {
@@ -92,6 +100,7 @@ export interface LobbyGame extends Omit<Game, 'imposter' | 'specialGameMode' | '
     imposter: boolean;
     imposterGuess?: string;
     winReason?: WinReason;
+    gameResults?: GameResults;
 }
 
 export interface GivingClue {
@@ -138,7 +147,7 @@ export enum GameState {
     GameEnd,
     Vote,
     LobbyEnd,
-    ImposterVote,
+    ImposterWord,
 }
 
 export interface Voted {

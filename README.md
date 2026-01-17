@@ -1,58 +1,93 @@
-# swindler-backend
+# 🕵️ Swindler
 
-## Development Environment
+**Swindler** is a real-time multiplayer social deduction game where players must identify the 'swindler' among them. Everyone receives a secret word except for one person—the **Swindler**. Players take turns giving subtle one-word clues to prove they know the word without giving it away.
+
+Can the Crewmates catch the Swindler, or will the Swindler blend in and guess the secret word?
+
+---
+
+## 🎮 How to Play
+
+1.  **Lobby**: Create or join a lobby with friends.
+2.  **The Word**: At the start of a round, everyone gets the same secret word, except the Imposter.
+3.  **Clues**: Players take turns giving a single-word clue related to the secret word.
+4.  **Vote**: After the clues, players discuss and vote on who they identify as the Imposter.
+5.  **Win Conditions**:
+    *   **Crewmates Win**: If they correctly vote out the Imposter (and the Imposter fails to guess the word).
+    *   **Imposter Wins**: If the Crewmates fail to vote them out, or if the Imposter correctly guesses the secret word after being caught.
+
+## 🚀 Tech Stack
+
+*   **Frontend**: [Nuxt 3](https://nuxt.com/) (Vue 3, TypeScript)
+*   **Backend**: Node.js with [Socket.io](https://socket.io/) for real-time communication
+*   **Database**: PostgreSQL with [Prisma](https://www.prisma.io/) ORM
+*   **Caching/State**: [Redis](https://redis.io/) for game state and session management
+*   **Styling**: SCSS
+*   **Containerization**: Docker & Docker Compose
+
+---
+
+## 🛠️ Development
+
+### Prerequisites
+- [Bun](https://bun.sh/)
+- Docker & Docker Compose
+
+### Quick Start
+
+1.  **Clone the repository**
+2.  **Environment Setup**  
+    Install bun:
+    ```bash
+    curl -fsSL https://bun.sh/install | bash
+    ```
+    Copy the example environment file:
+    ```bash
+    cp .env.example .env
+    ```
+3.  **Run Development Server**
+    Start the application and required services (Postgres, Redis) using the dev script:
+    ```bash
+    bun dev
+    ```
+    This command spins up the Docker containers and starts the Nuxt development server.
+
+### Tips
+
+#### Reset Docker Containers
+To start with fresh Docker containers and volumes, remove the existing containers and database volumes:
 
 ```bash
-sudo docker compose -f docker-compose.dev.yml up -d
+bun dev:down
+rm -rf db/ redis/
 ```
-
+Then start the new containers:
 ```bash
-bun run db-push
+bun dev
 ```
 
-```bash
-bun run dev
-```
+---
 
-## Security Features
+## 🔒 Security Features
 
-This project includes several security features to protect against common web vulnerabilities:
+This project implements robust security measures to ensure safe gameplay and data protection.
 
 ### Authentication & Authorization
-- **JWT Authentication**: Uses RSA key pairs (RS256) for secure token signing
-- **Session Management**: Redis-based session storage with configurable expiration
-- **Rate Limiting**: Protection against brute force attacks
-  - Login: 5 attempts per 15 minutes per IP
-  - Signup: 3 attempts per hour per IP
-- **Strong Password Requirements**: Enforced password complexity (uppercase, lowercase, numbers)
+- **JWT Authentication**: Secure token signing using RS256 key pairs.
+- **Session Management**: Redis-backed sessions with configurable expiration.
+- **Rate Limiting**:
+  - Login: 5 attempts / 15 mins
+  - Signup: 3 attempts / 1 hour
+- **Password Security**: Strong complexity enforcement (uppercase, lowercase, numbers).
 
-### Security Headers
-- **X-Content-Type-Options**: Prevents MIME type sniffing
-- **X-Frame-Options**: Prevents clickjacking attacks
-- **Content-Security-Policy**: Restricts resource loading to prevent XSS
-- **Strict-Transport-Security**: Enforces HTTPS in production
-- **Referrer-Policy**: Controls referrer information
-- **Permissions-Policy**: Restricts browser feature access
+### Infrastructure & Data
+- **Container Security**: Application runs as a non-root Docker user.
+- **Database**: SQL injection protection via Prisma ORM parameterized queries.
+- **Input Validation**: All API inputs are validated and sanitized (Zod).
+- **Redis Security**: Password-protected Redis connections.
 
-### Input Validation & Sanitization
-- **Zod Schema Validation**: All API inputs are validated and sanitized
-- **Prisma ORM**: Prevents SQL injection through parameterized queries
-- **Input Trimming**: Automatic whitespace removal from user inputs
-
-### Infrastructure Security
-- **Non-root Docker User**: Application runs with limited privileges
-- **Health Checks**: Docker and application-level health monitoring
-- **Redis Authentication**: Password-protected Redis connections
-- **Environment Variables**: Sensitive data stored in environment variables
-
-## Environment Variables
-
-Copy `.env.example` to `.env` and configure:
-
-- `ADMIN_USERNAME`, `ADMIN_PASSWORD`, `ADMIN_EMAIL`: Admin account credentials (use strong passwords)
-- `DATABASE_URL`: PostgreSQL connection string
-- `POSTGRES_USER`, `POSTGRES_PASSWORD`: Database credentials (use strong passwords)
-- `REDIS_HOST`, `REDIS_PASSWORD`: Redis configuration (use strong passwords)
-- `ALLOWED_ORIGINS`: Comma-separated list of allowed CORS origins for Socket.io (optional)
-
-**Important**: Always use strong, unique passwords for production environments.
+### Headers & Policies
+- Content-Security-Policy (CSP)
+- X-Content-Type-Options (MIME sniffing prevention)
+- X-Frame-Options (Clickjacking prevention)
+- Strict-Transport-Security (HSTS)

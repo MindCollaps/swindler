@@ -15,6 +15,10 @@
 
 <script setup lang="ts">
 import { socket } from '~/components/socket';
+import { ToastMode } from '~~/types/toast';
+import { useToastManager } from '~/composables/toastManager';
+
+const { showToast } = useToastManager();
 
 const router = useRouter();
 const username = ref<string>();
@@ -43,8 +47,11 @@ async function login() {
             router.push(response.redirect);
         }
     }
-    catch (error) {
-        console.error('Login failed', error);
+    catch (error: any) {
+        showToast({
+            mode: ToastMode.Error,
+            message: error.data?.message || error.data?.statusMessage || error.statusMessage || 'Login failed',
+        });
     }
 }
 </script>

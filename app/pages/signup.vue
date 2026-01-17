@@ -24,8 +24,11 @@
 
 <script setup lang="ts">
 import { socket } from '~/components/socket';
+import { useToastManager } from '~/composables/toastManager';
+import { ToastMode } from '~~/types/toast';
 
 const router = useRouter();
+const { showToast } = useToastManager();
 
 const username = ref<string>();
 const password = ref<string>();
@@ -56,8 +59,18 @@ async function signup() {
             router.push(response.redirect);
         }
     }
-    catch (error) {
-        console.error('Signup failed', error);
+    catch (error: any) {
+        let message = error.data?.message || error.data?.statusMessage || error.statusMessage || 'Signup failed';
+
+        if (Array.isArray(error.data?.data)) {
+            message = error.data.data.map((i: any) => i.message).join('\n');
+        }
+
+        showToast({
+            mode: ToastMode.Error,
+            message,
+            duration: 8000,
+        });
     }
 }
 </script>

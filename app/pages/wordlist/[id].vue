@@ -66,6 +66,7 @@
 import { useStore } from '~/store';
 import type { FetchingWordListWithWords } from '~~/types/fetch';
 import FlagWord from '~/components/word/FlagWord.vue';
+import { ToastMode } from '~~/types/toast';
 
 interface Response {
     data?: FetchingWordListWithWords;
@@ -83,6 +84,7 @@ interface UpdateResponse {
 
 const store = useStore();
 const route = useRoute();
+const { showToast } = useToastManager();
 const wordlistId: string = route.params.id as string;
 
 const wordlist = ref<FetchingWordListWithWords | null>(null);
@@ -124,14 +126,26 @@ async function updateWordlist(id: number) {
         words: wordlist.value.words.map(w => w.word),
     };
 
-    const response = await $fetch<UpdateResponse>(`/api/v1/wordlists/${ id }`, {
-        method: 'PUT',
-        body: payload,
-    });
-    if (response.refresh) {
-        getWordlist(wordlistId);
-        // TODO: Make this cool with saved unsaved stuff and animations boom boom
-        alert('updated');
+    try {
+        const response = await $fetch<UpdateResponse>(`/api/v1/wordlists/${ id }`, {
+            method: 'PUT',
+            body: payload,
+        });
+        console.log(response);
+        if (response.refresh) {
+            getWordlist(wordlistId);
+
+            showToast({
+                mode: ToastMode.Success,
+                message: 'The wordlist was updated successfully!',
+            });
+        }
+    }
+    catch (e: any) {
+        showToast({
+            mode: ToastMode.Error,
+            message: e.statusMessage,
+        });
     }
 }
 

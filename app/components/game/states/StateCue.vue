@@ -1,23 +1,24 @@
 <template>
-    <template v-if="store.me?.developer">
+    <dev-only>
         {{ JSON.stringify(game) }}
         <br><br>
         {{ JSON.stringify(lobby) }}
         <br><br>
         {{ JSON.stringify(voted) }}
         <br><br>
-    </template>
+    </dev-only>
     <game-info
         :game="game"
         :lobby="lobby"
         only-word
     />
     <div class="cue-wrapper"><div class="cue-giver">{{ clue?.player.username }}</div> said <div class="cue-text">{{ clue?.clue }}</div></div>
-    <vote/>
+    <vote :spectator="spectator"/>
     <div class="timer">
         Time until continue: {{ timeRemaining }}s
     </div>
     <common-button
+        v-if="!spectator"
         class="skip-wait"
         :disabled="isReady"
         @click="$emit('skipWait')"
@@ -31,7 +32,6 @@
 import Vote from '~/components/game/Vote.vue';
 import WordLog from '~/components/game/WordLog.vue';
 import GameInfo from '../GameInfo.vue';
-import { useStore } from '~/store';
 import type { LobbyGame, Lobby, Voted, GivingClue } from '~~/types/redis';
 import type { GameStateEmits } from '~~/types/game-state';
 
@@ -42,11 +42,10 @@ defineProps<{
     clue: GivingClue | null;
     timeRemaining: number;
     isReady: boolean;
+    spectator: boolean;
 }>();
 
 defineEmits<GameStateEmits>();
-
-const store = useStore();
 </script>
 
 <style scoped lang="scss">

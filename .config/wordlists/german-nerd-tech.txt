@@ -107,7 +107,6 @@ USB
 User
 Virus
 VPN
-VRBrille
 Webcam
 Website
 Wiki

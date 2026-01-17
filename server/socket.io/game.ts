@@ -4,12 +4,36 @@ import { GameEventType, GameState } from '../../types/redis';
 import { isSameUser } from '../../app/utils/user';
 import {
     getGameAndLobby, getGame, saveGame, saveLobby, withLock,
-    waitForNextRound, lobbyTimeouts, gameLobbyTtl,
+    waitForNextRound, lobbyTimeouts, gameLobbyTtl, isOwner,
 } from '../utils/game/helper';
 import { checkVoteImposter, isTurn } from '../utils/game/rules';
 import { createGame, proceedFromVote, proceedFromCue, proceedFromRoundEnd, proceedFromImposterVote } from '../utils/game/lifecycle';
+import { WordSettings } from '~~/types/word';
 
 export { waitForNextRound, gameLobbyTtl, createGame, proceedFromVote, proceedFromCue, proceedFromRoundEnd, proceedFromImposterVote };
+
+export async function returnToLobby(socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>, id: string) {
+    await withLock(id, 'game', async () => {
+        const { game, lobby } = await getGameAndLobby(id);
+        if (!lobby || !socket.user?.userId || !game) return;
+
+        if (!(game.gameState == GameState.GameEnd || game.gameState == GameState.LobbyEnd)) return;
+
+        if (!isOwner(lobby, { id: socket.user.userId, fakeUser: socket.user.fakeUser })) return;
+
+        if (lobby.players.filter(x => x.ready).length != lobby.players.length) {
+            socket.emit('errorMessage', 'Not all players are ready!');
+            return;
+        }
+
+        lobby.gameRunning = false;
+
+        await saveLobby(id, lobby);
+
+        socket.emit('returnToLobby');
+        socket.broadcast.emit('returnToLobby');
+    });
+}
 
 export async function sendVoted(socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>, id: string) {
     const { game, lobby } = await getGameAndLobby(id);
@@ -184,6 +208,22 @@ export async function voteForPlayer(socket: Socket<DefaultEventsMap, DefaultEven
 }
 
 export async function giveClue(socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>, id: string, value: any, namespace: Namespace) {
+    if (value.length < 1) {
+        socket.emit('errorMessage', 'You have to give a clue!');
+        return;
+    }
+
+    const words = value.split(' ');
+    if (words.length > 1) {
+        socket.emit('errorMessage', 'You can only give one word as clue!');
+        return;
+    }
+
+    if (value.length > WordSettings.MAXLENGTH) {
+        socket.emit('errorMessage', `Your clue exceeds the maximum word length of ${ WordSettings.MAXLENGTH } characters!`);
+        return;
+    }
+
     await withLock(id, 'game', async () => {
         const { game, lobby } = await getGameAndLobby(id);
 
@@ -303,7 +343,7 @@ export async function guessWord(socket: Socket<DefaultEventsMap, DefaultEventsMa
         if (game.gameState === GameState.GameEnd || game.gameState === GameState.LobbyEnd || game.gameState === GameState.Idle) return;
 
         game.imposterGuess = value;
-        game.gameState = GameState.ImposterVote;
+        game.gameState = GameState.ImposterWord;
 
         await saveGame(id, game);
 
@@ -327,7 +367,7 @@ export async function nextGame(socket: Socket<DefaultEventsMap, DefaultEventsMap
         if (game.gameState !== GameState.GameEnd) return;
 
         // Check if owner
-        if (!isSameUser(lobby.founder, { id: socket.user.userId, fakeUser: socket.user.fakeUser })) return;
+        if (!isOwner(lobby, { id: socket.user.userId, fakeUser: socket.user.fakeUser })) return;
 
         if (lobby.gameNumber < lobby.gameRules.games) {
             lobby.gameNumber += 1;
@@ -354,10 +394,12 @@ export async function sendGame(socket: Socket<DefaultEventsMap, DefaultEventsMap
     if (!lobby || !socket.user || !game) return;
 
     const isImposter = socket.user?.userId == game.imposter;
+    const playerIsMember = lobby.players.find(x => isSameUser(x, { id: socket.user?.userId ?? 0, fakeUser: socket.user?.fakeUser ?? false })) != undefined;
+
     const lobbyGame: LobbyGame = {
         round: game.round,
         turn: game.turn,
-        ...(isImposter && game.gameState !== GameState.GameEnd && game.gameState !== GameState.ImposterVote ? { } : { word: game.word }),
+        ...(((isImposter || !playerIsMember) && game.gameState !== GameState.GameEnd && game.gameState !== GameState.ImposterWord) ? { } : { word: game.word }),
         imposter: isImposter,
         gameState: game.gameState,
         cueEndTime: game.cueEndTime,

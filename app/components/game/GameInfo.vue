@@ -13,13 +13,15 @@
             Game {{ lobby?.gameNumber }}
         </div>
         <div
-            v-if="!game?.imposter"
-            class="word"
+            v-if="!game?.imposter && game?.word"
+            class="word-wrap"
         >
-            {{ game?.word?.word }} <span
+            <div class="word">{{ game?.word?.word }}</div>
+
+            <div
                 v-if="game?.word?.wordListName"
                 class="word-list"
-            >({{ game?.word?.wordListName }})</span>
+            >({{ game?.word?.wordListName }})</div>
         </div>
         <template v-if="!onlyWord">
             <div
@@ -41,7 +43,7 @@
                 You are the imposter!
             </div>
             <div
-                v-else
+                v-else-if="!spectator"
                 class="notimposter"
             >You are not the imposter</div>
         </template>
@@ -61,6 +63,7 @@ defineProps({
         type: Boolean,
         default: false,
     },
+    spectator: Boolean,
 });
 </script>
 
@@ -82,12 +85,6 @@ defineProps({
         font-size: 1.5rem;
         font-weight: bold;
         text-align: center;
-    }
-
-    .word-list {
-        font-size: 0.8em;
-        font-weight: normal;
-        opacity: 0.7;
     }
 
     .myturn {
@@ -114,16 +111,27 @@ defineProps({
         color: $success300;
     }
 
-    .word {
+    .word-wrap {
         grid-column: 2;
 
         padding: 16px;
         border-radius: 16px;
 
-        font-size: 3rem;
         text-align: center;
+        vertical-align: middle;
 
         background: $darkgray900;
+
+        .word {
+            font-size: 3rem;
+        }
+
+        .word-list {
+            font-size: 2rem;
+            font-weight: normal;
+            vertical-align: middle;
+            opacity: 0.7;
+        }
     }
 }
 </style>

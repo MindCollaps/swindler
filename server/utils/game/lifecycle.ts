@@ -87,14 +87,19 @@ export async function proceedFromVote(id: string, namespace: Namespace) {
             }
         });
 
-        await gameEnd(id, lobby, game);
-
-        namespace.emit('gameEnd', {
+        const results = {
             votedPlayer: votedPlayer,
             imposterPlayer: imposterPlayer,
             wasCorrect: votedPlayerId === game.imposter,
             votes: lobby.gameRules.revealVotes ? votes : votes.map(v => ({ ...v, initiatorId: -1 })),
-        });
+        };
+
+        game.gameResults = results;
+        await saveGame(id, game);
+
+        await gameEnd(id, lobby, game);
+
+        namespace.emit('gameEnd', results);
     });
 }
 
@@ -172,23 +177,27 @@ export async function proceedFromImposterVote(id: string, namespace: Namespace) 
 
         if (!lobby || !game) return;
 
-        if (game.gameState !== GameState.ImposterVote) return;
+        if (game.gameState !== GameState.ImposterWord) return;
 
         game.gameState = GameState.GameEnd;
         game.winReason = WinReason.Guessed;
-        await saveGame(id, game);
 
         const imposterPlayer = lobby.players.find(p => p.id === game.imposter);
         const wasCorrect = game.imposterGuess?.toLowerCase() === game.word.word.toLowerCase();
 
-        await gameEnd(id, lobby, game);
-
-        namespace.emit('gameEnd', {
+        const results = {
             votedPlayer: undefined,
             imposterPlayer: imposterPlayer,
             wasCorrect: wasCorrect,
             votes: [],
-        });
+        };
+
+        game.gameResults = results;
+        await saveGame(id, game);
+
+        await gameEnd(id, lobby, game);
+
+        namespace.emit('gameEnd', results);
     });
 }
 

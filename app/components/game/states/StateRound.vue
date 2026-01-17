@@ -1,15 +1,16 @@
 <template>
     <div class="state-round">
-        <template v-if="store.me?.developer">
+        <dev-only>
             {{ JSON.stringify(game) }}
             <br><br>
             {{ JSON.stringify(lobby) }}
             <br><br>
-        </template>
+        </dev-only>
         <game-info
             :game="game"
             :lobby="lobby"
             :my-turn="myTurn"
+            :spectator="spectator"
             :turn-name="turnName"
         />
         <player-list
@@ -56,18 +57,16 @@ import WordLog from '~/components/game/WordLog.vue';
 import GameInfo from '../GameInfo.vue';
 import type { LobbyGame, Lobby } from '~~/types/redis';
 import type { GameStateEmits } from '~~/types/game-state';
-import { useStore } from '~/store';
 
 defineProps<{
     game: LobbyGame | null;
     lobby: Lobby | null;
     myTurn: boolean;
     turnName: string;
+    spectator: boolean;
 }>();
 
 const emit = defineEmits<GameStateEmits>();
-
-const store = useStore();
 
 const showGuessInput = ref(false);
 const guessInputValue = ref('');
