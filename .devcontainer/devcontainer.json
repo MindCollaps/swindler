@@ -2,7 +2,7 @@
     "name": "Swindler Dev",
     "image": "mcr.microsoft.com/devcontainers/universal",
     "hostRequirements": {
-        "cpus": 4,
+        "cpus": 2,
         "memory": "8gb"
     },
     "customizations": {
