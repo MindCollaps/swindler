@@ -171,6 +171,10 @@ const getAttrs = computed(() => {
     outline: none;
     box-shadow: 2px 2px 2px rgb(0,0,0, 0.25);
 
+    @include mobile {
+        font-size: 12px;
+    }
+
     &_content {
         width: 100%;
         min-width: max-content;

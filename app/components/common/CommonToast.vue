@@ -72,7 +72,7 @@ const toastIcon = {
 
         &-title {
             flex: 1;
-            font-size: 15px;
+            font-size: 14px;
             font-weight: 600;
             color: $darkgray900;
         }

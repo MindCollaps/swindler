@@ -111,6 +111,10 @@ defineExpose({
         margin-bottom: 8px;
         font-size: 13px;
         font-weight: 600;
+
+        @include mobile {
+            font-size: 10px;
+        }
     }
 
     &_container {
@@ -163,6 +167,10 @@ defineExpose({
             background: none;
             outline: none;
             box-shadow: none;
+
+            @include mobile {
+                font-size: 10px;
+            }
 
             &::placeholder {
                 color: varToRgba('lightgray150', 0.5);

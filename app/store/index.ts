@@ -9,6 +9,15 @@ export const useStore = defineStore('index', {
         lobbyCode: '',
         me: undefined as MeUserObject | undefined,
         ready: false,
+        isMobile: false,
+        isMobileOrTablet: false,
+        isTablet: false,
+        isPC: true,
+        isPCWide: false,
+        scrollbarWidth: 0,
+        viewport: {
+            width: 0,
+        },
         toasts: [] as Toast[],
     }),
     actions: {

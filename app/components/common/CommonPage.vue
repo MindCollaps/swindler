@@ -25,12 +25,20 @@ defineSlots<{
     padding: 32px;
 
     h1 {
-        font-size: 2.5rem;
+        font-size: 38px;
         font-weight: bold;
+
+        @include mobile {
+            font-size: 32px;
+        }
     }
 
     p {
-        font-size: 1.25rem;
+        font-size: 14px;
+
+        @include mobile {
+            font-size: 12px;
+        }
     }
 }
 </style>

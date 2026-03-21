@@ -9,7 +9,7 @@
             }"
         >
             <div
-                v-if="!disabled"
+                v-if="!disabled && !store.isMobile"
                 class="setting description"
             >
                 <div>Hair</div>
@@ -96,6 +96,9 @@ import AvatarModel from '~/components/avatar/Avatar-Model.vue';
 import { AVATAR_DEFINITIONS } from '~~/types/data';
 import type { Avatar } from '~~/types/data';
 import Chevron from '../common/CommonChevron.vue';
+import { useStore } from '~/store';
+
+const store = useStore();
 
 const props = defineProps({
     avatar: Object as PropType<Avatar>,
@@ -152,6 +155,7 @@ function change(part: keyof Avatar, positive: boolean) {
     justify-content: center;
 
     height: var(--size-y);
+    min-height: 400px;
     padding: 32px;
     border-radius: 16px;
 

@@ -39,8 +39,8 @@
         <avatar-creator
             :avatar
             :disabled="ready"
-            size-x="400px"
-            size-y="400px"
+            :size-x="store.isMobile ? '200px' : '400px'"
+            :size-y="store.isMobile ? '200px' : '400px'"
         />
         <div class="save-avatar-wrap"><common-button
             v-if="spectator"
