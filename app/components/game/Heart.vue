@@ -87,14 +87,19 @@ onMounted(() => {
     bottom: 3vh;
     left: 97vw;
 
+    @include mobile {
+        bottom: 4vh;
+        left: 93vw;
+    }
+
     font-size: 2rem;
     color: #ff6b9d;
 
     opacity: 1;
 
     @include mobile {
-        bottom: 3vh;
-        left: 93vw;
+        bottom: 1.5vh;
+        left: 80vw;
     }
 }
 
@@ -107,8 +112,8 @@ onMounted(() => {
     color: #ff6b9d;
 
     @include mobile {
-        bottom: 4vh;
-        left: 93vw;
+        bottom: 1.5vh;
+        left: 80vw;
     }
 }
 </style>

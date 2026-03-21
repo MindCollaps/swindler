@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.0.4-alpha.1
+
+### 🎨 UI & Visual Improvements
+- 📱 **Mobile**: Improvement for mobile view of the game
+
+
 ## v0.0.4-alpha
 
 ### ✨ New Features

@@ -75,7 +75,7 @@ defineProps({
     margin-bottom: 32px;
 
     .game-number {
-        grid-column: 2;
+        grid-column: 1 / 4;
         margin-bottom: 16px;
         text-align: center;
     }
@@ -124,6 +124,10 @@ defineProps({
 
         .word {
             font-size: 3rem;
+
+            @include mobile {
+                font-size: 2rem;
+            }
         }
 
         .word-list {
@@ -131,6 +135,10 @@ defineProps({
             font-weight: normal;
             vertical-align: middle;
             opacity: 0.7;
+
+            @include mobile {
+                font-size: 1rem;
+            }
         }
     }
 }

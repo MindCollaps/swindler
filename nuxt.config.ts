@@ -26,8 +26,6 @@ export default defineNuxtConfig({
     devtools: { enabled: true },
     modules: [
         '@nuxt/devtools',
-        '@nuxt/eslint',
-        '@nuxtjs/stylelint-module',
         '@pinia/nuxt',
         '@nuxt/image',
         '@vueuse/motion/nuxt',
@@ -35,20 +33,6 @@ export default defineNuxtConfig({
         '@nuxt/fonts',
         '@nuxt/scripts',
     ],
-    eslint: {
-        checker: {
-            configType: 'flat',
-        },
-    },
-    stylelint: {
-        files: ['app/**/*.scss', 'app/**/*.css', 'app/**/*.vue'],
-        emitError: true,
-        emitWarning: true,
-        failOnWarning: false,
-        failOnError: false,
-        lintOnStart: false,
-        cache: false,
-    },
     devServer: {
         port: 8080,
     },

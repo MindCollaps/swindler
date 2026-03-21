@@ -30,6 +30,10 @@ defineSlots<{
         border-radius: 8px;
 
         background-color: $darkgray800;
+
+        @include mobile {
+            min-width: 90vw;
+        }
     }
 }
 </style>

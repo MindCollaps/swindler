@@ -18,6 +18,7 @@ export const useLayout = () => {
 
     // Reactive theme reference
     store.theme = themeCookie.value ?? 'default';
+
     setupSocket();
 
     useHead(() => {
@@ -52,4 +53,24 @@ export const useLayout = () => {
             }],
         };
     });
+
+    onNuxtReady(() => {
+        setWindowStore();
+        window.addEventListener('resize', setWindowStore);
+    });
+
+    onUnmounted(() => {
+        window.removeEventListener('resize', setWindowStore);
+    });
 };
+
+
+function setWindowStore() {
+    store.isMobile = window.innerWidth < 700;
+    store.isMobileOrTablet = window.innerWidth < 1466;
+    store.isTablet = window.innerWidth < 1466 && window.innerWidth >= 700;
+    store.isPC = window.innerWidth >= 1466;
+    store.isPCWide = window.innerWidth >= 1900;
+    store.scrollbarWidth = window.innerWidth - document.documentElement.offsetWidth;
+    store.viewport.width = window.innerWidth;
+}
