@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.0.4-alpha.2
+
+### 🚀 No need for an account
+- 🙎 **Fake User Creation**: Users can now create a fake user to play without an account
+
 ## v0.0.4-alpha.1
 
 ### 🎨 UI & Visual Improvements

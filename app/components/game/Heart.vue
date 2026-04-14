@@ -12,7 +12,7 @@
             class="heart-button"
             icon="material-symbols:favorite"
             icon-width="42px"
-            type="transparent"
+            type="full-transparent"
             @click="sendHeart()"
         />
     </teleport>
@@ -85,11 +85,11 @@ onMounted(() => {
     position: fixed;
     z-index: 1000;
     bottom: 3vh;
-    left: 97vw;
+    left: 96vw;
 
     @include mobile {
         bottom: 4vh;
-        left: 93vw;
+        left: 80vw;
     }
 
     font-size: 2rem;
@@ -101,19 +101,29 @@ onMounted(() => {
         bottom: 1.5vh;
         left: 80vw;
     }
+
+    @include tablet {
+        bottom: 2vh;
+        left: 92vw;
+    }
 }
 
 .heart-button {
     position: fixed;
     z-index: 1001;
     bottom: 3vh;
-    left: 97vw;
+    left: 96vw;
 
     color: #ff6b9d;
 
     @include mobile {
         bottom: 1.5vh;
         left: 80vw;
+    }
+
+    @include tablet {
+        bottom: 2vh;
+        left: 92vw;
     }
 }
 </style>

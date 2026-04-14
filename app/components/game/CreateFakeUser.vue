@@ -4,7 +4,7 @@
             v-model="nickname"
             @keyup.enter="join"
         >Nickname</common-input-text>
-        <common-button @click="join">Join</common-button>
+        <common-button @click="join">{{ lobbyId ? 'Join Lobby' : 'Create Lobby' }}</common-button>
     </div>
 </template>
 
@@ -13,11 +13,13 @@ import { socket } from '~/components/socket';
 import { useLobbySocket } from '~/composables/sockets/lobby';
 import { ToastMode } from '~~/types/toast';
 
-const route = useRoute();
-const lobbyId = route.params.id as string;
+const props = defineProps({
+    lobbyId: {
+        required: false,
+        type: String,
+    },
+});
 const { showToast } = useToastManager();
-
-const { lobbySocket } = useLobbySocket(lobbyId);
 
 const nickname = ref<string>();
 
@@ -32,14 +34,15 @@ async function join() {
             method: 'POST',
             body: JSON.stringify({
                 nickname: nickname.value,
-                lobby: lobbyId,
             }),
         });
         socket.disconnect();
         socket.connect();
-        lobbySocket.disconnect();
-        lobbySocket.connect();
-
+        if (props.lobbyId) {
+            const { lobbySocket } = useLobbySocket(props.lobbyId);
+            lobbySocket.disconnect();
+            lobbySocket.connect();
+        }
 
         socket.emit('me');
     }

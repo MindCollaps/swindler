@@ -1,6 +1,6 @@
 import { createApiError, sendApiResponse } from '~~/server/utils/apiResponses';
 import { makeFakeUserSession } from '~~/server/utils/auth';
-import { createFakeUser } from '~~/server/utils/backend/user';
+import { checkNicknameAvailability, createFakeUser } from '~~/server/utils/backend/user';
 import { joinSchema } from '~~/server/utils/backend/validation';
 
 export default defineEventHandler(async event => {
@@ -12,9 +12,19 @@ export default defineEventHandler(async event => {
         throw createApiError('Invalid input', 400, validationResult.error.issues);
     }
 
-    const { nickname, lobby } = validationResult.data;
+    const { nickname } = validationResult.data;
 
-    const result = await createFakeUser(nickname, lobby);
+    const nicknameCheck = await checkNicknameAvailability(nickname);
+    if (!nicknameCheck.available) {
+        switch (nicknameCheck.error) {
+            case 'ALREADY_REGISTERED':
+                return sendApiResponse(event, 'Nickname already chosen by a registered user', 400);
+            default:
+                return sendApiResponse(event, 'Nickname is not available', 400);
+        }
+    }
+
+    const result = await createFakeUser(nickname);
 
     if (!result.success || !result.user) return sendApiResponse(event, 'Failed to create user', 500);
 

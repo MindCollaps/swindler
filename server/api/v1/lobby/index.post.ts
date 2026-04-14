@@ -4,7 +4,7 @@ import type { Lobby } from '~~/types/redis';
 import { registerLobby } from '~~/server/socket.io/index';
 
 export default defineEventHandler(async event => {
-    await requireAuth(event);
+    await requireAuth(event, true);
     const body = await readBody(event);
 
     const validationResult = lobbyCreationResponseSchema.safeParse(body);

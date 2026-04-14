@@ -98,8 +98,6 @@ import type { Avatar } from '~~/types/data';
 import Chevron from '../common/CommonChevron.vue';
 import { useStore } from '~/store';
 
-const store = useStore();
-
 const props = defineProps({
     avatar: Object as PropType<Avatar>,
     sizeX: String,
@@ -109,6 +107,8 @@ const props = defineProps({
         default: false,
     },
 });
+
+const store = useStore();
 
 function change(part: keyof Avatar, positive: boolean) {
     const { max, optional } = AVATAR_DEFINITIONS[part];

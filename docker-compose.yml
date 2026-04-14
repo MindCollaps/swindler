@@ -19,9 +19,8 @@ services:
           - CMD-SHELL
           - 'wget --no-verbose http://127.0.0.1:3000/health || exit 1'
       interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 10s
+      timeout: 20s
+      retries: 10
   db:
     image: 'postgres:18.1-alpine'
     container_name: swindler-db

@@ -1,20 +1,36 @@
 <template>
-    <common-box>
-        <!--
+    <common-box v-if="!selected">
+        <common-button @click="createLobby = true; selected = true;">Create Lobby</common-button>
+        <common-button @click="createLobby = false; selected = true;">Join Lobby</common-button>
+    </common-box>
+    <common-box v-else-if="!createLobby">
+        <common-input-text
+            v-model="lobbyCode"
+            @keyup.enter="router.push(`/lobby/${ lobbyCode }`)"
+        >
+            Lobby Code
+        </common-input-text>
+        <common-button @click="router.push(`/lobby/${ lobbyCode }`)">
+            Join
+        </common-button>
+    </common-box>
+    <common-box v-else>
+        <template v-if="store.me?.loggedIn">
+            <!--
  <common-checkbox
             v-model="publicV"
             value="false"
         >Public</common-checkbox>
 -->
-        <common-input-number
-            v-model="games"
-            min="1"
-        >Games</common-input-number>
-        <common-input-number
-            v-model="rounds"
-            min="1"
-        >Rounds</common-input-number>
-        <!--
+            <common-input-number
+                v-model="games"
+                min="1"
+            >Games</common-input-number>
+            <common-input-number
+                v-model="rounds"
+                min="1"
+            >Rounds</common-input-number>
+            <!--
  <common-input-number
             v-model="maxPlayers"
             min="1"
@@ -37,12 +53,16 @@
         >Member can add custom Wordlists</common-checkbox>
 -->
 
-        <common-button @click="create()">Create Lobby</common-button>
+            <common-button @click="create()">Create Lobby</common-button>
+        </template>
+        <create-fake-user v-if="!store.me?.loggedIn"/>
     </common-box>
 </template>
 
 <script lang="ts" setup>
+import { useStore } from '~/store';
 import { ToastMode } from '~~/types/toast';
+import CreateFakeUser from '~/components/game/CreateFakeUser.vue';
 
 const publicV = ref(false);
 const router = useRouter();
@@ -53,6 +73,11 @@ const timeLimited = ref(false);
 const timeLimit: Ref<number> = ref(0);
 const membersCanAddWordLists = ref(false);
 const membersCanAddCustomWordLists = ref(false);
+const createLobby = ref(false);
+const selected = ref(false);
+const lobbyCode = ref('');
+
+const store = useStore();
 
 interface Response {
     redirect?: string;
