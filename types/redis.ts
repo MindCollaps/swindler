@@ -40,7 +40,6 @@ export interface RedisLobbyPlayer {
 export interface FakeUser {
     id: number;
     nickname: string;
-    lobby: string;
 }
 
 export interface GameRules {

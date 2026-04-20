@@ -45,6 +45,7 @@
                         v-else-if="showReady"
                         class="item-ready"
                     >{{ player.ready ? 'Ready' : 'Waiting...' }}</div>
+                    <common-typing v-if="isTyping && game?.turn === player.id && showTurn"/>
                 </div>
             </div>
         </div>
@@ -89,6 +90,18 @@ const sortedPlayers = computed(() => {
     }
 
     return players;
+});
+
+const isTyping = ref(false);
+
+const { gameSocket } = useGameSocket(lobbyId);
+
+gameSocket.on('startTyping', () => {
+    isTyping.value = true;
+});
+
+gameSocket.on('stopTyping', () => {
+    isTyping.value = false;
 });
 </script>
 

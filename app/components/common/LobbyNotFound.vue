@@ -1,26 +1,25 @@
 <template>
-    <div class="lobby-not-found">
+    <common-box>
         <h1>Lobby not found</h1>
         <p>This lobby does not exist.</p>
-        <common-button @click="redirectHome">
-            {{ (!store.me || store.me.fakeUser) ? 'Go Home' : 'Create Lobby' }}
+        <common-input-text
+            v-model="lobbyCode"
+            @keyup.enter="router.push(`/lobby/${ lobbyCode }`)"
+        >
+            Lobby Code
+        </common-input-text>
+        <common-button @click="router.push(`/lobby/${ lobbyCode }`)">
+            Join
         </common-button>
-    </div>
+        <common-button @click="router.push('/lobby')">
+            Create Lobby
+        </common-button>
+    </common-box>
 </template>
 
 <script setup lang="ts">
-import { useStore } from '~/store';
-
-const store = useStore();
-
-function redirectHome() {
-    if (!store.me || store.me.fakeUser) {
-        navigateTo('/');
-    }
-    else {
-        navigateTo('/lobby');
-    }
-}
+const lobbyCode = ref('');
+const router = useRouter();
 </script>
 
 <style scoped lang="scss">

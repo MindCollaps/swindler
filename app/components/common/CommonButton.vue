@@ -58,7 +58,7 @@ const props = defineProps({
         default: '20px',
     },
     type: {
-        type: String as PropType<'primary' | 'secondary' | 'secondary-875' | 'secondary-flat' | 'link' | 'transparent'>,
+        type: String as PropType<'primary' | 'secondary' | 'secondary-875' | 'secondary-flat' | 'link' | 'transparent' | 'full-transparent'>,
         default: 'primary',
     },
     orientation: {
@@ -248,6 +248,23 @@ const getAttrs = computed(() => {
             &:hover {
                 color: $primary500;
                 background: $darkgray800;
+            }
+        }
+    }
+
+    &--type-full-transparent {
+        color: $lightgray150;
+        background: transparent;
+        box-shadow: none;
+
+        .button_icon {
+            fill: $lightgray150;
+        }
+
+        @include hover {
+            &:hover {
+                color: $primary500;
+                background: transparent;
             }
         }
     }

@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.0.4-alpha.3
+### ✏️ Typing animation
+- ✨ **Typing Animation**: Added a typing animation component to indicate when players are typing clues or guesses
+- 🐳 **New Container**: Updated Git automation configuration to include next container of dev branch
+
+## v0.0.4-alpha.2
+
+### 🚀 No need for an account
+- 🙎 **Fake User Creation**: Users can now create a fake user to play without an account
+
 ## v0.0.4-alpha.1
 
 ### 🎨 UI & Visual Improvements

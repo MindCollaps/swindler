@@ -22,6 +22,25 @@ const lobbyId = route.params.id as string;
 const { gameSocket } = useGameSocket(lobbyId);
 const { showToast } = useToastManager();
 
+let typingTimeout: NodeJS.Timeout | null = null;
+watch(clue, newValue => {
+    if (newValue.length > 0) {
+        gameSocket.emit('startTyping');
+        if (typingTimeout) {
+            clearTimeout(typingTimeout);
+        }
+        typingTimeout = setTimeout(() => {
+            gameSocket.emit('stopTyping');
+        }, 3000); // Stop typing after 3 seconds of inactivity
+    }
+    else {
+        gameSocket.emit('stopTyping');
+        if (typingTimeout) {
+            clearTimeout(typingTimeout);
+        }
+    }
+});
+
 function sendClue() {
     if (clue.value.length < 1) {
         showToast({

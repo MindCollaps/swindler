@@ -26,7 +26,6 @@ export const signupSchema = z.object({
 
 export const joinSchema = z.object({
     nickname: z.string().min(3, 'Nickname must be at least 3 characters').max(32, 'Nickname must not exceed 32 characters').transform(val => val.trim()),
-    lobby: z.string().min(8).max(8),
 }).strict();
 
 // Login schema uses basic password validation (not strict requirements)

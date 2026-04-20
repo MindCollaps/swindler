@@ -104,7 +104,7 @@ async function checkJwt(authCookie: string): Promise<H3EventContext['user'] | un
     }
 }
 
-export async function requireAuth(event: H3Event) {
+export async function requireAuth(event: H3Event, allowFakeUser: boolean = false) {
     const authCookie = getCookie(event, authCookieName);
 
     if (!authCookie) {
@@ -118,7 +118,7 @@ export async function requireAuth(event: H3Event) {
             console.warn('[Auth:RequireAuth] Invalid user from JWT');
             throw new Error('User invalid!');
         }
-        else if (user.fakeUser) {
+        else if (user.fakeUser && !allowFakeUser) {
             console.warn(`[Auth:RequireAuth] Fake user ${ user.username } attempted to access protected resource`);
             throw new Error('Fake user not authorized for this resource!');
         }

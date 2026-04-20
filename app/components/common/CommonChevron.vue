@@ -20,6 +20,7 @@ defineEmits({
     },
 });
 </script>
+
 <style scoped lang="scss">
     .button {
         padding: 0;
