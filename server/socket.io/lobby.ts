@@ -76,6 +76,12 @@ export default async function lobbyHandler(namespace: Namespace, socket: Socket,
     socket.on('nextGame', () => nextGame(socket, id, namespace));
     socket.on('ready', value => ready(socket, id, value));
     socket.on('returnToLobby', () => returnToLobby(socket, id));
+    socket.on('startTyping', () => {
+        socket.broadcast.emit('startTyping');
+    });
+    socket.on('stopTyping', () => {
+        socket.broadcast.emit('stopTyping');
+    });
 
     socket.on('guessWord', value => guessWord(socket, id, value, namespace));
 
