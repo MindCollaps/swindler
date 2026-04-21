@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.0.4-alpha.4
+### ✨ Better Accessibility
+- 📱 **QR Code**: Added a QR code to the lobby screen for easier joining
+- 🔤 **Simpler Join Codes**: Updated join code generation to create simpler, more memorable codes for players to join games
+- 🚫 **Whitespaces Ignored**: Fixed issue where whitespaces were being considered
+- 🐳 **Fixed Building of Next Container**: Updated Git automation configuration to fix building of next container of dev branc
+
 ## v0.0.4-alpha.3
 ### ✏️ Typing animation
 - ✨ **Typing Animation**: Added a typing animation component to indicate when players are typing clues or guesses

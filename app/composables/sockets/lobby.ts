@@ -56,6 +56,12 @@ export function useLobbySocket(lobbyId: string, options?: { onDisconnect: () => 
 
         lobbySocket.on('lobby', data => {
             lobby.value = data;
+            if (lobby.value?.gameRunning && router.currentRoute.value.path == `/lobby/${ lobbyId }`) {
+                router.push(`/game/${ lobbyId }`);
+            }
+            else if (lobby.value?.gameStarted && !lobby.value?.gameRunning && router.currentRoute.value.path == `/game/${ lobbyId }`) {
+                router.push(`/lobby/${ lobbyId }`);
+            }
         });
         lobbySocket.on('wordLists', data => {
             wordLists.value = data;

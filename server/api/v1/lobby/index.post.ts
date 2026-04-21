@@ -20,7 +20,7 @@ export default defineEventHandler(async event => {
         throw createApiError('Invalid Token', 401);
     }
 
-    const token = createToken(8);
+    const token = createToken(4, false);
 
     const redisLobby: Lobby = {
         founded: new Date(),
