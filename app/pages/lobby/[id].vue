@@ -27,6 +27,21 @@
                 @click="copyLink"
             >Copy Lobby Link</common-button>
         </div>
+        <div
+            class="qrcode"
+        >
+            <qrcode
+                v-if="showQr"
+                :size="store.isMobile ? 200 : 300"
+                :value="uri"
+            />
+            <common-button
+                icon="material-symbols:qr-code"
+                width="40px"
+                @click="showQr = !showQr"
+            />
+        </div>
+
         <player-list
             v-if="!spectator"
             :lobby="lobby"
@@ -115,6 +130,7 @@
 </template>
 
 <script setup lang="ts">
+import Qrcode from 'qrcode.vue';
 import { useLobbySocket } from '~/composables/sockets/lobby';
 import Heart from '~/components/game/Heart.vue';
 import { useStore } from '~/store';
@@ -133,6 +149,7 @@ const route = useRoute();
 const router = useRouter();
 const lobbyId: string = route.params.id as string;
 const uri = ref('');
+const showQr = ref(false);
 
 const avatar: Ref<Avatar> = ref({
     body: 4,
@@ -324,5 +341,14 @@ function removeWordList(id: number) {
                 }
             }
         }
+    }
+
+    .qrcode{
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        align-items: center;
+
+        margin-bottom: 16px;
     }
 </style>

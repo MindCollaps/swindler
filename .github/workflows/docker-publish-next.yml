@@ -1,8 +1,8 @@
-name: Create and publish a Docker image
+name: Create and publish a Docker image (next)
 
 on:
   push:
-    branches: ['main']
+    branches: ['develop']
     paths:
       - 'app/**'
       - 'server/**'
@@ -43,7 +43,7 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
-            type=raw,value=latest,enable={{is_default_branch}}
+            type=raw,value=next
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v5

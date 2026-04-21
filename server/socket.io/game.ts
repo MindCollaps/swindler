@@ -208,6 +208,9 @@ export async function giveClue(socket: Socket<DefaultEventsMap, DefaultEventsMap
         return;
     }
 
+    // Remove whitespace at beginning and end
+    value = value.trim();
+
     const words = value.split(' ');
     if (words.length > 1) {
         socket.emit('errorMessage', 'You can only give one word as clue!');
