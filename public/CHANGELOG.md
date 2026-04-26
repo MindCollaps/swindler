@@ -1,5 +1,10 @@
 # Changelog
 
+## v.0.0.4-alpha.5
+### 🐛 Bug Fixes & Improvements
+- 🐳 **Coolify auto deployment**: Updated Git automation configuration to enable auto deploy of coolify
+- 🕵️ **Avatar Local Storage**: Fixed a bug where the end game screen is not shown
+
 ## v0.0.4-alpha.4
 ### ✨ Better Accessibility
 - 📱 **QR Code**: Added a QR code to the lobby screen for easier joining

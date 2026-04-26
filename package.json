@@ -2,7 +2,7 @@
   "name": "swindler",
   "private": false,
   "type": "module",
-  "version": "0.0.4-alpha.4",
+  "version": "0.0.4-alpha.5",
   "packageManager": "bun@1.3.13",
   "scripts": {
     "build": "nuxt build",
