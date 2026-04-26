@@ -56,20 +56,40 @@ jobs:
 
       - name: Trigger Coolify deployment
         env:
-          COOLIFY_WEBHOOK_URL: ${{ secrets.COOLIFY_WEBHOOK_DEVELOP }}
+          COOLIFY_BASE_URL: ${{ secrets.COOLIFY_BASE_URL }}
           COOLIFY_API_TOKEN: ${{ secrets.COOLIFY_API_TOKEN }}
+          COOLIFY_RESOURCE_UUID: ${{ secrets.COOLIFY_RESOURCE_UUID_DEVELOP }}
+          COOLIFY_RESOURCE_TAG: next
         run: |
           set -euo pipefail
 
-          if [ -z "${COOLIFY_WEBHOOK_URL}" ] || [ -z "${COOLIFY_API_TOKEN}" ]; then
-            echo "Missing Coolify secrets for develop deployment"
+          if [ -z "${COOLIFY_BASE_URL}" ] || [ -z "${COOLIFY_API_TOKEN}" ]; then
+            echo "Missing Coolify API configuration for develop deployment"
             exit 1
           fi
 
-          curl --fail --show-error --silent \
-            --request POST \
-            --header "Authorization: Bearer ${COOLIFY_API_TOKEN}" \
-            --retry 5 \
-            --retry-all-errors \
-            --retry-delay 5 \
-            "${COOLIFY_WEBHOOK_URL}"
+          deploy_endpoint="${COOLIFY_BASE_URL%/}/api/v1/deploy"
+
+          if [ -n "${COOLIFY_RESOURCE_UUID:-}" ]; then
+            curl --fail --show-error --silent \
+              --request GET \
+              --get \
+              --header "Authorization: Bearer ${COOLIFY_API_TOKEN}" \
+              --retry 5 \
+              --retry-all-errors \
+              --retry-delay 5 \
+              --data-urlencode "uuid=${COOLIFY_RESOURCE_UUID}" \
+              "${deploy_endpoint}"
+          else
+            curl --fail --show-error --silent \
+              --request GET \
+              --get \
+              --header "Authorization: Bearer ${COOLIFY_API_TOKEN}" \
+              --retry 5 \
+              --retry-all-errors \
+              --retry-delay 5 \
+              --data-urlencode "tag=${COOLIFY_RESOURCE_TAG}" \
+              "${deploy_endpoint}"
+          fi
+            
+          echo "Triggered Coolify deployment via API."
