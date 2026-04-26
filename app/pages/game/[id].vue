@@ -12,11 +12,7 @@
             :is="currentStateComponent"
             v-if="currentStateComponent"
             v-bind="componentProps"
-            @guessWord="guessWord"
-            @nextGame="nextGame"
-            @returnToLobby="returnToLobby"
-            @skipWait="skipWait"
-            @voteForPlayer="voteForPlayer"
+            v-on="componentListeners"
         />
         <heart v-if="!spectator"/>
     </div>
@@ -124,15 +120,32 @@ const componentProps = computed(() => {
         case GameState.Cue:
             return { game: game.value, lobby: lobby.value, voted: voted.value, clue: clue.value, timeRemaining: timeRemaining.value, isReady: isReady.value, spectator: spectator.value };
         case GameState.RoundEnd:
-            return { timeRemaining: timeRemaining.value, spectator: spectator.value };
+            return { timeRemaining: timeRemaining.value };
         case GameState.Vote:
             return { game: game.value, lobby: lobby.value, hasVotedForPlayer: hasVotedForPlayer.value, spectator: spectator.value };
         case GameState.ImposterWord:
             return { game: game.value, spectator: spectator.value };
         case GameState.GameEnd:
-            return { game: game.value, lobby: lobby.value, gameResults: gameResults.value, spectator: spectator.value };
+            return { game: game.value, lobby: lobby.value, gameResults: gameResults.value };
         case GameState.LobbyEnd:
-            return { lobby: lobby.value, spectator: spectator.value };
+            return { lobby: lobby.value };
+        default:
+            return {};
+    }
+});
+
+const componentListeners = computed(() => {
+    switch (game.value?.gameState) {
+        case GameState.Round:
+            return { guessWord };
+        case GameState.Cue:
+            return { skipWait };
+        case GameState.Vote:
+            return { voteForPlayer };
+        case GameState.GameEnd:
+            return { nextGame, returnToLobby };
+        case GameState.LobbyEnd:
+            return { returnToLobby };
         default:
             return {};
     }

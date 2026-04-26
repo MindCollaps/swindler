@@ -1,6 +1,8 @@
 <template>
     <div class="app_content">
-        <nuxt-loading-indicator :color="colorsList.primary300"/>
+        <client-only>
+            <nuxt-loading-indicator :color="colorsList.primary300"/>
+        </client-only>
         <slot/>
         <common-toast-container/>
         <view-version/>

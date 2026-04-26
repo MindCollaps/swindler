@@ -169,10 +169,21 @@ export function useGameSocket(lobbyId: string, options: { onHeart?: () => void }
 
         gameSocket.on('game', value => {
             game.value = value;
+            if (lobby.value?.gameStarted && !lobby.value?.gameRunning && lobby.value.game?.gameState !== GameState.GameEnd && lobby.value.game?.gameState !== GameState.LobbyEnd && router.currentRoute.value.path == `/game/${ lobbyId }`) {
+                router.push(`/lobby/${ lobbyId }`);
+                console.log('Returned to lobby due to game end');
+            }
         });
         gameSocket.on('gameUpdate', (value: Partial<LobbyGame>) => {
             if (!game.value) return;
             Object.assign(game.value, value);
+
+            if (value.gameState) {
+                if (lobby.value?.gameStarted && !lobby.value?.gameRunning && lobby.value.game?.gameState !== GameState.GameEnd && lobby.value.game?.gameState !== GameState.LobbyEnd && router.currentRoute.value.path == `/game/${ lobbyId }`) {
+                    router.push(`/lobby/${ lobbyId }`);
+                    console.log('Returned to lobby due to game end 2');
+                }
+            }
             console.log('Game update received:', JSON.stringify(value));
         });
         gameSocket.on('gameEnd', value => {

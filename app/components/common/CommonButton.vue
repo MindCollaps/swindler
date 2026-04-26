@@ -11,16 +11,7 @@
                 'button--icon': !!$slots.icon && !$slots.default,
             },
         ]"
-        :style="{
-            '--button-width': width ?? 'auto',
-            '--icon-width': iconWidth,
-            '--primary-color': colorsList[primaryColor],
-            '--link-color': colorsList[linkColor],
-            '--icon-color': colorsList[iconColor],
-            '--hover-color': colorsList[hoverColor],
-            '--focus-color': colorsList[focusColor],
-            '--text-align': textAlign,
-        }"
+        :style="buttonStyle"
         :target="target"
         v-bind="getAttrs"
         @click="!disabled && $emit('click', $event)"
@@ -141,6 +132,22 @@ const getAttrs = computed(() => {
 
     return attrs;
 });
+
+const buttonStyle = computed(() => {
+    const styles: Record<string, string> = {};
+    const hoverColorValue = colorsList[props.hoverColor as ColorsList];
+
+    if (props.width) styles['--button-width'] = props.width;
+    if (props.iconWidth !== '20px') styles['--icon-width'] = props.iconWidth;
+    if (props.primaryColor !== 'primary400') styles['--primary-color'] = colorsList[props.primaryColor];
+    if (props.linkColor !== 'lightgray150') styles['--link-color'] = colorsList[props.linkColor];
+    if (props.iconColor !== 'lightgray150') styles['--icon-color'] = colorsList[props.iconColor];
+    if (hoverColorValue) styles['--hover-color'] = hoverColorValue;
+    if (props.focusColor !== 'primary600') styles['--focus-color'] = colorsList[props.focusColor];
+    if (props.textAlign !== 'center') styles['--text-align'] = props.textAlign;
+
+    return styles;
+});
 </script>
 
 <style scoped lang="scss">
@@ -153,7 +160,7 @@ const getAttrs = computed(() => {
     align-items: center;
     justify-content: center;
 
-    width: var(--button-width);
+    width: var(--button-width, auto);
     min-height: 40px;
     padding: 8px 16px;
     border: none;
@@ -163,11 +170,11 @@ const getAttrs = computed(() => {
     font-size: 14px;
     font-weight: 600;
     color: $lightgray50Orig;
-    text-align: var(--text-align);
+    text-align: var(--text-align, center);
     text-decoration: none;
 
     appearance: none;
-    background: var(--primary-color);
+    background: var(--primary-color, $primary400);
     outline: none;
     box-shadow: 2px 2px 2px rgb(0,0,0, 0.25);
 
@@ -192,12 +199,12 @@ const getAttrs = computed(() => {
         display: flex;
         justify-content: center;
 
-        width: var(--icon-width);
-        min-width: var(--icon-width);
-        height: var(--icon-width);
-        min-height: var(--icon-width);
+        width: var(--icon-width, 20px);
+        min-width: var(--icon-width, 20px);
+        height: var(--icon-width, 20px);
+        min-height: var(--icon-width, 20px);
 
-        fill: var(--icon-color);
+        fill: var(--icon-color, $lightgray150);
     }
 
     &--type-secondary, &--type-secondary-flat, &--type-secondary-875 {

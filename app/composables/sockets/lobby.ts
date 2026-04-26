@@ -2,7 +2,6 @@ import type { Socket } from 'socket.io-client';
 import { io } from 'socket.io-client';
 import { useRouter } from 'vue-router';
 import type { FetchingWordList } from '~~/types/fetch';
-import { GameState } from '~~/types/redis';
 import type { Lobby } from '~~/types/redis';
 import { registerToastManager } from '../toastManager';
 
@@ -57,11 +56,9 @@ export function useLobbySocket(lobbyId: string, options?: { onDisconnect: () => 
 
         lobbySocket.on('lobby', data => {
             lobby.value = data;
+
             if (lobby.value?.gameRunning && router.currentRoute.value.path == `/lobby/${ lobbyId }`) {
                 router.push(`/game/${ lobbyId }`);
-            }
-            else if (lobby.value?.gameStarted && !lobby.value?.gameRunning && lobby.value.game?.gameState !== GameState.GameEnd && lobby.value.game?.gameState !== GameState.LobbyEnd && router.currentRoute.value.path == `/game/${ lobbyId }`) {
-                router.push(`/lobby/${ lobbyId }`);
             }
         });
         lobbySocket.on('wordLists', data => {
@@ -102,7 +99,7 @@ export function useLobbySocket(lobbyId: string, options?: { onDisconnect: () => 
         lobbyNotFound.value = false;
         lobbySocket.connect();
 
-        onBeforeRouteLeave((to, from, next) => {
+        onBeforeRouteLeave(to => {
             const allowedPrefixes = [`/game/${ lobbyId }`, `/lobby/${ lobbyId }`];
 
             const goingOutsideGame = !allowedPrefixes.some(prefix => to.path.startsWith(prefix));
@@ -111,7 +108,6 @@ export function useLobbySocket(lobbyId: string, options?: { onDisconnect: () => 
                 disconnect();
                 lobbySocket = undefined;
             }
-            next();
         });
     };
 
