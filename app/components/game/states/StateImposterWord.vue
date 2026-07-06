@@ -34,7 +34,20 @@ defineEmits<GameStateEmits>();
 <style scoped lang="scss">
     .guess {
         padding: 32px;
-        font-size: 1.5rem;
+        font-size: 24px;
+        animation: guess-reveal 0.4s $easeOutQuint 0.2s both;
+    }
+
+    @keyframes guess-reveal {
+        from {
+            transform: translateY(8px);
+            opacity: 0;
+        }
+
+        to {
+            transform: translateY(0);
+            opacity: 1;
+        }
     }
 
     .word {
@@ -44,7 +57,7 @@ defineEmits<GameStateEmits>();
 
         margin-bottom: 16px;
 
-        font-size: 1.2rem;
+        font-size: 14px;
         font-weight: bold;
         text-align: center;
     }

@@ -1,11 +1,15 @@
 <template>
-    <div>
+    <div class="clue">
         <common-input-text
             v-model="clue"
+            class="clue-input"
             input-length-check
             @keyup.enter="sendClue"
         >Clue</common-input-text>
-        <common-button @click="sendClue">Send</common-button>
+        <common-button
+            class="clue-submit"
+            @click="sendClue"
+        >Send</common-button>
     </div>
 </template>
 
@@ -74,4 +78,17 @@ function sendClue() {
     clue.value = '';
 }
 </script>
+
+<style scoped lang="scss">
+.clue {
+    display: flex;
+    gap: 8px;
+    align-items: flex-end;
+}
+
+.clue-input {
+    flex: 1;
+    min-width: 0;
+}
+</style>
 

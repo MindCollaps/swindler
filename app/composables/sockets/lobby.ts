@@ -10,6 +10,7 @@ const lobby: Ref<Lobby | null> = ref(null);
 const wordLists: Ref<FetchingWordList[] | null> = ref(null);
 const connected: Ref<boolean> = ref(false);
 const lobbyNotFound: Ref<boolean> = ref(false);
+const connectionError: Ref<boolean> = ref(false);
 const spectator: Ref<boolean> = ref(false);
 
 const disconnect = () => {
@@ -34,6 +35,7 @@ export function useLobbySocket(lobbyId: string, options?: { onDisconnect: () => 
         lobbySocket.on('connect', () => {
             connected.value = true;
             lobbyNotFound.value = false;
+            connectionError.value = false;
             console.log(`✅ lobby socket ${ lobbyId } connected`);
         });
 
@@ -41,7 +43,16 @@ export function useLobbySocket(lobbyId: string, options?: { onDisconnect: () => 
             if (err.message === 'Unauthorized') {
                 return;
             }
-            lobbyNotFound.value = true;
+            // The server only creates a namespace for lobbies that exist, so
+            // "Invalid namespace" is the genuine not-found signal. Everything
+            // else (xhr poll error, timeout, websocket error) is a network or
+            // server problem and must not be reported as a missing lobby.
+            if (err.message === 'Invalid namespace') {
+                lobbyNotFound.value = true;
+            }
+            else {
+                connectionError.value = true;
+            }
             connected.value = false;
             console.log(`❌ lobby socket ${ lobbyId } connection error`, err);
         });
@@ -113,5 +124,12 @@ export function useLobbySocket(lobbyId: string, options?: { onDisconnect: () => 
 
     onMounted(connect);
 
-    return { lobbySocket, lobby, wordLists, disconnect, connected, lobbyNotFound, spectator };
+    const retry = () => {
+        if (!lobbySocket) return;
+        connectionError.value = false;
+        lobbyNotFound.value = false;
+        lobbySocket.connect();
+    };
+
+    return { lobbySocket, lobby, wordLists, disconnect, connected, lobbyNotFound, connectionError, retry, spectator };
 }

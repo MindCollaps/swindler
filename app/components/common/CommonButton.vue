@@ -93,7 +93,7 @@ const props = defineProps({
     },
     hoverColor: {
         type: String as PropType<ColorsList>,
-        default: 'primary200',
+        default: 'primary300',
     },
     focusColor: {
         type: String as PropType<ColorsList>,
@@ -116,10 +116,10 @@ defineSlots<{
 }>();
 
 const getTag = computed(() => {
-    if (props.disabled) return props.tag ?? 'div';
+    if (props.disabled) return props.tag ?? 'button';
     if (props.href) return 'a';
     if (props.to) return NuxtLink;
-    return props.tag ?? 'div';
+    return props.tag ?? 'button';
 });
 
 const getAttrs = computed(() => {
@@ -129,6 +129,10 @@ const getAttrs = computed(() => {
         attrs.noPrefetch = true;
     }
     else if (props.href) attrs.href = props.href;
+    else if (getTag.value === 'button') {
+        attrs.type = 'button';
+        if (props.disabled) attrs.disabled = true;
+    }
 
     return attrs;
 });
@@ -178,6 +182,17 @@ const buttonStyle = computed(() => {
     outline: none;
     box-shadow: 2px 2px 2px rgb(0,0,0, 0.25);
 
+    transition: background 0.3s, color 0.3s, box-shadow 0.3s, opacity 0.3s, transform 0.15s $easeOutQuart;
+
+    &:focus-visible {
+        outline: 2px solid $primary500;
+        outline-offset: 2px;
+    }
+
+    &:active:not(.button--disabled, .button--type-link) {
+        transform: scale(0.97);
+    }
+
     @include mobile {
         font-size: 12px;
     }
@@ -188,8 +203,6 @@ const buttonStyle = computed(() => {
     }
 
     @include pc {
-        transition: 0.3s;
-
         &:hover {
             background: var(--hover-color);
         }
@@ -205,6 +218,8 @@ const buttonStyle = computed(() => {
         min-height: var(--icon-width, 20px);
 
         fill: var(--icon-color, $lightgray150);
+
+        transition: fill 0.3s;
     }
 
     &--type-secondary, &--type-secondary-flat, &--type-secondary-875 {

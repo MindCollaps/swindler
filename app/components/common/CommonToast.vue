@@ -1,5 +1,8 @@
 <template>
-    <div class="toast">
+    <div
+        class="toast"
+        :role="toast.mode === ToastMode.Error ? 'alert' : 'status'"
+    >
         <div class="toast-header">
             <div
                 :class="`toast-icon toast-icon--${ toast.mode.toLowerCase() }`"

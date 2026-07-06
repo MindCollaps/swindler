@@ -157,7 +157,7 @@ function change(part: keyof Avatar, positive: boolean) {
     height: var(--size-y);
     min-height: 400px;
     padding: 32px;
-    border-radius: 16px;
+    border-radius: 8px;
 
     background: $darkgray900;
 }

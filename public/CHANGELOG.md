@@ -1,5 +1,11 @@
 # Changelog
 
+## v.0.0.5-alpha
+### ✨ Design overhaul
+- New design of the entire game
+- Got a homepage now
+- More statistics
+
 ## v.0.0.4-alpha.5
 ### 🐛 Bug Fixes & Improvements
 - 🐳 **Coolify auto deployment**: Prepared Git automation configuration to enable auto deploy in coolify

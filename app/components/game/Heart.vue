@@ -4,11 +4,13 @@
             v-for="(heart) in heartsInUse"
             :key="heart.id"
             ref="heartRefs"
+            aria-hidden="true"
             class="heart"
         >
-            ❤️
+            <Icon name="material-symbols:favorite"/>
         </div>
         <common-button
+            aria-label="Send a heart to the group"
             class="heart-button"
             icon="material-symbols:favorite"
             icon-width="42px"
@@ -41,6 +43,7 @@ function sendHeart() {
 }
 
 function animateHeart() {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     if (freeHearts.value.length === 0) return;
     const heart = freeHearts.value.at(0);
     if (!heart) return;
@@ -93,7 +96,7 @@ onMounted(() => {
     }
 
     font-size: 2rem;
-    color: #ff6b9d;
+    color: $error300;
 
     opacity: 1;
 
@@ -114,7 +117,7 @@ onMounted(() => {
     bottom: 3vh;
     left: 96vw;
 
-    color: #ff6b9d;
+    color: $error300;
 
     @include mobile {
         bottom: 1.5vh;

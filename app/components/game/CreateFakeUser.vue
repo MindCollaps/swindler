@@ -2,9 +2,14 @@
     <div>
         <common-input-text
             v-model="nickname"
+            :input-attrs="{ maxlength: 24, autocomplete: 'nickname' }"
+            placeholder="What should we call you?"
             @keyup.enter="join"
         >Nickname</common-input-text>
-        <common-button @click="join">{{ lobbyId ? 'Join Lobby' : 'Create Lobby' }}</common-button>
+        <common-button
+            :disabled="joining || !nickname?.trim()"
+            @click="join"
+        >{{ joining ? 'Joining...' : (lobbyId ? 'Join Lobby' : 'Create Lobby') }}</common-button>
     </div>
 </template>
 
@@ -22,6 +27,7 @@ const props = defineProps({
 const { showToast } = useToastManager();
 
 const nickname = ref<string>();
+const joining = ref(false);
 
 interface SignupResponse {
     redirect?: string;
@@ -29,11 +35,23 @@ interface SignupResponse {
 }
 
 async function join() {
+    const name = nickname.value?.trim();
+    if (!name) {
+        showToast({
+            mode: ToastMode.Error,
+            message: 'Pick a nickname first',
+            duration: 5000,
+        });
+        return;
+    }
+    if (joining.value) return;
+
+    joining.value = true;
     try {
         await $fetch<SignupResponse>('/api/v1/auth/join', {
             method: 'POST',
             body: JSON.stringify({
-                nickname: nickname.value,
+                nickname: name,
             }),
         });
         socket.disconnect();
@@ -47,7 +65,7 @@ async function join() {
         socket.emit('me');
     }
     catch (error: any) {
-        let message = error.data?.message || error.data?.statusMessage || error.statusMessage || 'Creation failed';
+        let message = error.data?.message || error.data?.statusMessage || error.statusMessage || 'Could not join. Check your connection and try again.';
 
         if (Array.isArray(error.data?.data)) {
             message = error.data.data.map((i: any) => i.message).join('\n');
@@ -58,6 +76,9 @@ async function join() {
             message,
             duration: 8000,
         });
+    }
+    finally {
+        joining.value = false;
     }
 }
 </script>

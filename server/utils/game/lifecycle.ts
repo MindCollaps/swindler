@@ -202,6 +202,18 @@ export async function proceedFromImposterVote(id: string, namespace: Namespace) 
 }
 
 async function gameEnd(id: string, lobby: Lobby, game: Game) {
+    lobby.playedGames.push({
+        word: game.word,
+        imposter: game.imposter,
+        specialGameMode: game.specialGameMode,
+        turnOrder: game.turnOrder,
+        gameState: game.gameState,
+        imposterGuess: game.imposterGuess,
+        winReason: game.winReason,
+        gameResults: game.gameResults,
+        roundsPlayed: game.round,
+    });
+
     lobby.stats = calculateLobbyStats(lobby);
     lobby.gameRunning = false;
     lobby.gameStarted = true;

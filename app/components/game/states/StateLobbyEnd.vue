@@ -8,17 +8,25 @@
             class="stats-grid"
         >
             <div
-                v-for="stat in displayStats"
+                v-for="(stat, index) in displayStats"
                 :key="stat.title"
                 class="stat-box"
                 :class="stat.class"
+                :style="{ '--i': index }"
             >
+                <Icon
+                    class="stat-icon"
+                    :name="statIcon(stat.title)"
+                />
                 <h3>{{ stat.title }}</h3>
                 <div class="player-name">{{ stat.player?.username }}</div>
                 <div class="count">{{ stat.count }} {{ stat.unit }}</div>
             </div>
         </div>
-        <div v-else>
+        <div
+            v-else
+            class="no-stats"
+        >
             No interesting stats this game!
         </div>
 
@@ -42,6 +50,21 @@ defineEmits<GameStateEmits>();
 const displayStats = computed(() => {
     return props.lobby?.stats || [];
 });
+
+const statIcons: Record<string, string> = {
+    'Best Detective': 'material-symbols:search',
+    'Worst Detective': 'material-symbols:sentiment-dissatisfied',
+    'Best Swindler': 'material-symbols:theater-comedy',
+    'Most Wins': 'material-symbols:emoji-events',
+    'Most Loved': 'material-symbols:favorite',
+    'Most Sus': 'material-symbols:visibility',
+    'Most Paranoid': 'material-symbols:priority-high',
+    Wordsmith: 'material-symbols:edit-note',
+};
+
+function statIcon(title: string): string {
+    return statIcons[title] ?? 'material-symbols:star';
+}
 </script>
 
 <style scoped lang="scss">
@@ -51,19 +74,36 @@ const displayStats = computed(() => {
     align-items: center;
     justify-content: center;
 
-    padding: 20px;
+    padding: 24px;
 
     text-align: center;
+
+    h1 {
+        margin: 0;
+        font-size: 38px;
+        font-weight: bold;
+        animation: fade-up 0.35s $easeOutQuint both;
+
+        @include mobile {
+            font-size: 32px;
+        }
+    }
+
+    p {
+        margin: 8px 0 0;
+        font-size: 14px;
+        animation: fade-up 0.35s $easeOutQuint 0.08s both;
+    }
 }
 
 .stats-grid {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 20px;
-    justify-content: center;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 16px;
 
-    max-width: 1200px;
-    margin: 20px 0;
+    width: 100%;
+    max-width: 720px;
+    margin: 24px 0;
 }
 
 .stat-box {
@@ -72,97 +112,105 @@ const displayStats = computed(() => {
     align-items: center;
     justify-content: center;
 
-    width: 13vw;
-    height: 13vw;
-    padding: 20px;
+    min-height: 160px;
+    padding: 24px;
     border: 2px solid transparent;
-    border-radius: 16px;
-
-    @include mobile {
-        width: 30vw;
-        height: 30vw;
-    }
+    border-radius: 8px;
 
     background: $darkgray800;
 
+    animation: fade-up 0.35s $easeOutQuint both;
+    animation-delay: calc(0.16s + var(--i, 0) * 50ms);
+
+    .stat-icon {
+        width: 28px;
+        height: 28px;
+        margin-bottom: 8px;
+    }
+
     h3 {
         margin-bottom: 8px;
-        font-size: 1.2rem;
+        font-size: 14px;
+        font-weight: 600;
+        color: $lightgray150;
     }
 
     .player-name {
         margin-bottom: 16px;
-        font-size: 1.5rem;
+
+        font-size: 24px;
         font-weight: bold;
-        color: #fff;
+        color: $lightgray0;
+        overflow-wrap: anywhere;
     }
 
     .count {
         font-weight: bold;
+        color: $lightgray50;
     }
 
     &.success {
-        border-color: $success500;
+        border-color: $success300;
 
-        h3 {
-            color: $success500;
-        }
-
-        .count {
-            color: $success500;
+        .stat-icon {
+            color: $success300;
         }
     }
 
     &.error {
-        border-color: $error500;
+        border-color: $error300;
 
-        h3 {
-            color: $error500;
-        }
-
-        .count {
-            color: $error500;
+        .stat-icon {
+            color: $error300;
         }
     }
 
     &.primary {
-        border-color: $primary500;
+        border-color: $primary300;
 
-        h3 {
-            color: $primary500;
-        }
-
-        .count {
-            color: $primary500;
+        .stat-icon {
+            color: $primary300;
         }
     }
 
     &.warning {
-        border-color: $warning500;
+        border-color: $warning300;
 
-        h3 {
-            color: $warning500;
-        }
-
-        .count {
-            color: $warning500;
+        .stat-icon {
+            color: $warning300;
         }
     }
 
     &.info {
-        border-color: $info500;
+        border-color: $info300;
 
-        h3 {
-            color: $info500;
-        }
-
-        .count {
-            color: $info500;
+        .stat-icon {
+            color: $info300;
         }
     }
 }
 
+.no-stats {
+    margin: 24px 0;
+    font-size: 14px;
+    color: $lightgray300;
+    animation: fade-up 0.35s $easeOutQuint 0.16s both;
+}
+
 .home-btn {
     margin: 20px 0;
+    animation: fade-up 0.35s $easeOutQuint 0.3s both;
+}
+
+@keyframes fade-up {
+    from {
+        transform: translateY(8px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
 }
 </style>

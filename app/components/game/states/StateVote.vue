@@ -1,14 +1,22 @@
 <template>
     <div class="state-vote">
         <div class="title">Vote</div>
+        <role-card
+            class="vote-role-card"
+            :game="game"
+        />
         <div
-            v-for="player in sortedPlayers"
+            v-for="(player, index) in sortedPlayers"
             :key="player.id"
             class="player-vote"
+            :style="{ '--i': index }"
         >
             <span class="player-name">{{ player.username }}</span>
             <div class="actions">
-                <span class="voters">{{ getVotersNames(player.id) }}</span>
+                <span
+                    :key="getVotersNames(player.id)"
+                    class="voters"
+                >{{ getVotersNames(player.id) }}</span>
                 <common-button
                     :disabled="spectator"
                     :primary-color="iVoted(player.id) ? 'darkgray600': 'primary500'"
@@ -22,6 +30,7 @@
 
 <script setup lang="ts">
 import WordLog from '~/components/game/WordLog.vue';
+import RoleCard from '~/components/game/RoleCard.vue';
 import type { LobbyGame, Lobby } from '~~/types/redis';
 import { GameEventType } from '~~/types/redis';
 import type { GameStateEmits } from '~~/types/game-state';
@@ -85,6 +94,11 @@ function getVotersNames(playerId: number): string {
     gap: 16px;
 }
 
+.vote-role-card {
+    align-self: center;
+    width: min(320px, 100%);
+}
+
 .player-vote {
     display: flex;
     align-items: center;
@@ -93,17 +107,40 @@ function getVotersNames(playerId: number): string {
     padding: 8px;
     border-radius: 8px;
 
-    background: rgb(255, 255, 255, 0.05);
+    background: $darkgray900;
+
+    animation: vote-row-in 0.3s $easeOutQuint both;
+    animation-delay: calc(var(--i, 0) * 50ms);
+
+    .player-name {
+        min-width: 0;
+        overflow-wrap: anywhere;
+    }
 
     .actions {
         display: flex;
+        flex-shrink: 0;
         gap: 8px;
         align-items: center;
 
         .voters {
-            font-size: 0.8rem;
+            font-size: 13px;
             color: $lightgray100;
+            animation: voters-flash 0.6s $easeOutQuart;
         }
+    }
+}
+
+@keyframes vote-row-in {
+    from {
+        transform: translateY(8px);
+        opacity: 0;
+    }
+}
+
+@keyframes voters-flash {
+    from {
+        color: $primary300;
     }
 }
 
@@ -127,8 +164,12 @@ function getVotersNames(playerId: number): string {
 
 .title {
     margin-bottom: 24px;
-    font-size: 2rem;
+    font-size: 38px;
     font-weight: bold;
     text-align: center;
+
+    @include mobile {
+        font-size: 32px;
+    }
 }
 </style>

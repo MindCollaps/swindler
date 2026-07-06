@@ -27,6 +27,8 @@ let lobby: Ref<Lobby | null> = ref(null);
 let connected: Ref<boolean> = ref(false);
 let spectator: Ref<boolean> = ref(false);
 let lobbyNotFound: Ref<boolean> = ref(false);
+let connectionError: Ref<boolean> = ref(false);
+let retry = () => { };
 let disconnect = () => { };
 
 const addVote = (vote: number, selfVoted: boolean = false, voterId?: number) => {
@@ -120,12 +122,14 @@ const hasVotedForPlayer = ref(false);
 
 export function useGameSocket(lobbyId: string, options: { onHeart?: () => void } = {}) {
     if (!gameSocket) {
-        const { lobbySocket, lobby: lobbyLobby, connected: lobbyConnected, disconnect: lobbyDisconnect, lobbyNotFound: lobbyNotFoundLobby, spectator: lspec } = useLobbySocket(lobbyId, { onDisconnect: disconnectGameSocket });
+        const { lobbySocket, lobby: lobbyLobby, connected: lobbyConnected, disconnect: lobbyDisconnect, lobbyNotFound: lobbyNotFoundLobby, connectionError: lobbyConnectionError, retry: lobbyRetry, spectator: lspec } = useLobbySocket(lobbyId, { onDisconnect: disconnectGameSocket });
         gameSocket = lobbySocket;
         connected = lobbyConnected;
         lobby = lobbyLobby;
         disconnect = lobbyDisconnect;
         lobbyNotFound = lobbyNotFoundLobby;
+        connectionError = lobbyConnectionError;
+        retry = lobbyRetry;
         spectator = lspec;
     }
 
@@ -264,7 +268,7 @@ export function useGameSocket(lobbyId: string, options: { onHeart?: () => void }
 
     onMounted(connect);
 
-    return { gameSocket, lobby, game, voted, addVote, removeVote, myTurn, disconnect, connected, clue, skipWait, voteForPlayer, gameResults, nextGame, hasVotedForPlayer, guessWord, lobbyNotFound, spectator };
+    return { gameSocket, lobby, game, voted, addVote, removeVote, myTurn, disconnect, connected, clue, skipWait, voteForPlayer, gameResults, nextGame, hasVotedForPlayer, guessWord, lobbyNotFound, connectionError, retry, spectator };
 }
 
 function resetVote() {

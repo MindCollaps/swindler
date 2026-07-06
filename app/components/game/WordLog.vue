@@ -1,5 +1,5 @@
 <template>
-    <div>
+    <div class="word-log">
         <h2 class="chat-heading">Words Said</h2>
         <div class="chat">
             <div
@@ -12,8 +12,8 @@
             </div>
             <div
                 v-if="messages.length === 0"
-                class="message"
-            >Empty</div>
+                class="message message--empty"
+            >Nothing said yet</div>
         </div>
     </div>
 </template>
@@ -50,29 +50,39 @@ const messages = computed(() => {
 </script>
 
 <style scoped lang="scss">
+.word-log {
+    margin-top: 32px;
+}
+
 .chat-heading {
-    margin-bottom: 0.5rem;
+    margin-bottom: 12px;
+    font-size: 24px;
+    font-weight: 600;
 }
 
 .chat {
     overflow-y: auto;
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
+    gap: 8px;
 
     max-height: 300px;
-    padding: 1rem;
-    border-radius: 0.5rem;
+    padding: 16px;
+    border-radius: 8px;
 
-    background-color: rgb(0, 0, 0, 0.1);
+    background-color: $darkgray900;
 
     .message {
         display: flex;
-        gap: 0.5rem;
+        gap: 8px;
 
         .name {
             font-weight: bold;
         }
+    }
+
+    .message--empty {
+        color: $lightgray300;
     }
 }
 </style>

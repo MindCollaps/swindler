@@ -22,12 +22,12 @@
             class="clue"
         />
         <div
-            v-if="game?.imposter"
+            v-if="!spectator"
             class="imposter-guess"
         >
             <common-button
                 class="toggle"
-                @click="showGuessInput = !showGuessInput"
+                @click="onGuessToggle"
             >Guess Word</common-button>
             <div
                 v-if="showGuessInput"
@@ -57,8 +57,9 @@ import WordLog from '~/components/game/WordLog.vue';
 import GameInfo from '../GameInfo.vue';
 import type { LobbyGame, Lobby } from '~~/types/redis';
 import type { GameStateEmits } from '~~/types/game-state';
+import { ToastMode } from '~~/types/toast';
 
-defineProps<{
+const props = defineProps<{
     game: LobbyGame | null;
     lobby: Lobby | null;
     myTurn: boolean;
@@ -67,9 +68,24 @@ defineProps<{
 }>();
 
 const emit = defineEmits<GameStateEmits>();
+const { showToast } = useToastManager();
 
 const showGuessInput = ref(false);
 const guessInputValue = ref('');
+
+// Everyone sees the same Guess Word button so screens stay identical at
+// rest. For the crew it's a decoy.
+function onGuessToggle() {
+    if (!props.game?.imposter) {
+        showToast({
+            mode: ToastMode.Info,
+            message: 'You know the word. Nice try.',
+            duration: 4000,
+        });
+        return;
+    }
+    showGuessInput.value = !showGuessInput.value;
+}
 
 function submitGuess() {
     if (guessInputValue.value) {
@@ -86,7 +102,7 @@ function submitGuess() {
 }
 
 .imposter-guess {
-    margin-top: 16px;
+    margin-top: 24px;
 
     .toggle {
         width: 100%;

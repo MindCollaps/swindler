@@ -25,13 +25,15 @@ export default defineEventHandler(event => {
     headers.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
 
     // Content Security Policy
+    // In dev, the impeccable live-mode overlay is served from localhost:8400
+    const liveOverlay = process.env.NODE_ENV !== 'production' ? ' http://localhost:8400' : '';
     const cspDirectives = [
         "default-src 'self'",
-        "script-src 'self' 'unsafe-inline' 'unsafe-eval'", // Note: unsafe-inline and unsafe-eval needed for Nuxt
+        `script-src 'self' 'unsafe-inline' 'unsafe-eval'${ liveOverlay }`, // Note: unsafe-inline and unsafe-eval needed for Nuxt
         "style-src 'self' 'unsafe-inline'", // Note: unsafe-inline needed for Vue components
         "img-src 'self' data: https:",
         "font-src 'self' data:",
-        "connect-src 'self' ws: wss:", // Allow WebSocket connections for Socket.io
+        `connect-src 'self' ws: wss:${ liveOverlay }`, // Allow WebSocket connections for Socket.io
         "frame-ancestors 'self'",
         "base-uri 'self'",
         "form-action 'self'",

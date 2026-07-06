@@ -176,6 +176,16 @@ defineExpose({
                 color: varToRgba('lightgray150', 0.5);
                 opacity: 1
             }
+
+            &::-webkit-outer-spin-button,
+            &::-webkit-inner-spin-button {
+                margin: 0;
+                appearance: none;
+            }
+
+            &[type='number'] {
+                appearance: textfield;
+            }
         }
     }
 

@@ -66,6 +66,17 @@ defineProps({
         color: $primary700;
         animation-delay: .4s;
     }
+
+    @media (prefers-reduced-motion: reduce) {
+        border: 3px solid $darkgray700;
+        border-top-color: $primary500;
+
+        &::before,
+        &::after {
+            content: none;
+            animation: none;
+        }
+    }
 }
 
 @keyframes rotate {

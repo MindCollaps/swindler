@@ -8,22 +8,61 @@
             v-if="spectator"
             class="spectator"
         >Spectator</div>
-        <component
-            :is="currentStateComponent"
-            v-if="currentStateComponent"
-            v-bind="componentProps"
-            v-on="componentListeners"
-        />
+        <transition
+            mode="out-in"
+            name="state-fade"
+        >
+            <div
+                v-if="currentStateComponent"
+                :key="game?.gameState"
+                class="state-wrap"
+            >
+                <component
+                    :is="currentStateComponent"
+                    v-bind="componentProps"
+                    @guessWord="guessWord"
+                    @nextGame="nextGame"
+                    @returnToLobby="returnToLobby"
+                    @skipWait="skipWait"
+                    @voteForPlayer="voteForPlayer"
+                />
+            </div>
+        </transition>
         <heart v-if="!spectator"/>
+        <role-deal
+            v-if="showDeal"
+            :game-number="lobby?.gameNumber"
+            :imposter="game?.imposter ?? false"
+            :word="game?.word?.word"
+            :word-list-name="game?.word?.wordListName"
+            @dismiss="showDeal = false"
+        />
     </div>
-    <div v-else>
-        Loading...
+    <div
+        v-else-if="connectionError"
+        class="connection-lost"
+    >
+        <common-box>
+            <h1>Can't reach the game server</h1>
+            <p v-if="game">Your connection dropped mid-game. The round is still running - get back in.</p>
+            <p v-else>The game might be fine - your connection isn't. Check your internet and try again.</p>
+            <common-button @click="retry">Try Again</common-button>
+        </common-box>
+    </div>
+    <div
+        v-else
+        class="game-loading"
+        role="status"
+    >
+        <common-loader smol/>
+        <p>{{ game ? 'Reconnecting...' : 'Joining game...' }}</p>
     </div>
 </template>
 
-<script setup lang="ts">
+<script lang="ts">
 import { GameState } from '~~/types/redis';
 import { useGameSocket } from '~/composables/sockets/game';
+import RoleDeal from '~/components/game/RoleDeal.vue';
 
 import StateRound from '~/components/game/states/StateRound.vue';
 import StateIdle from '~/components/game/states/StateIdle.vue';
@@ -35,6 +74,12 @@ import StateGameEnd from '~/components/game/states/StateGameEnd.vue';
 import StateLobbyEnd from '~/components/game/states/StateLobbyEnd.vue';
 import Heart from '~/components/game/Heart.vue';
 
+// Module scope on purpose: the deal overlay must show once per dealt
+// game, surviving this page's phase-driven re-renders.
+const seenDeals = new Set<string>();
+</script>
+
+<script setup lang="ts">
 definePageMeta({
     layout: 'empty',
 });
@@ -43,7 +88,23 @@ const route = useRoute();
 
 const lobbyId = route.params.id as string;
 
-const { gameSocket, game, connected, lobby, myTurn, clue, voteForPlayer, gameResults, nextGame, hasVotedForPlayer, guessWord, voted, lobbyNotFound, spectator } = useGameSocket(lobbyId);
+const { gameSocket, game, connected, lobby, myTurn, clue, voteForPlayer, gameResults, nextGame, hasVotedForPlayer, guessWord, voted, lobbyNotFound, connectionError, retry, spectator } = useGameSocket(lobbyId);
+
+const showDeal = ref(false);
+
+const dealKey = computed(() => {
+    if (spectator.value) return '';
+    if (game.value?.gameState !== GameState.Round) return '';
+    const role = game.value?.imposter ? 'swindler' : (game.value?.word?.word ?? '');
+    if (!role) return '';
+    return `${ lobbyId }:${ lobby.value?.gameNumber ?? 0 }:${ role }`;
+});
+
+watch(dealKey, key => {
+    if (!key || seenDeals.has(key)) return;
+    seenDeals.add(key);
+    showDeal.value = true;
+}, { immediate: true });
 
 const timeRemaining = ref(0);
 const isReady = ref(false);
@@ -159,7 +220,26 @@ onMounted(() => {
 <style lang="scss">
 .game {
     width: 100%;
+    max-width: 640px;
+    margin: 0 auto;
     padding: 32px;
+}
+
+.state-fade-enter-active {
+    transition: opacity 0.2s $easeOutQuint, transform 0.2s $easeOutQuint;
+}
+
+.state-fade-leave-active {
+    transition: opacity 0.15s $easeOutQuint;
+}
+
+.state-fade-enter-from {
+    transform: translateY(8px);
+    opacity: 0;
+}
+
+.state-fade-leave-to {
+    opacity: 0;
 }
 
 .spectator {
@@ -175,5 +255,27 @@ onMounted(() => {
     color: $lightgray0;
 
     background-color: $darkgray900;
+}
+
+.game-loading {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: center;
+
+    padding: 64px 16px;
+
+    color: $lightgray150;
+}
+
+.connection-lost {
+    h1 {
+        font-size: 24px;
+    }
+
+    p {
+        font-size: 14px;
+        color: $lightgray150;
+    }
 }
 </style>

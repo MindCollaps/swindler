@@ -1,8 +1,8 @@
 <template>
     <div class="playerlist">
-        <div class="heading">
+        <h2 class="heading">
             Players
-        </div>
+        </h2>
         <div
             v-if="lobby"
             class="playerlist-wrap"
@@ -13,7 +13,11 @@
             >
                 Players {{ lobby.players.filter(x => x.ready).length }} / {{ lobby.players.length }} Ready
             </div>
-            <div class="player-list">
+            <transition-group
+                class="player-list"
+                name="roster"
+                tag="div"
+            >
                 <div
                     v-for="player in sortedPlayers"
                     :key="player.id"
@@ -28,26 +32,41 @@
                     }"
                 >
                     <div class="avatar-username">
-                        <avatar-model
-                            :avatar="player.avatar"
-                            :size-x="avatarSize + 'px'"
-                            :size-y="avatarSize + 'px'"
-                        />
-                        <span v-if="isSameUser({ id: player.id, fakeUser: player.fakeUser }, { id: store.me?.userid ?? 0, fakeUser: store.me?.fakeUser ?? false })">You</span>
-                        <span v-else>{{ player.username }}</span>
+                        <div class="avatar-slot">
+                            <avatar-model
+                                :avatar="player.avatar"
+                                :size-x="avatarSize + 'px'"
+                                :size-y="avatarSize + 'px'"
+                            />
+                        </div>
+                        <span
+                            v-if="isSameUser({ id: player.id, fakeUser: player.fakeUser }, { id: store.me?.userid ?? 0, fakeUser: store.me?.fakeUser ?? false })"
+                            class="name"
+                        >You</span>
+                        <span
+                            v-else
+                            class="name"
+                        >{{ player.username }}</span>
                     </div>
 
-                    <div
-                        v-if="player.connected === false"
-                        class="item-ready disconnected"
-                    >Disconnected</div>
-                    <div
-                        v-else-if="showReady"
-                        class="item-ready"
-                    >{{ player.ready ? 'Ready' : 'Waiting...' }}</div>
+                    <transition
+                        mode="out-in"
+                        name="status-fade"
+                    >
+                        <div
+                            v-if="player.connected === false"
+                            key="disconnected"
+                            class="item-ready disconnected"
+                        >Disconnected</div>
+                        <div
+                            v-else-if="showReady"
+                            :key="player.ready ? 'ready' : 'waiting'"
+                            class="item-ready"
+                        >{{ player.ready ? 'Ready' : 'Waiting...' }}</div>
+                    </transition>
                     <common-typing v-if="isTyping && game?.turn === player.id && showTurn"/>
                 </div>
-            </div>
+            </transition-group>
         </div>
     </div>
 </template>
@@ -112,8 +131,9 @@ gameSocket.on('stopTyping', () => {
     gap: 8px;
 
     .heading {
-        font-size: 1.2rem;
-        font-weight: bold;
+        margin: 0;
+        font-size: 24px;
+        font-weight: 600;
     }
 
     .playerlist-wrap {
@@ -126,12 +146,14 @@ gameSocket.on('stopTyping', () => {
         }
 
         .player-list {
+            position: relative;
+
             display: flex;
             flex-direction: column;
             gap: 8px;
 
             padding: 16px;
-            border-radius: 16px;
+            border-radius: 8px;
 
             background: $darkgray900;
 
@@ -142,19 +164,46 @@ gameSocket.on('stopTyping', () => {
 
                 height: calc(var(--avatar-size) * 1px + 8px);
                 padding: 8px;
-                border-radius: 16px;
+                border-radius: 8px;
 
                 font-size: 14px;
 
                 background: $darkgray950;
 
+                transition: background-color 0.25s $easeOutQuart, color 0.25s $easeOutQuart, opacity 0.3s $easeOutQuart, transform 0.3s $easeOutQuart;
+
+                &.roster-enter-from {
+                    transform: translateY(8px) scale(0.98);
+                    opacity: 0;
+                }
+
+                &.roster-leave-active {
+                    position: absolute;
+                    right: 0;
+                    left: 0;
+                }
+
+                &.roster-leave-to {
+                    transform: scale(0.96);
+                    opacity: 0;
+                }
+
                 .avatar-username {
                     display: flex;
+                    gap: calc(var(--avatar-gap) * 1px);
                     align-items: center;
-                    justify-content: space-between;
+                    min-width: 0;
 
-                    span {
-                        margin-left: calc((var(--avatar-size) + var(--avatar-gap)) * 1px);
+                    .avatar-slot {
+                        position: relative;
+                        flex-shrink: 0;
+                        width: calc(var(--avatar-size) * 1px);
+                        height: calc(var(--avatar-size) * 1px);
+                    }
+
+                    .name {
+                        min-width: 0;
+                        overflow-wrap: anywhere;
                     }
                 }
             }
@@ -175,5 +224,13 @@ gameSocket.on('stopTyping', () => {
 .current-turn {
     font-weight: bold;
     color: $primary300;
+}
+
+.status-fade-enter-active, .status-fade-leave-active {
+    transition: opacity 0.2s $easeOutQuart;
+}
+
+.status-fade-enter-from, .status-fade-leave-to {
+    opacity: 0;
 }
 </style>

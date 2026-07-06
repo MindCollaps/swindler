@@ -25,7 +25,6 @@ export interface LobbyStat {
     unit: string;
     player?: RedisLobbyPlayer;
     count: number;
-    message: string;
 }
 
 export interface RedisLobbyPlayer {

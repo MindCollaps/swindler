@@ -1,5 +1,9 @@
 $defaultFont: NotoSans, Arial, sans-serif;
 
+$easeOutQuart: cubic-bezier(0.25, 1, 0.5, 1);
+$easeOutQuint: cubic-bezier(0.22, 1, 0.36, 1);
+$easeOutExpo: cubic-bezier(0.16, 1, 0.3, 1);
+
 @mixin mobile(){
     @media all and (max-width: 1365px) {
         @content;

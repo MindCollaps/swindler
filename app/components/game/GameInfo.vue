@@ -2,57 +2,30 @@
     <div class="info">
         <div
             v-if="!onlyWord"
-            class="round"
+            class="meta"
         >
-            Round {{ game?.round }}
+            <span>Game {{ lobby?.gameNumber }}</span>
+            <span class="dot">·</span>
+            <span>Round {{ game?.round }}</span>
         </div>
+        <role-card
+            class="role-slot"
+            :game="game"
+        />
         <div
             v-if="!onlyWord"
-            class="game-number"
+            class="turn"
+            :class="{ 'turn--mine': myTurn }"
         >
-            Game {{ lobby?.gameNumber }}
+            {{ myTurn ? 'Your Turn' : `${ turnName }'s turn` }}
         </div>
-        <div
-            v-if="!game?.imposter && game?.word"
-            class="word-wrap"
-        >
-            <div class="word">{{ game?.word?.word }}</div>
-
-            <div
-                v-if="game?.word?.wordListName"
-                class="word-list"
-            >({{ game?.word?.wordListName }})</div>
-        </div>
-        <template v-if="!onlyWord">
-            <div
-                v-if="myTurn"
-                class="myturn"
-            >
-                Your Turn
-            </div>
-            <div
-                v-else
-                class="othersturn"
-            >
-                {{ turnName }}'s turn
-            </div>
-            <div
-                v-if="game?.imposter"
-                class="imposter"
-            >
-                You are the imposter!
-            </div>
-            <div
-                v-else-if="!spectator"
-                class="notimposter"
-            >You are not the imposter</div>
-        </template>
     </div>
 </template>
 
 <script lang="ts" setup>
 import type { PropType } from 'vue';
 import type { Lobby, LobbyGame } from '~~/types/redis';
+import RoleCard from '~/components/game/RoleCard.vue';
 
 defineProps({
     game: Object as PropType<LobbyGame | null>,
@@ -69,77 +42,36 @@ defineProps({
 
 <style scoped lang="scss">
 .info {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    gap: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    align-items: center;
+
     margin-bottom: 32px;
+    padding: 16px;
+    border-radius: 8px;
 
-    .game-number {
-        grid-column: 1 / 4;
-        margin-bottom: 16px;
+    background: $darkgray900;
+
+    .meta {
+        font-size: 13px;
+        font-weight: 600;
+        color: $lightgray300;
+
+        .dot {
+            margin: 0 4px;
+        }
+    }
+
+    .turn {
+        font-size: 24px;
+        font-weight: 600;
+        color: $lightgray150;
         text-align: center;
     }
 
-    .round {
-        grid-column: 2;
-        font-size: 1.5rem;
-        font-weight: bold;
-        text-align: center;
-    }
-
-    .myturn {
-        grid-column: 1;
-        font-weight: bold;
-        color: $success500;
-    }
-
-    .othersturn {
-        grid-column: 1;
-        font-weight: bold;
+    .turn--mine {
         color: $primary300;
-    }
-
-    .imposter {
-        grid-column: 1;
-        font-weight: bold;
-        color: $error500;
-    }
-
-    .notimposter {
-        grid-column: 1;
-        font-weight: bold;
-        color: $success300;
-    }
-
-    .word-wrap {
-        grid-column: 2;
-
-        padding: 16px;
-        border-radius: 16px;
-
-        text-align: center;
-        vertical-align: middle;
-
-        background: $darkgray900;
-
-        .word {
-            font-size: 3rem;
-
-            @include mobile {
-                font-size: 2rem;
-            }
-        }
-
-        .word-list {
-            font-size: 2rem;
-            font-weight: normal;
-            vertical-align: middle;
-            opacity: 0.7;
-
-            @include mobile {
-                font-size: 1rem;
-            }
-        }
     }
 }
 </style>
