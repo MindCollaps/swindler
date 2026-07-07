@@ -3,36 +3,58 @@
         class="input"
         :class="{ 'input--focused': focused }"
     >
-        <div
+        <label
             v-if="$slots.default"
             class="input_label"
+            :for="inputId"
         >
             <slot/>
-        </div>
+        </label>
         <div
             class="input_container"
-            :class="{ 'input_container--error': isLengthExceeded && inputLengthCheck }"
+            :class="{ 'input_container--error': hasError }"
         >
-            <label class="input__input">
+            <div class="input__input">
                 <Icon
                     v-if="icon"
                     class="input__input_icon"
                     :name="icon"
                 />
                 <input
+                    :id="inputId"
                     ref="inputRef"
                     v-bind="inputAttrs"
                     v-model="model"
+                    :aria-describedby="error ? errorId : undefined"
+                    :aria-invalid="hasError"
                     :disabled="disabled"
                     :placeholder
-                    :type="inputType"
+                    :type="resolvedInputType"
                     @blur="focused = false"
                     @change="$emit('change', $event)"
                     @focus="focused = true"
                     @focusout="focused = false"
                     @input="$emit('input', $event)"
                 >
-            </label>
+                <button
+                    v-if="isPasswordField && showPasswordToggle"
+                    :aria-label="passwordRevealed ? 'Hide password' : 'Show password'"
+                    :aria-pressed="passwordRevealed"
+                    class="input__input_toggle"
+                    type="button"
+                    @click="passwordRevealed = !passwordRevealed"
+                >
+                    <Icon :name="passwordRevealed ? 'material-symbols:visibility-off-outline' : 'material-symbols:visibility-outline'"/>
+                </button>
+            </div>
+        </div>
+        <div
+            v-if="error"
+            :id="errorId"
+            class="input_error"
+            role="alert"
+        >
+            {{ error }}
         </div>
         <div
             v-if="inputLengthCheck"
@@ -77,6 +99,14 @@ const props = defineProps({
         type: Boolean,
         default: false,
     },
+    error: {
+        type: String as PropType<string | null>,
+        default: null,
+    },
+    showPasswordToggle: {
+        type: Boolean,
+        default: false,
+    },
 });
 
 defineEmits({
@@ -94,9 +124,16 @@ const focused = defineModel('focused', { type: Boolean });
 const model = defineModel({ type: String, default: null });
 
 const inputRef = ref<HTMLInputElement | null>(null);
+const inputId = useId();
+const errorId = useId();
+
+const passwordRevealed = ref(false);
+const isPasswordField = computed(() => props.inputType === 'password');
+const resolvedInputType = computed(() => isPasswordField.value && passwordRevealed.value ? 'text' : props.inputType);
 
 const currentLength = computed(() => model.value?.length);
 const isLengthExceeded = computed(() => currentLength.value > props.maxInputLength);
+const hasError = computed(() => !!props.error || (isLengthExceeded.value && props.inputLengthCheck));
 
 defineExpose({
     input: inputRef,
@@ -108,6 +145,7 @@ defineExpose({
     width: 100%;
 
     &_label {
+        display: block;
         margin-bottom: 8px;
         font-size: 13px;
         font-weight: 600;
@@ -187,6 +225,48 @@ defineExpose({
                 appearance: textfield;
             }
         }
+
+        &_toggle {
+            display: flex;
+            flex: none;
+            align-items: center;
+            justify-content: center;
+
+            width: 20px;
+            height: 20px;
+            padding: 0;
+            border: none;
+
+            cursor: pointer;
+
+            appearance: none;
+            background: none;
+
+            svg {
+                width: 20px;
+                height: 20px;
+                fill: $lightgray400;
+
+                transition: fill 0.3s;
+            }
+
+            &:hover svg, &:focus-visible svg {
+                fill: $lightgray150;
+            }
+
+            &:focus-visible {
+                outline: 2px solid $primary500;
+                outline-offset: 2px;
+            }
+        }
+    }
+
+    &_error {
+        margin-top: 8px;
+
+        font-size: 12px;
+        font-weight: 600;
+        color: $error500;
     }
 
     &_counter {

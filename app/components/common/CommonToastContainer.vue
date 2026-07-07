@@ -24,7 +24,7 @@ const { toasts } = storeToRefs(store);
 <style scoped lang="scss">
 .toast-container {
     position: fixed;
-    z-index: 9999;
+    z-index: $z-toast;
     right: 32px;
     bottom: 0;
 

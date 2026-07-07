@@ -82,7 +82,7 @@ onUnmounted(() => {
     user-select: none;
 
     position: fixed;
-    z-index: 1100;
+    z-index: $z-overlay-top;
     inset: 0;
 
     display: flex;

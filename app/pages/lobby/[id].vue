@@ -254,7 +254,7 @@ async function copyLink() {
         await copy(uri.value);
         showToast({
             mode: ToastMode.Success,
-            message: 'Lobby link copied. Send it to your friends!',
+            message: 'Lobby link copied. Send it to your friends.',
             duration: 4000,
         });
     }

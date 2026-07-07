@@ -7,11 +7,13 @@
             />
             <div class="hero-content">
                 <h1 class="hero-title">Swindler</h1>
-                <p class="hero-tagline">Everyone gets a word. One of you doesn't. Trade clues, catch the liar, vote them out before the round ends.</p>
-                <p
-                    v-if="store.me?.loggedIn"
-                    class="hero-greeting"
-                >Welcome back, {{ store.me.username }}.</p>
+                <p class="hero-tagline">Everyone gets a word. One of you doesn't. Trade clues, catch the Swindler, vote them out before the round ends.</p>
+                <transition name="greeting-fade">
+                    <p
+                        v-if="store.me?.loggedIn"
+                        class="hero-greeting"
+                    >Welcome back, {{ store.me.username }}.</p>
+                </transition>
                 <common-button
                     class="hero-cta"
                     to="/lobby"
@@ -100,7 +102,7 @@ const store = useStore();
     pointer-events: none;
 
     position: absolute;
-    z-index: 0;
+    z-index: $z-decorative;
     inset: -40px 0 0;
 
     background: radial-gradient(closest-side, varToRgba('primary400', 0.22), transparent 70%);
@@ -110,7 +112,7 @@ const store = useStore();
 
 .hero-content {
     position: relative;
-    z-index: 1;
+    z-index: $z-decorative + 1;
 
     display: flex;
     flex-direction: column;
@@ -157,13 +159,19 @@ const store = useStore();
 
 .hero-greeting {
     margin: 0;
-
     font-size: 13px;
     color: $lightgray300;
+}
 
+.greeting-fade-enter-active,
+.greeting-fade-leave-active {
+    transition: opacity 0.3s $easeOutQuart, transform 0.3s $easeOutQuart;
+}
+
+.greeting-fade-enter-from,
+.greeting-fade-leave-to {
+    transform: translateY(-4px);
     opacity: 0;
-
-    animation: hero-rise 0.5s $easeOutQuart 0.14s both;
 }
 
 .hero-cta {
@@ -195,7 +203,7 @@ const store = useStore();
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .hero-title, .hero-tagline, .hero-greeting, .hero-cta {
+    .hero-title, .hero-tagline, .hero-cta {
         transform: none;
         opacity: 1;
         animation: none;

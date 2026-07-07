@@ -67,7 +67,7 @@ defineProps({
 <style scoped lang="scss">
 .head {
     position: absolute;
-    z-index: 100;
+    z-index: $z-raised;
     width: var(--size-x);
     height: var(--size-y);
 }

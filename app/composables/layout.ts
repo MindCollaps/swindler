@@ -1,13 +1,11 @@
 import { useStore } from '~/store';
 import { setupSocket } from '~/components/socket';
 
-const store = useStore();
-
-export const ready = computed(() => {
-    return store.ready;
-});
+export const ready = computed(() => useStore().ready);
 
 export const useLayout = () => {
+    const store = useStore();
+
     // Theme handling
     const themeCookie = useCookie<ThemesList>('theme', {
         path: '/',
@@ -40,7 +38,35 @@ export const useLayout = () => {
             meta: [
                 {
                     name: 'description',
-                    content: '',
+                    content: 'A real-time social deduction game for friends. Everyone gets a secret word except one swindler faking it on one-word clues — give clues, vote, and catch the fake before they talk their way out.',
+                },
+                {
+                    property: 'og:title',
+                    content: 'Swindler',
+                },
+                {
+                    property: 'og:description',
+                    content: 'One player is faking the word. Give one-word clues, vote, and catch the swindler before the round ends.',
+                },
+                {
+                    property: 'og:image',
+                    content: '/resources/og-image.png',
+                },
+                {
+                    property: 'og:image:width',
+                    content: '1200',
+                },
+                {
+                    property: 'og:image:height',
+                    content: '630',
+                },
+                {
+                    property: 'og:type',
+                    content: 'website',
+                },
+                {
+                    name: 'twitter:card',
+                    content: 'summary_large_image',
                 },
             ],
             htmlAttrs: {
@@ -66,6 +92,7 @@ export const useLayout = () => {
 
 
 function setWindowStore() {
+    const store = useStore();
     store.isMobile = window.innerWidth < 700;
     store.isMobileOrTablet = window.innerWidth < 1466;
     store.isTablet = window.innerWidth < 1466 && window.innerWidth >= 700;

@@ -120,7 +120,7 @@ async function createWordlist() {
         if (!name.value) {
             showToast({
                 mode: ToastMode.Error,
-                message: 'You have to give the wordlist a name!',
+                message: 'You have to give the wordlist a name',
             });
 
             return;
@@ -129,7 +129,7 @@ async function createWordlist() {
         if (!description.value) {
             showToast({
                 mode: ToastMode.Error,
-                message: 'You have to give the wordlist a description!',
+                message: 'You have to give the wordlist a description',
             });
 
             return;
@@ -138,7 +138,7 @@ async function createWordlist() {
         if (!isCustom.value && !isPublic.value && !isDefault.value) {
             showToast({
                 mode: ToastMode.Error,
-                message: 'You have to select the access mode!',
+                message: 'You have to select the access mode',
             });
 
             return;
@@ -149,7 +149,7 @@ async function createWordlist() {
         if (!wordArray || wordArray.length < 1) {
             showToast({
                 mode: ToastMode.Error,
-                message: 'You have to add at least one word to the wordlist!',
+                message: 'You have to add at least one word to the wordlist',
             });
 
             return;
@@ -199,13 +199,13 @@ async function deleteWordlist(id: number) {
         if (result.ok) {
             showToast({
                 mode: ToastMode.Success,
-                message: 'The wordlist was deleted successfully!',
+                message: 'The wordlist was deleted',
             });
         }
         else {
             showToast({
                 mode: ToastMode.Error,
-                message: 'Failed to delete the wordlist :(',
+                message: 'Failed to delete the wordlist. Please try again.',
             });
         }
     }
@@ -213,7 +213,7 @@ async function deleteWordlist(id: number) {
         console.log(e);
         showToast({
             mode: ToastMode.Error,
-            message: 'Failed to delete the wordlist :(',
+            message: 'Failed to delete the wordlist. Please try again.',
         });
     }
 }

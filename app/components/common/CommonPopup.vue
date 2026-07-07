@@ -96,7 +96,7 @@ defineSlots<{
 
 .popup {
     position: fixed;
-    z-index: 1000;
+    z-index: $z-overlay;
     top: 0;
     left: 0;
 
@@ -104,8 +104,8 @@ defineSlots<{
     align-items: center;
     justify-content: center;
 
-    width: 100vw;
-    height: 100vh;
+    width: 100dvw;
+    height: 100dvh;
 
     background: rgb(212, 238, 247, 0.1);
 

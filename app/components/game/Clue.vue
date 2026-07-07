@@ -49,7 +49,7 @@ function sendClue() {
     if (clue.value.length < 1) {
         showToast({
             mode: ToastMode.Error,
-            message: 'You have to give a clue!',
+            message: 'You have to give a clue',
         });
 
         return;
@@ -59,7 +59,7 @@ function sendClue() {
     if (words.length > 1) {
         showToast({
             mode: ToastMode.Error,
-            message: 'You can only give one word as clue!',
+            message: 'You can only give one word as a clue',
         });
 
         return;

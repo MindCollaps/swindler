@@ -9,7 +9,7 @@
         >
             Word: {{ game?.word?.word }}
         </div>
-        The Imposter thinks '{{ game?.imposterGuess?.toLowerCase() }}' is the word.
+        The Swindler thinks '{{ game?.imposterGuess?.toLowerCase() }}' is the word.
     </div>
     <div
         v-else

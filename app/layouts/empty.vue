@@ -1,11 +1,20 @@
 <template>
-    <div class="app_content">
-        <client-only>
-            <nuxt-loading-indicator :color="colorsList.primary300"/>
-        </client-only>
-        <slot/>
-        <common-toast-container/>
-        <view-version/>
+    <div>
+        <a
+            class="skip-link"
+            href="#main-content"
+        >Skip to content</a>
+        <main
+            id="main-content"
+            class="app_content"
+        >
+            <client-only>
+                <nuxt-loading-indicator :color="colorsList.primary300"/>
+            </client-only>
+            <slot/>
+            <common-toast-container/>
+            <view-version/>
+        </main>
     </div>
 </template>
 

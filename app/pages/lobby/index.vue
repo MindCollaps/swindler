@@ -6,7 +6,7 @@
     <common-box v-else-if="!createLobby">
         <common-input-text
             v-model="lobbyCode"
-            :input-attrs="{ autocomplete: 'off', autocapitalize: 'off', spellcheck: 'false' }"
+            :input-attrs="{ autocomplete: 'off', autocapitalize: 'off', spellcheck: 'false', maxlength: 300 }"
             placeholder="Code or lobby link"
             @keyup.enter="joinLobby"
         >
@@ -25,54 +25,45 @@
         >Back</common-button>
     </common-box>
     <common-box v-else>
-        <template v-if="store.me?.loggedIn">
-            <!--
- <common-checkbox
-            v-model="publicV"
-            value="false"
-        >Public</common-checkbox>
--->
+        <div
+            v-if="!ready"
+            aria-busy="true"
+            aria-live="polite"
+            class="state state--loading"
+        >
+            <common-loader/>
+        </div>
+        <template v-else-if="store.me?.loggedIn">
             <div class="config-group">
-                <common-input-number
-                    v-model="games"
-                    :input-attrs="{ min: 1, max: 20, step: 1, inputmode: 'numeric' }"
-                >Games</common-input-number>
-                <common-input-number
-                    v-model="rounds"
-                    :input-attrs="{ min: 1, max: 20, step: 1, inputmode: 'numeric' }"
-                >Rounds</common-input-number>
+                <div class="config-field">
+                    <common-input-number
+                        v-model="games"
+                        :error="gamesError"
+                        :input-attrs="{ min: 1, max: 10, step: 1, inputmode: 'numeric' }"
+                        @input="gamesError = null"
+                        @keyup.enter="create"
+                    >Games</common-input-number>
+                </div>
+                <div class="config-field">
+                    <common-input-number
+                        v-model="rounds"
+                        :error="roundsError"
+                        :input-attrs="{ min: 1, max: 10, step: 1, inputmode: 'numeric' }"
+                        @input="roundsError = null"
+                        @keyup.enter="create"
+                    >Rounds</common-input-number>
+                </div>
             </div>
-            <!--
- <common-input-number
-            v-model="maxPlayers"
-            min="1"
-        >Max Players</common-input-number>
-        <common-checkbox
-            v-model="timeLimited"
-            value="true"
-        >Time Limited</common-checkbox>
-        <common-input-number
-            v-model="timeLimit"
-            min="0"
-        >Time Limit</common-input-number>
-        <common-checkbox
-            v-model="membersCanAddWordLists"
-            value="true"
-        >Members can add Wordlists</common-checkbox>
-        <common-checkbox
-            v-model="membersCanAddCustomWordLists"
-            value="true"
-        >Member can add custom Wordlists</common-checkbox>
--->
 
             <common-button
                 :disabled="creating"
                 @click="create()"
             >{{ creating ? 'Creating...' : 'Create Lobby' }}</common-button>
         </template>
-        <create-fake-user v-if="!store.me?.loggedIn"/>
+        <create-fake-user v-else/>
         <common-button
             class="back-action"
+            :disabled="creating"
             type="transparent"
             @click="selected = false"
         >Back</common-button>
@@ -84,6 +75,7 @@ import { useStore } from '~/store';
 import { ToastMode } from '~~/types/toast';
 import CreateFakeUser from '~/components/game/CreateFakeUser.vue';
 import { normalizeLobbyCode } from '~/utils/lobby-code';
+import { ready } from '~/composables/layout';
 
 const publicV = ref(false);
 const router = useRouter();
@@ -98,6 +90,8 @@ const createLobby = ref(false);
 const selected = ref(false);
 const lobbyCode = ref('');
 const creating = ref(false);
+const gamesError = ref<string | null>(null);
+const roundsError = ref<string | null>(null);
 
 const store = useStore();
 
@@ -107,6 +101,15 @@ interface Response {
 }
 
 const { showToast } = useToastManager();
+
+let createController: AbortController | null = null;
+
+// Leaving the create step (Back, or navigating away entirely) while the
+// request is in flight would otherwise let a late response redirect the
+// player somewhere they didn't ask to go.
+onUnmounted(() => {
+    createController?.abort();
+});
 
 function joinLobby() {
     const code = normalizeLobbyCode(lobbyCode.value);
@@ -122,20 +125,16 @@ function joinLobby() {
 }
 
 function validCount(value: number | null): boolean {
-    return value !== null && Number.isInteger(value) && value >= 1 && value <= 20;
+    return value !== null && Number.isInteger(value) && value >= 1 && value <= 10;
 }
 
 async function create() {
     if (creating.value) return;
 
-    if (!validCount(games.value) || !validCount(rounds.value)) {
-        showToast({
-            mode: ToastMode.Error,
-            message: 'Games and rounds must each be a whole number from 1 to 20',
-            duration: 5000,
-        });
-        return;
-    }
+    gamesError.value = validCount(games.value) ? null : 'Enter a whole number from 1 to 10';
+    roundsError.value = validCount(rounds.value) ? null : 'Enter a whole number from 1 to 10';
+
+    if (gamesError.value || roundsError.value) return;
 
     const payload = {
         public: publicV.value,
@@ -149,16 +148,21 @@ async function create() {
     };
 
     creating.value = true;
+    createController = new AbortController();
     try {
         const response = await $fetch<Response>('/api/v1/lobby', {
             method: 'POST',
             body: payload,
+            signal: createController.signal,
         });
         if (response.redirect) {
             router.push(response.redirect);
         }
     }
     catch (error: any) {
+        // Aborted because the player left this step; nothing to report.
+        if (createController.signal.aborted) return;
+
         let message = error.data?.message || error.data?.statusMessage || error.statusMessage || 'Could not create the lobby. Check your connection and try again.';
 
         if (Array.isArray(error.data?.data)) {
@@ -178,10 +182,29 @@ async function create() {
 </script>
 
 <style scoped lang="scss">
+.state {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    align-items: center;
+
+    min-height: 96px;
+
+    &--loading {
+        justify-content: center;
+    }
+}
+
 .config-group {
     display: flex;
     flex-direction: column;
     gap: 8px;
+}
+
+.config-field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
 }
 
 .back-action {

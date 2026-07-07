@@ -116,7 +116,7 @@ const headerMenu = computed(() => {
 
             &_menu {
                 position: absolute;
-                z-index: 10;
+                z-index: $z-dropdown;
                 top: calc(100% - 1px);
                 left: 0;
 

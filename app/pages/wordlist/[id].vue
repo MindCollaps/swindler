@@ -137,7 +137,7 @@ async function updateWordlist(id: number) {
 
             showToast({
                 mode: ToastMode.Success,
-                message: 'The wordlist was updated successfully!',
+                message: 'The wordlist was updated',
             });
         }
     }

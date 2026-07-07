@@ -1,5 +1,15 @@
 $defaultFont: NotoSans, Arial, sans-serif;
 
+// z-index scale — each tier stacks above the ones before it; keep new usages on-scale instead of picking arbitrary numbers
+$z-decorative: 0; // layering within a single section (e.g. a glow behind hero text)
+$z-dropdown: 10; // in-flow menus and popovers
+$z-raised: 100; // layered parts within a single component
+$z-overlay: 1000; // modals, popups, full-screen overlays
+$z-overlay-control: 1001; // a control that must stay clickable above $z-overlay content in the same component
+$z-overlay-top: 1100; // overlays that must sit above other overlays (e.g. a reveal over a popup)
+$z-toast: 9999; // toast notifications, always above app content
+$z-chrome: 10000; // persistent, non-interactive app chrome
+
 $easeOutQuart: cubic-bezier(0.25, 1, 0.5, 1);
 $easeOutQuint: cubic-bezier(0.22, 1, 0.36, 1);
 $easeOutExpo: cubic-bezier(0.16, 1, 0.3, 1);

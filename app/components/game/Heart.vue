@@ -86,7 +86,7 @@ onMounted(() => {
     pointer-events: none;
 
     position: fixed;
-    z-index: 1000;
+    z-index: $z-overlay;
     bottom: 3vh;
     left: 96vw;
 
@@ -113,7 +113,7 @@ onMounted(() => {
 
 .heart-button {
     position: fixed;
-    z-index: 1001;
+    z-index: $z-overlay-control;
     bottom: 3vh;
     left: 96vw;
 

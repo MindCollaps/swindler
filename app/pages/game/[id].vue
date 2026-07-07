@@ -244,7 +244,7 @@ onMounted(() => {
 
 .spectator {
     position: fixed;
-    z-index: 1000;
+    z-index: $z-overlay;
     top: 16px;
     right: 16px;
 

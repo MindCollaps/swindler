@@ -1,6 +1,10 @@
 <template>
     <div class="app">
-        <div
+        <a
+            class="skip-link"
+            href="#main-content"
+        >Skip to content</a>
+        <header
             class="header"
         >
             <div class="header-text">
@@ -9,13 +13,16 @@
             <view-menu/>
             <connection-client/>
             <view-login/>
-        </div>
-        <div class="app_content">
+        </header>
+        <main
+            id="main-content"
+            class="app_content"
+        >
             <client-only>
                 <nuxt-loading-indicator :color="colorsList.primary300"/>
             </client-only>
             <slot/>
-        </div>
+        </main>
         <common-toast-container/>
         <view-version/>
         <changelog-popup/>

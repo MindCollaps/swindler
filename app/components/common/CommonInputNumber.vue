@@ -2,6 +2,7 @@
     <common-input-text
         v-model="inputValue"
         v-model:focused="focused"
+        :error
         :height
         :input-attrs
         input-type="number"
@@ -33,6 +34,10 @@ defineProps({
     },
     placeholder: {
         type: String,
+    },
+    error: {
+        type: String as PropType<string | null>,
+        default: null,
     },
 });
 

@@ -13,7 +13,7 @@ const config = useRuntimeConfig();
     pointer-events: none;
 
     position: fixed;
-    z-index: 10000;
+    z-index: $z-chrome;
     right: 10px;
     bottom: 10px;
 

@@ -27,6 +27,27 @@ html, body {
     box-sizing: border-box;
 }
 
+.skip-link {
+    position: absolute;
+    z-index: $z-chrome;
+    top: -100%;
+    left: 8px;
+
+    padding: 8px 16px;
+    border-radius: 8px;
+
+    color: $lightgray50Orig;
+    text-decoration: none;
+
+    background: $primary400;
+
+    &:focus-visible {
+        top: 8px;
+        outline: 2px solid $primary500;
+        outline-offset: 2px;
+    }
+}
+
 @media (prefers-reduced-motion: reduce) {
     *,
     *::before,

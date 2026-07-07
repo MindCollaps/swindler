@@ -4,7 +4,7 @@
         <p>This lobby does not exist. It may have ended, or the code has a typo.</p>
         <common-input-text
             v-model="lobbyCode"
-            :input-attrs="{ autocomplete: 'off', autocapitalize: 'off', spellcheck: 'false' }"
+            :input-attrs="{ autocomplete: 'off', autocapitalize: 'off', spellcheck: 'false', maxlength: 300 }"
             placeholder="Code or lobby link"
             @keyup.enter="joinOther"
         >
@@ -47,18 +47,8 @@ function joinOther() {
 </script>
 
 <style scoped lang="scss">
-.lobby-not-found {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-    align-items: center;
-    justify-content: center;
-
-    height: 100vh;
-
-    h1 {
-        font-size: 2rem;
-        color: $error500;
-    }
+h1 {
+    font-size: 2rem;
+    color: $error500;
 }
 </style>
