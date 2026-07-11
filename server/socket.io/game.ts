@@ -12,6 +12,14 @@ import { WordSettings } from '~~/types/word';
 
 export { waitForNextRound, gameLobbyTtl, createGame, proceedFromVote, proceedFromCue, proceedFromRoundEnd, proceedFromImposterVote };
 
+function buildGameUpdatePatch(game: { stateVersion?: number; stateTimestamp?: number }, patch: Record<string, any>) {
+    return {
+        ...patch,
+        stateVersion: game.stateVersion,
+        stateTimestamp: game.stateTimestamp,
+    };
+}
+
 export async function returnToLobby(socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>, id: string) {
     await withLock(id, 'game', async () => {
         const { game, lobby } = await getGameAndLobby(id);
@@ -69,6 +77,10 @@ export async function vote(socket: Socket<DefaultEventsMap, DefaultEventsMap, De
         const { game, lobby } = await getGameAndLobby(id);
 
         if (!lobby || !socket.user || !game) return;
+
+        if (game.gameState !== GameState.Round && game.gameState !== GameState.Cue) {
+            return;
+        }
 
         const player = lobby.players.find(x => isSameUser(x, { id: socket.user?.userId ?? 0, fakeUser: socket.user?.fakeUser ?? false }));
 
@@ -131,6 +143,10 @@ export async function vote(socket: Socket<DefaultEventsMap, DefaultEventsMap, De
                 game.gameState = GameState.Vote;
                 await saveGame(id, game);
                 namespace.emit('voting');
+                namespace.emit('gameUpdate', buildGameUpdatePatch(game, {
+                    gameState: game.gameState,
+                    readyToContinue: game.readyToContinue,
+                }));
             }
 
             await saveLobby(id, lobby);
@@ -261,10 +277,11 @@ export async function giveClue(socket: Socket<DefaultEventsMap, DefaultEventsMap
 
         await saveGame(id, game);
 
-        namespace.emit('gameUpdate', {
+        namespace.emit('gameUpdate', buildGameUpdatePatch(game, {
             cueEndTime: game.cueEndTime,
             readyToContinue: game.readyToContinue,
-        });
+            gameState: game.gameState,
+        }));
 
         if (lobbyTimeouts.has(id)) {
             clearTimeout(lobbyTimeouts.get(id));
@@ -310,9 +327,10 @@ export async function skipWait(socket: Socket<DefaultEventsMap, DefaultEventsMap
         await saveGame(id, game);
 
         if (!proceed) {
-            namespace.emit('gameUpdate', {
+            namespace.emit('gameUpdate', buildGameUpdatePatch(game, {
                 readyToContinue: game.readyToContinue,
-            });
+                gameState: game.gameState,
+            }));
         }
     });
 
@@ -338,17 +356,17 @@ export async function guessWord(socket: Socket<DefaultEventsMap, DefaultEventsMa
         // Only imposter can guess
         if (game.imposter !== socket.user.userId) return;
 
-        if (game.gameState === GameState.GameEnd || game.gameState === GameState.LobbyEnd || game.gameState === GameState.Idle) return;
+        if (game.gameState === GameState.GameEnd || game.gameState === GameState.LobbyEnd || game.gameState === GameState.Idle || game.gameState === GameState.ImposterWord) return;
 
         game.imposterGuess = value;
         game.gameState = GameState.ImposterWord;
 
         await saveGame(id, game);
 
-        namespace.emit('gameUpdate', {
+        namespace.emit('gameUpdate', buildGameUpdatePatch(game, {
             gameState: game.gameState,
             imposterGuess: game.imposterGuess,
-        });
+        }));
 
         setTimeout(async () => {
             await proceedFromImposterVote(id, namespace);
@@ -369,6 +387,7 @@ export async function nextGame(socket: Socket<DefaultEventsMap, DefaultEventsMap
 
         if (lobby.gameNumber < lobby.gameRules.games) {
             lobby.gameNumber += 1;
+            lobby.gameRunning = true;
             await createGame(lobby);
 
             await saveLobby(id, lobby);

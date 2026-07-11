@@ -1,4 +1,5 @@
 import { WordListFetchSelectIncludeWords } from '~~/types/fetch';
+import { canReadWordlist } from '~~/server/utils/backend/wordlist-access';
 
 export default defineEventHandler(async event => {
     await requireAuth(event);
@@ -26,7 +27,17 @@ export default defineEventHandler(async event => {
         select: {
             public: true,
             default: true,
-            from: true,
+            fromUserId: true,
+            shared: true,
+            sharedLists: {
+                where: {
+                    userId: currentUser.userId,
+                },
+                select: {
+                    userId: true,
+                },
+                take: 1,
+            },
         },
     });
 
@@ -34,16 +45,19 @@ export default defineEventHandler(async event => {
         return createApiError('Wordlist does not exist', 400);
     }
 
-    // Check the permissions
-    // it has to be either the users own wordlist or one from the system (default)
-    // however admins can access everything
-    // TODO: handle shared playlists
-    if (!meta.public && !meta.default) {
-        if (meta.from?.id != currentUser.userId) {
-            if (!currentUser.admin) {
-                return createApiError('Not enough permissions to access this ressource', 403);
-            }
-        }
+    const accessDecision = canReadWordlist({
+        fromUserId: meta.fromUserId,
+        default: meta.default,
+        public: meta.public,
+        shared: meta.shared,
+        sharedWithUser: meta.sharedLists.length > 0,
+    }, {
+        userId: currentUser.userId,
+        admin: currentUser.admin,
+    });
+
+    if (!accessDecision.allowed) {
+        return createApiError('Not enough permissions to access this resource', 403);
     }
 
     const wordlist = await prisma.wordList.findUnique({

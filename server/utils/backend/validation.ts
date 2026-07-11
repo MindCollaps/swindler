@@ -35,6 +35,16 @@ export const loginSchema = z.object({
     password: z.string().min(3, 'Password must be at least 3 characters').max(64, 'Password must not exceed 64 characters'),
 }).strict();
 
+export const passwordResetSchema = z.object({
+    currentPassword: z.string().min(3, 'Current password must be at least 3 characters').max(64, 'Current password must not exceed 64 characters'),
+    password: passwordSchema,
+    passwordRepeated: passwordSchema,
+}).strict();
+
+export const emailVerifySchema = z.object({
+    email: z.string().email('Invalid email address').transform(val => val.toLowerCase().trim()).optional(),
+}).strict();
+
 export const WordlistCreationSchema = z.object({
     name: z.string().min(3).max(64).transform(val => val.trim()),
     description: z.string().max(256).transform(val => val.trim()),

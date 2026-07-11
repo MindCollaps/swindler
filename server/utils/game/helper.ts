@@ -31,6 +31,8 @@ export async function getGameAndLobby(id: string) {
 }
 
 export async function saveGame(id: string, game: Game) {
+    game.stateVersion = (game.stateVersion ?? 0) + 1;
+    game.stateTimestamp = Date.now();
     await setRedisSync(`game-${ id }`, JSON.stringify(game), gameLobbyTtl);
 }
 

@@ -6,6 +6,14 @@ import { nextPlayer, chooseImposter, makeTurnOrder } from './rules';
 import { chooseRandomWord } from './words';
 import { calculateLobbyStats } from './stats';
 
+function buildGameUpdatePatch(game: { stateVersion?: number; stateTimestamp?: number }, patch: Record<string, any>) {
+    return {
+        ...patch,
+        stateVersion: game.stateVersion,
+        stateTimestamp: game.stateTimestamp,
+    };
+}
+
 export async function createGame(lobby: Lobby) {
     const turnOrder = makeTurnOrder(lobby.players);
     const randomWord = await chooseRandomWord(lobby.wordLists);
@@ -127,10 +135,11 @@ export async function proceedFromCue(id: string, namespace: Namespace) {
             game.readyToContinue = [];
             await saveGame(id, game);
             namespace.emit('roundEnd');
-            namespace.emit('gameUpdate', {
+            namespace.emit('gameUpdate', buildGameUpdatePatch(game, {
                 cueEndTime: game.cueEndTime,
                 readyToContinue: game.readyToContinue,
-            });
+                gameState: game.gameState,
+            }));
 
             if (lobbyTimeouts.has(id)) {
                 clearTimeout(lobbyTimeouts.get(id));

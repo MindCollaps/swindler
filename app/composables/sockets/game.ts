@@ -1,137 +1,266 @@
 import type { Socket } from 'socket.io-client';
 import { GameState } from '~~/types/redis';
 import type { GivingClue, LobbyGame, Voted, Lobby } from '~~/types/redis';
+import { storeToRefs } from 'pinia';
 import { useLobbySocket } from './lobby';
+import { bindGameLifecycle } from './game-lifecycle';
+import { createRehydrateScheduler } from './game-rehydrate-scheduler';
+import { shouldApplyGamePatch } from './game-update-order';
+import { useGameStore } from '~/store/game';
+import { useVoteStore } from '~/store/vote';
+import { useLobbyGameStore } from '~/store/lobby-game';
 import { useStore } from '~/store';
 
 let gameSocket: Socket | undefined;
-const game: Ref<LobbyGame | null> = ref(null);
-const voted: Ref<Voted | null> = ref(null);
-const clue: Ref<GivingClue | null> = ref(null);
-let gameSetup = false;
-const myTurn: ComputedRef<boolean> = computed(() => {
-    const store = useStore();
-    if (!store.me?.userid || !game.value?.turn) {
-        return false;
-    }
-
-    return store.me.userid == game.value.turn;
-});
+let listenersBound = false;
+let heartListenerBound = false;
+let lifecycleBound = false;
+let rehydrateScheduler: ReturnType<typeof createRehydrateScheduler> | null = null;
 
 const disconnectGameSocket = () => {
     gameSocket = undefined;
+    listenersBound = false;
+    heartListenerBound = false;
+    lifecycleBound = false;
+    rehydrateScheduler?.dispose();
+    rehydrateScheduler = null;
 };
 
-// From Lobby
-let lobby: Ref<Lobby | null> = ref(null);
-let connected: Ref<boolean> = ref(false);
-let spectator: Ref<boolean> = ref(false);
-let lobbyNotFound: Ref<boolean> = ref(false);
-let connectionError: Ref<boolean> = ref(false);
 let retry = () => { };
 let disconnect = () => { };
 
-const addVote = (vote: number, selfVoted: boolean = false, voterId?: number) => {
-    if (!voted.value) {
-        resetVote();
+function shouldRouteToLobby(lobby: Lobby | null, currentPath: string, lobbyId: string, currentGameState?: GameState): boolean {
+    const knownGameState = currentGameState ?? lobby?.game?.gameState;
+
+    if (knownGameState === undefined) {
+        return false;
     }
 
-    if (!voted.value) return;
-    const store = useStore();
+    return Boolean(
+        lobby?.gameStarted &&
+        !lobby.gameRunning &&
+        knownGameState !== GameState.GameEnd &&
+        knownGameState !== GameState.LobbyEnd &&
+        currentPath === `/game/${ lobbyId }`,
+    );
+}
 
-    const addVoter = (list: number[], id?: number) => {
-        if (id !== undefined && !list.includes(id)) {
-            list.push(id);
+function bindHeartListener(options: { onHeart?: () => void }) {
+    if (!gameSocket || !options.onHeart || heartListenerBound) return;
+
+    gameSocket.on('vote', value => {
+        const voteValue = typeof value === 'object' && value && 'vote' in value
+            ? Number((value as { vote?: number }).vote)
+            : Number(value);
+
+        if (voteValue === 4 && options.onHeart) {
+            options.onHeart();
         }
-    };
+    });
 
-    switch (vote as number) {
-        case 1:
-            if (selfVoted) {
-                voted.value.down.voted = selfVoted;
-                addVoter(voted.value.down.voters, store.me?.userid);
-            }
-            if (voterId !== undefined) addVoter(voted.value.down.voters, voterId);
-            break;
-        case 2:
-            if (selfVoted) {
-                voted.value.up.voted = selfVoted;
-                addVoter(voted.value.up.voters, store.me?.userid);
-            }
-            if (voterId !== undefined) addVoter(voted.value.up.voters, voterId);
-            break;
-        case 3:
-            if (selfVoted) {
-                voted.value.imposter.voted = selfVoted;
-                addVoter(voted.value.imposter.voters, store.me?.userid);
-            }
-            if (voterId !== undefined) addVoter(voted.value.imposter.voters, voterId);
-            break;
+    heartListenerBound = true;
+}
+
+function initializeGameState() {
+    if (!gameSocket) return;
+    gameSocket.emit('game');
+}
+
+function scheduleGameStateSync() {
+    if (!gameSocket) return;
+    if (!rehydrateScheduler) {
+        rehydrateScheduler = createRehydrateScheduler({
+            emitSync: initializeGameState,
+        });
     }
+    rehydrateScheduler.schedule();
+}
 
-    if (selfVoted) {
-        if (!gameSocket) return;
-        gameSocket.emit('vote', vote);
-    }
-};
+function bindSocketLifecycle(
+    gameStore: ReturnType<typeof useGameStore>,
+    voteStore: ReturnType<typeof useVoteStore>,
+) {
+    if (!gameSocket || lifecycleBound) return;
 
-const removeVote = (vote: number, selfVoted: boolean = false, voterId?: number) => {
-    if (!voted.value) return;
-    const store = useStore();
+    bindGameLifecycle(gameSocket, {
+        onScheduleSync: scheduleGameStateSync,
+        onResetVote: () => {
+            voteStore.resetVote();
+        },
+        onClearClue: () => {
+            gameStore.setClue(null);
+        },
+    });
 
-    const removeVoter = (list: number[], id?: number) => {
-        if (id === undefined) return;
-        const index = list.indexOf(id);
-        if (index > -1) {
-            list.splice(index, 1);
+    lifecycleBound = true;
+}
+
+function cleanupGameSocketState(
+    gameStore: ReturnType<typeof useGameStore>,
+    voteStore: ReturnType<typeof useVoteStore>,
+) {
+    rehydrateScheduler?.dispose();
+    gameStore.resetGameSession();
+    voteStore.resetVote();
+}
+
+function subscribeSocketEvents(
+    lobbyId: string,
+    gameStore: ReturnType<typeof useGameStore>,
+    voteStore: ReturnType<typeof useVoteStore>,
+    lobbyStore: ReturnType<typeof useLobbyGameStore>,
+) {
+    if (!gameSocket || listenersBound) return;
+
+    const router = useRouter();
+    listenersBound = true;
+
+    gameSocket.on('game', value => {
+        const lobbyGame = value as LobbyGame;
+
+        gameStore.setGame(lobbyGame);
+        if (shouldRouteToLobby(lobbyStore.lobby, router.currentRoute.value.path, lobbyId, lobbyGame.gameState)) {
+            router.push(`/lobby/${ lobbyId }`);
         }
-    };
+    });
 
-    switch (vote) {
-        case 1:
-            if (selfVoted) {
-                voted.value.down.voted = false;
-                removeVoter(voted.value.down.voters, store.me?.userid);
-            }
-            removeVoter(voted.value.down.voters, voterId);
-            break;
-        case 2:
-            if (selfVoted) {
-                voted.value.up.voted = false;
-                removeVoter(voted.value.up.voters, store.me?.userid);
-            }
-            removeVoter(voted.value.up.voters, voterId);
-            break;
-        case 3:
-            if (selfVoted) {
-                voted.value.imposter.voted = false;
-                removeVoter(voted.value.imposter.voters, store.me?.userid);
-            }
-            removeVoter(voted.value.imposter.voters, voterId);
-            break;
-    }
+    gameSocket.on('gameUpdate', (value: Partial<LobbyGame>) => {
+        if (!shouldApplyGamePatch(gameStore.game, value)) {
+            return;
+        }
 
-    if (selfVoted) {
-        if (!gameSocket) return;
-        gameSocket.emit('vote', vote);
-    }
-};
+        gameStore.patchGame(value);
 
-const gameResults = ref<any>(null);
-const hasVotedForPlayer = ref(false);
+        const currentGameState = value.gameState ?? gameStore.game?.gameState;
+        if (currentGameState !== undefined && shouldRouteToLobby(lobbyStore.lobby, router.currentRoute.value.path, lobbyId, currentGameState)) {
+            router.push(`/lobby/${ lobbyId }`);
+        }
+    });
+
+    gameSocket.on('gameEnd', value => {
+        gameStore.setGameState(GameState.GameEnd);
+        if (value) {
+            gameStore.setGameResults(value);
+        }
+        initializeGameState();
+    });
+
+    gameSocket.on('vote', value => {
+        if (typeof value === 'object' && value && 'vote' in value && value.vote != 4) {
+            voteStore.addVote(value.vote as number, value.userId as number, false);
+        }
+        else if (typeof value === 'number' && value != 4) {
+            voteStore.addVote(value);
+        }
+    });
+
+    gameSocket.on('unvote', value => {
+        if (typeof value === 'object' && value && value.vote && value.userId) {
+            voteStore.removeVote(value.vote, value.userId, false);
+        }
+    });
+
+    gameSocket.on('voted', value => {
+        voteStore.setVoted(value as Voted);
+    });
+
+    gameSocket.on('roundEnd', () => {
+        gameStore.setGameState(GameState.RoundEnd);
+        voteStore.resetVote();
+    });
+
+    gameSocket.on('givingClue', value => {
+        if (!gameStore.game) return;
+
+        const cue = value as GivingClue;
+        gameStore.setClue(cue);
+        gameStore.setGameState(GameState.Cue);
+
+        lobbyStore.lobby?.wordsSaid.push({
+            playerId: cue.player.id,
+            word: cue.clue,
+            round: gameStore.game.round,
+            turn: gameStore.game.turn,
+            gameNumber: lobbyStore.lobby.gameNumber,
+        });
+    });
+
+    gameSocket.on('voting', () => {
+        gameStore.setGameState(GameState.Vote);
+    });
+
+    gameSocket.on('continue', () => {
+        initializeGameState();
+        voteStore.resetVote();
+    });
+
+    gameSocket.on('start', () => {
+        initializeGameState();
+        voteStore.resetVote();
+        gameStore.setGameResults(null);
+        gameStore.setHasVotedForPlayer(false);
+        gameStore.setClue(null);
+    });
+
+    gameSocket.on('lobbyEnd', () => {
+        gameStore.setGameState(GameState.LobbyEnd);
+    });
+
+    gameSocket.on('returnToLobby', async () => {
+        await router.push(`/lobby/${ lobbyId }`);
+
+        gameStore.resetGameSession();
+        voteStore.resetVote();
+    });
+}
 
 export function useGameSocket(lobbyId: string, options: { onHeart?: () => void } = {}) {
+    const appStore = useStore();
+    const gameStore = useGameStore();
+    const voteStore = useVoteStore();
+    const lobbyStore = useLobbyGameStore();
+
+    const { game, clue, gameResults, hasVotedForPlayer } = storeToRefs(gameStore);
+    const { voted } = storeToRefs(voteStore);
+    const { lobby, connected, spectator, lobbyNotFound, connectionError } = storeToRefs(lobbyStore);
+
+    const myTurn: ComputedRef<boolean> = computed(() => {
+        if (!appStore.me?.userid || !game.value?.turn) {
+            return false;
+        }
+
+        return appStore.me.userid == game.value.turn;
+    });
+
     if (!gameSocket) {
-        const { lobbySocket, lobby: lobbyLobby, connected: lobbyConnected, disconnect: lobbyDisconnect, lobbyNotFound: lobbyNotFoundLobby, connectionError: lobbyConnectionError, retry: lobbyRetry, spectator: lspec } = useLobbySocket(lobbyId, { onDisconnect: disconnectGameSocket });
+        const {
+            lobbySocket,
+            disconnect: lobbyDisconnect,
+            retry: lobbyRetry,
+        } = useLobbySocket(lobbyId, { onDisconnect: disconnectGameSocket });
+
         gameSocket = lobbySocket;
-        connected = lobbyConnected;
-        lobby = lobbyLobby;
         disconnect = lobbyDisconnect;
-        lobbyNotFound = lobbyNotFoundLobby;
-        connectionError = lobbyConnectionError;
         retry = lobbyRetry;
-        spectator = lspec;
     }
+
+    const addVote = (vote: number, selfVoted: boolean = false, voterId?: number) => {
+        const resolvedUserId = selfVoted ? appStore.me?.userid : voterId;
+        voteStore.addVote(vote, resolvedUserId, selfVoted);
+
+        if (selfVoted && gameSocket) {
+            gameSocket.emit('vote', vote);
+        }
+    };
+
+    const removeVote = (vote: number, selfVoted: boolean = false, voterId?: number) => {
+        const resolvedUserId = selfVoted ? appStore.me?.userid : voterId;
+        voteStore.removeVote(vote, resolvedUserId, selfVoted);
+
+        if (selfVoted && gameSocket) {
+            gameSocket.emit('vote', vote);
+        }
+    };
 
     const skipWait = () => {
         if (!gameSocket) return;
@@ -140,7 +269,8 @@ export function useGameSocket(lobbyId: string, options: { onHeart?: () => void }
 
     const voteForPlayer = (playerId: number) => {
         if (!gameSocket) return;
-        gameSocket.emit('voteForPlayer', playerId); hasVotedForPlayer.value = true;
+        gameSocket.emit('voteForPlayer', playerId);
+        gameStore.setHasVotedForPlayer(true);
     };
 
     const nextGame = () => {
@@ -156,126 +286,23 @@ export function useGameSocket(lobbyId: string, options: { onHeart?: () => void }
     const connect = () => {
         if (!gameSocket) return;
 
-        const router = useRouter();
-
-        if (options.onHeart) {
-            gameSocket.on('vote', value => {
-                if (value as number == 4) {
-                    if (options.onHeart) {
-                        options.onHeart();
-                    }
-                }
-            });
-        }
-
-        if (gameSetup) return;
-        gameSetup = true;
-
-        gameSocket.on('game', value => {
-            game.value = value;
-            if (lobby.value?.gameStarted && !lobby.value?.gameRunning && lobby.value.game?.gameState !== GameState.GameEnd && lobby.value.game?.gameState !== GameState.LobbyEnd && router.currentRoute.value.path == `/game/${ lobbyId }`) {
-                router.push(`/lobby/${ lobbyId }`);
-                console.log('Returned to lobby due to game end');
-            }
-        });
-        gameSocket.on('gameUpdate', (value: Partial<LobbyGame>) => {
-            if (!game.value) return;
-            Object.assign(game.value, value);
-
-            if (value.gameState) {
-                if (lobby.value?.gameStarted && !lobby.value?.gameRunning && lobby.value.game?.gameState !== GameState.GameEnd && lobby.value.game?.gameState !== GameState.LobbyEnd && router.currentRoute.value.path == `/game/${ lobbyId }`) {
-                    router.push(`/lobby/${ lobbyId }`);
-                    console.log('Returned to lobby due to game end 2');
-                }
-            }
-            console.log('Game update received:', JSON.stringify(value));
-        });
-        gameSocket.on('gameEnd', value => {
-            if (!game.value) return;
-            game.value.gameState = GameState.GameEnd;
-            if (value) {
-                gameResults.value = value;
-            }
-            if (gameSocket) {
-                gameSocket.emit('game');
-            }
-        });
-        gameSocket.on('vote', value => {
-            if (typeof value === 'object' && value.vote && value.vote != 4) {
-                addVote(value.vote, false, value.userId);
-            }
-            else if (typeof value === 'number' && value != 4) {
-                addVote(value);
-            }
-        });
-        gameSocket.on('unvote', value => {
-            if (typeof value === 'object' && value.vote && value.userId) {
-                removeVote(value.vote, false, value.userId);
-            }
-        });
-        gameSocket.on('voted', value => {
-            voted.value = value;
-        });
-        gameSocket.on('roundEnd', () => {
-            if (!game.value) return;
-            if (!gameSocket) return;
-            game.value.gameState = GameState.RoundEnd;
-            resetVote();
-        });
-        gameSocket.on('givingClue', value => {
-            if (!game.value) return;
-            const cue: GivingClue = value;
-
-            clue.value = cue;
-            game.value.gameState = GameState.Cue;
-            lobby.value?.wordsSaid.push({
-                playerId: cue.player.id,
-                word: cue.clue,
-                round: game.value.round,
-                turn: game.value.turn,
-                gameNumber: lobby.value.gameNumber,
-            });
-        });
-        gameSocket.on('voting', () => {
-            if (!game.value) return;
-            game.value.gameState = GameState.Vote;
-        });
-        gameSocket.on('continue', () => {
-            if (!gameSocket) return;
-            gameSocket.emit('game');
-            resetVote();
-        });
-        gameSocket.on('start', () => {
-            if (!gameSocket) return;
-            gameSocket.emit('game');
-            resetVote();
-            gameResults.value = null;
-            hasVotedForPlayer.value = false;
-        });
-        gameSocket.on('lobbyEnd', () => {
-            if (!game.value) return;
-            game.value.gameState = GameState.LobbyEnd;
-        });
-        gameSocket.on('returnToLobby', async () => {
-            await router.push(`/lobby/${ lobbyId }`);
-
-            game.value = null;
-            resetVote();
-            gameResults.value = null;
-            hasVotedForPlayer.value = false;
-        });
+        bindHeartListener(options);
+        bindSocketLifecycle(gameStore, voteStore);
+        subscribeSocketEvents(lobbyId, gameStore, voteStore, lobbyStore);
+        scheduleGameStateSync();
     };
 
     onMounted(connect);
 
-    return { gameSocket, lobby, game, voted, addVote, removeVote, myTurn, disconnect, connected, clue, skipWait, voteForPlayer, gameResults, nextGame, hasVotedForPlayer, guessWord, lobbyNotFound, connectionError, retry, spectator };
-}
+    onBeforeRouteLeave(to => {
+        const allowedPrefixes = [`/game/${ lobbyId }`, `/lobby/${ lobbyId }`];
+        const stayingInLobbyFlow = allowedPrefixes.some(prefix => to.path.startsWith(prefix));
 
-function resetVote() {
-    voted.value = {
-        down: { voters: [], voted: false },
-        up: { voters: [], voted: false },
-        imposter: { voters: [], voted: false },
-    };
+        if (!stayingInLobbyFlow) {
+            cleanupGameSocketState(gameStore, voteStore);
+        }
+    });
+
+    return { gameSocket, lobby, game, voted, addVote, removeVote, myTurn, disconnect, connected, clue, skipWait, voteForPlayer, gameResults, nextGame, hasVotedForPlayer, guessWord, lobbyNotFound, connectionError, retry, spectator };
 }
 

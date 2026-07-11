@@ -1,20 +1,34 @@
 
 
 <template>
-    <div>
-        Wordlists
+    <common-page title="Wordlists">
         <div class="wordlist">
+            <common-loader
+                v-if="loadingWordlists"
+                smol
+            />
             <div
                 v-for="wordList in wordLists"
-                :key="wordList.name"
+                :key="wordList.id"
                 class="item"
             >
                 {{ wordList.name }}
                 <div class="actions">
-                    <common-button @click="editWordlist(wordList.id)">Edit</common-button>
-                    <common-button @click="deleteWordlist(wordList.id)">Delete</common-button>
+                    <common-button
+                        :disabled="creating || deletingWordlistId === wordList.id"
+                        @click="editWordlist(wordList.id)"
+                    >Edit</common-button>
+                    <common-button
+                        :disabled="creating || deletingWordlistId === wordList.id"
+                        @click="deleteWordlist(wordList.id)"
+                    >{{ deletingWordlistId === wordList.id ? 'Deleting...' : 'Delete' }}</common-button>
                 </div>
             </div>
+
+            <p
+                v-if="!loadingWordlists && (!wordLists || wordLists.length === 0)"
+                class="empty"
+            >No wordlists yet. Create one below to get started.</p>
         </div>
 
         <div class="input">
@@ -35,8 +49,10 @@
             <div class="textfield">
                 <textarea
                     v-model="words"
+                    aria-label="Words"
                     cols="40"
                     name="Words"
+                    placeholder="apple\nbanana\npear"
                     rows="5"
                 />
             </div>
@@ -74,9 +90,12 @@
         </div>
 
         <div class="input">
-            <common-button @click="createWordlist">Create</common-button>
+            <common-button
+                :disabled="creating || deletingWordlistId !== null || !canCreateWordlist"
+                @click="createWordlist"
+            >{{ creating ? 'Creating...' : 'Create' }}</common-button>
         </div>
-    </div>
+    </common-page>
 </template>
 
 <script lang="ts" setup>
@@ -99,9 +118,44 @@ const words = ref<string>();
 
 interface Response {
     data?: FetchingWordList[];
+    message?: string;
+}
+
+const loadingWordlists = ref(false);
+const creating = ref(false);
+const deletingWordlistId = ref<number | null>(null);
+
+const canCreateWordlist = computed(() => {
+    const hasName = Boolean(name.value?.trim());
+    const hasDescription = Boolean(description.value?.trim());
+    const hasWords = words.value?.split('\n').map(word => word.trim()).filter(Boolean).length;
+    return hasName && hasDescription && Boolean(hasWords);
+});
+
+function getApiErrorMessage(error: unknown, fallback: string): string {
+    if (typeof error === 'object' && error !== null) {
+        const maybe = error as {
+            data?: { message?: string; statusMessage?: string };
+            statusMessage?: string;
+            message?: string;
+        };
+        return maybe.data?.message || maybe.data?.statusMessage || maybe.statusMessage || maybe.message || fallback;
+    }
+
+    return fallback;
+}
+
+function resetCreateForm() {
+    name.value = '';
+    description.value = '';
+    words.value = '';
+    isPublic.value = false;
+    isCustom.value = false;
+    isDefault.value = false;
 }
 
 async function getWordlists() {
+    loadingWordlists.value = true;
     try {
         const response = await $fetch<Response>('/api/v1/wordlists', {
             method: 'GET',
@@ -111,16 +165,24 @@ async function getWordlists() {
         }
     }
     catch (e) {
-        console.log(e);
+        showToast({
+            mode: ToastMode.Error,
+            message: getApiErrorMessage(e, 'Failed to load wordlists. Please try again.'),
+        });
+    }
+    finally {
+        loadingWordlists.value = false;
     }
 }
 
 async function createWordlist() {
+    if (creating.value) return;
+
     try {
         if (!name.value) {
             showToast({
                 mode: ToastMode.Error,
-                message: 'You have to give the wordlist a name',
+                message: 'Enter a wordlist name.',
             });
 
             return;
@@ -129,31 +191,32 @@ async function createWordlist() {
         if (!description.value) {
             showToast({
                 mode: ToastMode.Error,
-                message: 'You have to give the wordlist a description',
+                message: 'Enter a wordlist description.',
             });
 
             return;
         }
 
-        if (!isCustom.value && !isPublic.value && !isDefault.value) {
+        if (store.me?.admin && !isCustom.value && !isPublic.value && !isDefault.value) {
             showToast({
                 mode: ToastMode.Error,
-                message: 'You have to select the access mode',
+                message: 'Select at least one access mode.',
             });
 
             return;
         }
 
-        const wordArray = words.value?.split('\n');
-        console.log(wordArray);
+        const wordArray = words.value?.split('\n').map(word => word.trim()).filter(Boolean);
         if (!wordArray || wordArray.length < 1) {
             showToast({
                 mode: ToastMode.Error,
-                message: 'You have to add at least one word to the wordlist',
+                message: 'Add at least one word to the wordlist.',
             });
 
             return;
         }
+
+        creating.value = true;
 
         const result = await $fetch.raw('/api/v1/wordlists', {
             method: 'POST',
@@ -169,29 +232,35 @@ async function createWordlist() {
         if (result.ok) {
             showToast({
                 mode: ToastMode.Success,
-                message: 'The wordlist has been created',
+                message: 'Wordlist created.',
             });
 
-            // TODO: refresh page / clear user input
+            resetCreateForm();
+            await getWordlists();
         }
         else {
             showToast({
                 mode: ToastMode.Error,
-                message: result.statusText,
+                message: getApiErrorMessage(result._data, result.statusText),
             });
         }
     }
     catch (e) {
-        console.log(e);
         showToast({
             mode: ToastMode.Error,
-            message: String(e),
+            message: getApiErrorMessage(e, 'Failed to create the wordlist. Please try again.'),
         });
+    }
+    finally {
+        creating.value = false;
     }
 }
 
 async function deleteWordlist(id: number) {
+    if (deletingWordlistId.value !== null) return;
+
     try {
+        deletingWordlistId.value = id;
         const result = await $fetch.raw(`/api/v1/wordlists/${ id }`, {
             method: 'DELETE',
         });
@@ -199,22 +268,26 @@ async function deleteWordlist(id: number) {
         if (result.ok) {
             showToast({
                 mode: ToastMode.Success,
-                message: 'The wordlist was deleted',
+                message: 'Wordlist deleted.',
             });
+
+            await getWordlists();
         }
         else {
             showToast({
                 mode: ToastMode.Error,
-                message: 'Failed to delete the wordlist. Please try again.',
+                message: getApiErrorMessage(result._data, 'Failed to delete the wordlist. Please try again.'),
             });
         }
     }
     catch (e) {
-        console.log(e);
         showToast({
             mode: ToastMode.Error,
-            message: 'Failed to delete the wordlist. Please try again.',
+            message: getApiErrorMessage(e, 'Failed to delete the wordlist. Please try again.'),
         });
+    }
+    finally {
+        deletingWordlistId.value = null;
     }
 }
 
@@ -228,7 +301,7 @@ onMounted(() => {
 </script>
 
 <style lang="scss" scoped>
-    .wordlist {
+.wordlist {
         display: flex;
         flex-direction: column;
         gap: 10px;
@@ -236,7 +309,11 @@ onMounted(() => {
         margin-top: 10px;
         margin-bottom: 20px;
         padding: 10px;
-        border-radius: 5px;
+        border-radius: 8px;
+
+        .empty {
+            color: $lightgray150;
+        }
 
         .item {
             display: flex;
@@ -245,7 +322,7 @@ onMounted(() => {
 
             margin-bottom: 2px;
             padding: 8px;
-            border-radius: 4px;
+            border-radius: 8px;
 
             background-color: $darkgray900;
 
@@ -256,17 +333,32 @@ onMounted(() => {
         }
     }
 
-    .input {
+.input {
         display: flex;
         flex-direction: column;
         gap: 10px;
 
         padding: 10px;
-        border-radius: 5px;
+        border-radius: 8px;
 
         .textfield {
             padding: 10px;
-            border-radius: 4px;
+            border-radius: 8px;
+
+            textarea {
+                width: 100%;
+                border: 2px solid transparent;
+                border-radius: 8px;
+                padding: 10px 12px;
+                color: $lightgray50;
+                background: $darkgray900;
+                resize: vertical;
+            }
+
+            textarea:focus {
+                outline: none;
+                border-color: $primary500;
+            }
         }
 
         .checkbox {

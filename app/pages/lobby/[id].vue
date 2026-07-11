@@ -13,7 +13,7 @@
                 class="panel game-running"
             >
                 The game is already running
-                <div class="smol-info">wait for the round to end</div>
+                <div class="smol-info">Wait for the round to end.</div>
                 <common-button @click="router.push(`/game/${ lobbyId }`)">Join as Spectator</common-button>
             </div>
 
@@ -143,17 +143,17 @@
                 :class="{ 'actions-panel--ready': allReady }"
             >
                 <common-button
-                    width="100%"
                     :primary-color="ready ? 'error500' : 'success500'"
+                    width="100%"
                     @click="emitReady"
                 >{{ ready ? 'Unready' : 'Ready' }}</common-button>
                 <transition name="start-reveal">
                     <common-button
                         v-if="owner && ready && allReady && !lobby?.gameStarted"
-                        width="100%"
                         class="start-button"
                         :disabled="starting"
                         primary-color="success500"
+                        width="100%"
                         @click="startGame()"
                     >{{ starting ? 'Starting...' : 'Start Game' }}</common-button>
                 </transition>
@@ -164,9 +164,9 @@
                 <transition name="start-reveal">
                     <common-button
                         v-if="owner && ready && allReady && lobby?.gameStarted && !lobby.gameRunning"
-                        width="100%"
                         class="start-button"
                         primary-color="success500"
+                        width="100%"
                         @click="continueLobby()"
                     >Continue</common-button>
                 </transition>
@@ -193,6 +193,7 @@
     </div>
     <div
         v-else
+        aria-live="polite"
         class="lobby-loading"
         role="status"
     >

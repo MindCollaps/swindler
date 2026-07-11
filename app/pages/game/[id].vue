@@ -51,6 +51,7 @@
     </div>
     <div
         v-else
+        aria-live="polite"
         class="game-loading"
         role="status"
     >
@@ -95,9 +96,15 @@ const showDeal = ref(false);
 const dealKey = computed(() => {
     if (spectator.value) return '';
     if (game.value?.gameState !== GameState.Round) return '';
+    if (game.value.round !== 1) return '';
+    if (game.value.turnOrder[0] !== game.value.turn) return '';
+
     const role = game.value?.imposter ? 'swindler' : (game.value?.word?.word ?? '');
     if (!role) return '';
-    return `${ lobbyId }:${ lobby.value?.gameNumber ?? 0 }:${ role }`;
+
+    const gameSignature = game.value?.stateTimestamp ?? game.value?.stateVersion ?? 'unknown';
+
+    return `${ lobbyId }:${ lobby.value?.gameNumber ?? 0 }:${ gameSignature }:${ role }`;
 });
 
 watch(dealKey, key => {
@@ -190,23 +197,6 @@ const componentProps = computed(() => {
             return { game: game.value, lobby: lobby.value, gameResults: gameResults.value };
         case GameState.LobbyEnd:
             return { lobby: lobby.value };
-        default:
-            return {};
-    }
-});
-
-const componentListeners = computed(() => {
-    switch (game.value?.gameState) {
-        case GameState.Round:
-            return { guessWord };
-        case GameState.Cue:
-            return { skipWait };
-        case GameState.Vote:
-            return { voteForPlayer };
-        case GameState.GameEnd:
-            return { nextGame, returnToLobby };
-        case GameState.LobbyEnd:
-            return { returnToLobby };
         default:
             return {};
     }

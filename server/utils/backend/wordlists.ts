@@ -1,4 +1,6 @@
 import { prisma } from '~~/server/utils/prisma';
+import { redisClient } from './redis';
+import type { Lobby } from '~~/types/redis';
 
 export interface ImportWordListResult {
     success: boolean;
@@ -93,7 +95,7 @@ export async function createWordList(
 }
 
 export async function deleteUnusedWords(wordIds: number[]): Promise<number> {
-    const unusedWords = await prisma.word.findMany({
+    const deleted = await prisma.word.deleteMany({
         where: {
             id: { in: wordIds },
             WordLists: {
@@ -103,22 +105,44 @@ export async function deleteUnusedWords(wordIds: number[]): Promise<number> {
             flagged: {
                 none: {},
             },
+            banned: false,
         },
-        select: { id: true },
     });
-    // TODO: Use automated deletion from prisma postgres thingy
-    const wordIdsToDelete = unusedWords.map(w => w.id);
 
-    let deleted = 0;
-    if (wordIdsToDelete.length > 0) {
-        const result = await prisma.word.deleteMany({
-            where: {
-                id: { in: wordIdsToDelete },
-            },
-        });
+    return deleted.count;
+}
 
-        deleted = result.count;
+export function lobbyPayloadUsesWordList(lobbyData: string | null | undefined, wordlistId: number): boolean {
+    if (!lobbyData) return false;
+
+    try {
+        const lobby = JSON.parse(lobbyData) as Lobby;
+        return Array.isArray(lobby.wordLists) && lobby.wordLists.includes(wordlistId);
     }
+    catch {
+        return false;
+    }
+}
 
-    return deleted;
+export async function isWordListInUse(wordlistId: number): Promise<boolean> {
+    let cursor = '0';
+
+    do {
+        const [nextCursor, keys] = await redisClient.scan(cursor, 'MATCH', 'lobby-*', 'COUNT', 100);
+        cursor = nextCursor;
+
+        if (keys.length === 0) {
+            continue;
+        }
+
+        const lobbies = await redisClient.mget(...keys);
+        const used = lobbies.some(lobbyData => lobbyPayloadUsesWordList(lobbyData, wordlistId));
+
+        if (used) {
+            return true;
+        }
+    }
+    while (cursor !== '0');
+
+    return false;
 }

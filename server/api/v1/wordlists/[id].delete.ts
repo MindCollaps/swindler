@@ -1,4 +1,5 @@
-import { deleteUnusedWords } from '~~/server/utils/backend/wordlists';
+import { deleteUnusedWords, isWordListInUse } from '~~/server/utils/backend/wordlists';
+import { canDeleteWordlist } from '~~/server/utils/backend/wordlist-access';
 
 export default defineEventHandler(async event => {
     await requireAuth(event);
@@ -36,26 +37,29 @@ export default defineEventHandler(async event => {
         return createApiError('Wordlist does not exist', 400);
     }
 
-    // Check the permissions
-    // to delete a wordlist from the systen, you have to be an admin
-    if (wordList.default) {
-        if (!currentUser.admin) {
-            console.warn(`[Wordlist:Delete] Non-admin user ${ currentUser.username } attempted to delete default wordlist ID: ${ wordlistId }`);
-            return createApiError('Not enough permissions to delete this ressource', 403);
-        }
-    }
-
-    if (wordList.fromUserId != currentUser.userId) {
-        if (!currentUser.admin) {
-            console.warn(`[Wordlist:Delete] User ${ currentUser.username } attempted to delete wordlist owned by another user (ID: ${ wordlistId })`);
-            return createApiError('Not enough permissions to delete this ressource', 403);
-        }
-    }
-
     const wordIds = wordList.words.map(w => w.id) || [];
 
-    // TODO: handle shared playlists
-    // TODO: make sure the wordlist isn't currently in use by any game lobby
+    const inUse = await isWordListInUse(wordlistId);
+
+    const deleteDecision = canDeleteWordlist({
+        fromUserId: wordList.fromUserId,
+        default: wordList.default,
+        public: wordList.public,
+    }, {
+        userId: currentUser.userId,
+        admin: currentUser.admin,
+    }, inUse);
+
+    if (!deleteDecision.allowed && deleteDecision.reason === 'in_use') {
+        console.warn(`[Wordlist:Delete] Wordlist ID ${ wordlistId } is currently used by at least one lobby`);
+        return createApiError('Wordlist is currently in use by an active lobby', 409);
+    }
+
+    if (!deleteDecision.allowed) {
+        console.warn(`[Wordlist:Delete] User ${ currentUser.username } has insufficient permission to delete wordlist ID: ${ wordlistId }`);
+        return createApiError('Not enough permissions to delete this resource', 403);
+    }
+
     const deleted = await prisma.wordList.delete({
         where: {
             id: wordlistId,

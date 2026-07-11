@@ -71,6 +71,8 @@ export interface Game {
     imposterGuess?: string;
     winReason?: WinReason;
     gameResults?: GameResults;
+    stateVersion?: number;
+    stateTimestamp?: number;
 }
 
 export interface GameResults {
@@ -99,6 +101,8 @@ export interface LobbyGame extends Omit<Game, 'imposter' | 'specialGameMode' | '
     imposterGuess?: string;
     winReason?: WinReason;
     gameResults?: GameResults;
+    stateVersion?: number;
+    stateTimestamp?: number;
 }
 
 export interface GivingClue {

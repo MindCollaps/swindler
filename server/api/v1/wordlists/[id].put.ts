@@ -1,8 +1,6 @@
-// TODO: new words -> id = -1
-// TODO: words to delete from wordlist-> make diff
-
 import { WordlistUpdateSchema } from '~~/server/utils/backend/validation';
 import type { Prisma } from '@prisma/client';
+import { canEditWordlist } from '~~/server/utils/backend/wordlist-access';
 
 export default defineEventHandler(async event => {
     await requireAuth(event);
@@ -65,7 +63,18 @@ export default defineEventHandler(async event => {
 
         if (!existingWordlist) return createApiError('Invalid input', 400, validationResult.error);
 
-        // same permission checks etc., but using tx instead of prisma
+        const editDecision = canEditWordlist({
+            fromUserId: existingWordlist.fromUserId,
+            default: existingWordlist.default,
+            public: existingWordlist.public,
+        }, {
+            userId: currentUser.userId,
+            admin: currentUser.admin,
+        });
+
+        if (!editDecision.allowed) {
+            return createApiError('Not enough permissions to edit this resource', 403);
+        }
 
         const existingWords = await tx.word.findMany({
             where: { word: { in: uniqueWords } },
