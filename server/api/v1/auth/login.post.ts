@@ -46,6 +46,11 @@ export default defineEventHandler(async event => {
             return sendApiResponse(event, 'Wrong username or password', 400);
         }
 
+        if (!user.emailVerified) {
+            console.warn(`[Auth:Login] Failed login attempt - email not verified: ${ username } from IP: ${ clientIp }`);
+            return sendApiResponse(event, 'Please verify your email address before signing in.', 403);
+        }
+
         const passwordCorrect = await checkPassword(password, user.password);
         if (passwordCorrect) {
             console.log(`[Auth:Login] Successful login for user: ${ username } (ID: ${ user.id }) from IP: ${ clientIp }`);

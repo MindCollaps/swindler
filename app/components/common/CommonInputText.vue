@@ -131,7 +131,7 @@ const passwordRevealed = ref(false);
 const isPasswordField = computed(() => props.inputType === 'password');
 const resolvedInputType = computed(() => isPasswordField.value && passwordRevealed.value ? 'text' : props.inputType);
 
-const currentLength = computed(() => model.value?.length);
+const currentLength = computed(() => model.value?.length ?? 0);
 const isLengthExceeded = computed(() => currentLength.value > props.maxInputLength);
 const hasError = computed(() => !!props.error || (isLengthExceeded.value && props.inputLengthCheck));
 

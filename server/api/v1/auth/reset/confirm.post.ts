@@ -1,32 +1,31 @@
-import { requireAuth, invalidateUserSession } from '~~/server/utils/auth';
+import { passwordResetConfirmSchema } from '~~/server/utils/backend/validation';
 import { prisma } from '~~/server/utils/prisma';
 import { checkPassword, hashPassword } from '~~/server/utils/crypto/password';
-import { passwordResetSchema } from '~~/server/utils/backend/validation';
+import { consumePasswordResetToken } from '~~/server/utils/auth/passwordReset';
 import { sendTemplatedEmail } from '~~/server/utils/email';
 
 export default defineEventHandler(async event => {
-    await requireAuth(event);
-
-    const authUser = event.context.user;
-    if (!authUser) {
-        throw createApiError('Unauthorized', 401);
-    }
-
     const body = await readBody(event);
-    const validationResult = passwordResetSchema.safeParse(body);
+    const validationResult = passwordResetConfirmSchema.safeParse(body);
+
     if (!validationResult.success) {
         throw createApiError('Invalid input', 400, validationResult.error.issues);
     }
 
-    const { currentPassword, password, passwordRepeated } = validationResult.data;
+    const { token, password, passwordRepeated } = validationResult.data;
 
     if (password !== passwordRepeated) {
         throw createApiError('Passwords do not match', 400);
     }
 
-    const dbUser = await prisma.user.findUnique({
+    const userId = await consumePasswordResetToken(token);
+    if (!userId) {
+        throw createApiError('Invalid or expired reset token', 400);
+    }
+
+    const user = await prisma.user.findUnique({
         where: {
-            id: authUser.userId,
+            id: userId,
         },
         select: {
             id: true,
@@ -37,16 +36,11 @@ export default defineEventHandler(async event => {
         },
     });
 
-    if (!dbUser || dbUser.disabled) {
-        throw createApiError('Unauthorized', 401);
+    if (!user || user.disabled) {
+        throw createApiError('Invalid or expired reset token', 400);
     }
 
-    const currentPasswordMatches = await checkPassword(currentPassword, dbUser.password);
-    if (!currentPasswordMatches) {
-        throw createApiError('Current password is incorrect', 400);
-    }
-
-    const newPasswordMatchesOld = await checkPassword(password, dbUser.password);
+    const newPasswordMatchesOld = await checkPassword(password, user.password);
     if (newPasswordMatchesOld) {
         throw createApiError('New password must be different from current password', 400);
     }
@@ -54,7 +48,7 @@ export default defineEventHandler(async event => {
     const hashedPassword = await hashPassword(password);
     await prisma.user.update({
         where: {
-            id: dbUser.id,
+            id: user.id,
         },
         data: {
             password: hashedPassword,
@@ -62,17 +56,15 @@ export default defineEventHandler(async event => {
     });
 
     await sendTemplatedEmail({
-        to: dbUser.email,
+        to: user.email,
         subject: 'Your Swindler password was changed',
         template: 'password-reset-success',
         context: {
-            username: dbUser.username,
+            username: user.username,
         },
     });
 
-    invalidateUserSession(event);
-
     return {
-        message: 'Password updated. Please sign in again.',
+        message: 'Password updated successfully.',
     };
 });

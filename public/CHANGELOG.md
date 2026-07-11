@@ -1,5 +1,32 @@
 # Changelog
 
+## v0.0.8-alpha
+### ✉️ Email System
+- 🧱 **Email Infrastructure**: Added SMTP-based transactional email sending with file-based Handlebars templates in `server/emails/templates/`
+- 📨 **Template Coverage**: Added templates for account creation, password reset requests, and password-reset success notifications
+- 🔧 **Environment Support**: Added app URL and SMTP configuration examples in `.env.example`
+- 🔁 **Verification Resend Endpoint**: Added `POST /api/v1/auth/email/resend` to resend verification emails for unverified accounts
+- 🔗 **URL Rendering Fix**: Fixed escaped query-string links in email templates so reset/verify links render with `token=` correctly
+
+### 🔐 Authentication & Verification
+- ✅ **Email Verification Required**: New accounts now receive verification emails and must verify before login
+- 🔗 **Verification Links**: Added token-based email verification flow with dedicated verification endpoints
+- 🔒 **Login Gate**: Login now blocks unverified accounts with a clear response message
+
+### 🗝️ Password Recovery
+- 📮 **Reset Request Endpoint**: Added endpoint to request password reset emails without leaking account existence
+- ♻️ **Reset Confirm Endpoint**: Added token-based password reset confirmation endpoint
+- 🧠 **Secure Tokens**: Added Redis-backed, expiring token handling for reset and verification flows
+- 🧭 **Reset Password Page**: Added `/reset-password` UI flow for both requesting reset emails and submitting new passwords via token links
+
+### 🧑‍💻 Login UX
+- 🆘 **Forgot Password Entry Point**: Added `Forgot password?` link on login page
+- 🧾 **Verification Prompt**: Added inline login prompt with resend button when login fails due to unverified email
+
+### 🧪 Developer Testing
+- 🖨️ **Console Email Logging**: Added env-controlled email payload logging for debugging
+- 🚫 **Log-Only Mode**: Added dry-run mode to render/log emails without sending through SMTP
+
 ## v0.0.7-alpha
 ### ✨ Core Improvements
 - 🔌 **Socket State Refactor**: Refactored game and lobby socket handling to use dedicated stores with cleaner lifecycle management and reconnect behavior

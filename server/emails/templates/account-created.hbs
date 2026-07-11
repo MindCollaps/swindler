@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to Swindler</title>
+</head>
+<body style="margin:0;padding:24px;background:#18181B;color:#F3F4F6;font-family:'Noto Sans',Arial,sans-serif;">
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:600px;margin:0 auto;background:#27272A;border:1px solid #3F3F46;border-radius:8px;">
+        <tr>
+            <td style="padding:24px;">
+                <h1 style="margin:0 0 16px 0;font-size:24px;line-height:1.2;">Welcome to Swindler, {{username}}.</h1>
+                <p style="margin:0 0 12px 0;font-size:15px;line-height:1.6;color:#D4D4D8;">Your account has been created successfully.</p>
+                <p style="margin:0 0 20px 0;font-size:15px;line-height:1.6;color:#D4D4D8;">Before signing in, verify your email address. This link expires in {{expiresInHours}} hours.</p>
+                <a href="{{{verificationUrl}}}" style="display:inline-block;padding:10px 16px;border-radius:8px;background:#8f70c6;color:#FFFFFF;text-decoration:none;font-weight:700;">Verify Email</a>
+                <p style="margin:20px 0 0 0;font-size:13px;line-height:1.6;color:#A1A1AA;">If the button does not work, copy and paste this URL into your browser: {{{verificationUrl}}}</p>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>

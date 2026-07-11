@@ -1,41 +1,32 @@
-import { requireAuth } from '~~/server/utils/auth';
+import { consumeEmailVerificationToken } from '~~/server/utils/auth/emailVerification';
+import { emailVerifyTokenSchema } from '~~/server/utils/backend/validation';
 import { prisma } from '~~/server/utils/prisma';
-import { emailVerifySchema } from '~~/server/utils/backend/validation';
 
 export default defineEventHandler(async event => {
-    await requireAuth(event);
-
-    const authUser = event.context.user;
-    if (!authUser) {
-        throw createApiError('Unauthorized', 401);
-    }
-
     const body = await readBody(event);
-    const validationResult = emailVerifySchema.safeParse(body ?? {});
+    const validationResult = emailVerifyTokenSchema.safeParse(body ?? {});
     if (!validationResult.success) {
         throw createApiError('Invalid input', 400, validationResult.error.issues);
     }
 
-    const requestedEmail = validationResult.data.email;
+    const userId = await consumeEmailVerificationToken(validationResult.data.token);
+    if (!userId) {
+        throw createApiError('Invalid or expired verification token', 400);
+    }
 
     const dbUser = await prisma.user.findUnique({
         where: {
-            id: authUser.userId,
+            id: userId,
         },
         select: {
             id: true,
-            email: true,
             emailVerified: true,
             disabled: true,
         },
     });
 
     if (!dbUser || dbUser.disabled) {
-        throw createApiError('Unauthorized', 401);
-    }
-
-    if (requestedEmail && requestedEmail !== dbUser.email) {
-        throw createApiError('Email mismatch', 400);
+        throw createApiError('Invalid or expired verification token', 400);
     }
 
     if (dbUser.emailVerified) {

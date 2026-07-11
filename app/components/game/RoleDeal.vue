@@ -8,10 +8,8 @@
             :class="{ 'role-deal--leaving': leaving }"
             role="dialog"
             tabindex="-1"
-            @click="close"
-            @keydown.enter.prevent="close"
+            @click.self="closeFromBackdrop"
             @keydown.esc.prevent="close"
-            @keydown.space.prevent="close"
         >
             <div class="role-deal_game">Game {{ gameNumber }}</div>
 
@@ -56,8 +54,10 @@ const emit = defineEmits<{
 
 const dealRef = ref<HTMLElement | null>(null);
 const leaving = ref(false);
+const canBackdropDismiss = ref(false);
 let hideTimeout: ReturnType<typeof setTimeout> | null = null;
 let leaveTimeout: ReturnType<typeof setTimeout> | null = null;
+let backdropGraceTimeout: ReturnType<typeof setTimeout> | null = null;
 
 function close() {
     if (leaving.value) return;
@@ -65,12 +65,21 @@ function close() {
     leaveTimeout = setTimeout(() => emit('dismiss'), 180);
 }
 
+function closeFromBackdrop() {
+    if (!canBackdropDismiss.value) return;
+    close();
+}
+
 onMounted(() => {
     dealRef.value?.focus();
+    backdropGraceTimeout = setTimeout(() => {
+        canBackdropDismiss.value = true;
+    }, 300);
     hideTimeout = setTimeout(close, 5000);
 });
 
 onUnmounted(() => {
+    if (backdropGraceTimeout) clearTimeout(backdropGraceTimeout);
     if (hideTimeout) clearTimeout(hideTimeout);
     if (leaveTimeout) clearTimeout(leaveTimeout);
 });

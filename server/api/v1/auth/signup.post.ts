@@ -1,7 +1,8 @@
 import { createApiError, sendApiResponse } from '~~/server/utils/apiResponses';
-import { makeUserSession } from '~~/server/utils/auth';
 import { createUser } from '~~/server/utils/backend/user';
 import { checkRateLimit } from '~~/server/utils/backend/rateLimit';
+import { createEmailVerificationToken, emailVerificationTokenTtlHours } from '~~/server/utils/auth/emailVerification';
+import { buildEmailVerificationUrl, sendTemplatedEmail } from '~~/server/utils/email';
 
 export default defineEventHandler(async event => {
     const clientIp = getRequestIP(event, { xForwardedFor: true }) || 'unknown';
@@ -50,6 +51,23 @@ export default defineEventHandler(async event => {
     }
 
     console.log(`[Auth:Signup] Successfully created account for user: ${ username } (ID: ${ result.user.id }) from IP: ${ clientIp }`);
-    await makeUserSession(result.user, event);
-    return { message: 'account created!', redirect: '/dashboard' };
+
+    const emailVerificationToken = await createEmailVerificationToken(result.user.id);
+    const emailVerificationUrl = buildEmailVerificationUrl(emailVerificationToken);
+
+    await sendTemplatedEmail({
+        to: result.user.email,
+        subject: 'Verify your Swindler email',
+        template: 'account-created',
+        context: {
+            username: result.user.username,
+            verificationUrl: emailVerificationUrl,
+            expiresInHours: emailVerificationTokenTtlHours,
+        },
+    });
+
+    return {
+        message: 'Account created. Please verify your email before signing in.',
+        redirect: '/login',
+    };
 });

@@ -74,10 +74,6 @@ import StateImposterWord from '~/components/game/states/StateImposterWord.vue';
 import StateGameEnd from '~/components/game/states/StateGameEnd.vue';
 import StateLobbyEnd from '~/components/game/states/StateLobbyEnd.vue';
 import Heart from '~/components/game/Heart.vue';
-
-// Module scope on purpose: the deal overlay must show once per dealt
-// game, surviving this page's phase-driven re-renders.
-const seenDeals = new Set<string>();
 </script>
 
 <script setup lang="ts">
@@ -92,6 +88,7 @@ const lobbyId = route.params.id as string;
 const { gameSocket, game, connected, lobby, myTurn, clue, voteForPlayer, gameResults, nextGame, hasVotedForPlayer, guessWord, voted, lobbyNotFound, connectionError, retry, spectator } = useGameSocket(lobbyId);
 
 const showDeal = ref(false);
+const seenDealSignatures = new Set<string>();
 
 const dealKey = computed(() => {
     if (spectator.value) return '';
@@ -102,14 +99,20 @@ const dealKey = computed(() => {
     const role = game.value?.imposter ? 'swindler' : (game.value?.word?.word ?? '');
     if (!role) return '';
 
-    const gameSignature = game.value?.stateTimestamp ?? game.value?.stateVersion ?? 'unknown';
+    const gameSignature = game.value?.stateTimestamp ?? game.value?.stateVersion;
+    if (gameSignature === undefined) return '';
 
-    return `${ lobbyId }:${ lobby.value?.gameNumber ?? 0 }:${ gameSignature }:${ role }`;
+    return `${ lobbyId }:${ gameSignature }:${ role }`;
 });
 
-watch(dealKey, key => {
-    if (!key || seenDeals.has(key)) return;
-    seenDeals.add(key);
+watch(dealKey, async key => {
+    if (!key || seenDealSignatures.has(key)) return;
+
+    seenDealSignatures.add(key);
+
+    // Force a remount when transitioning game-to-game inside one route session.
+    showDeal.value = false;
+    await nextTick();
     showDeal.value = true;
 }, { immediate: true });
 

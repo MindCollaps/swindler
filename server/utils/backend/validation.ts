@@ -41,8 +41,26 @@ export const passwordResetSchema = z.object({
     passwordRepeated: passwordSchema,
 }).strict();
 
+export const passwordResetRequestSchema = z.object({
+    email: z.string().email('Invalid email address').transform(val => val.toLowerCase().trim()),
+}).strict();
+
+export const passwordResetConfirmSchema = z.object({
+    token: z.string().min(32, 'Invalid reset token').max(256, 'Invalid reset token'),
+    password: passwordSchema,
+    passwordRepeated: passwordSchema,
+}).strict();
+
 export const emailVerifySchema = z.object({
     email: z.string().email('Invalid email address').transform(val => val.toLowerCase().trim()).optional(),
+}).strict();
+
+export const emailVerifyTokenSchema = z.object({
+    token: z.string().min(32, 'Invalid verification token').max(256, 'Invalid verification token'),
+}).strict();
+
+export const emailResendSchema = z.object({
+    username: z.string().min(3, 'Username must be at least 3 characters').max(32, 'Username must not exceed 32 characters').transform(val => val.trim().toLowerCase()),
 }).strict();
 
 export const WordlistCreationSchema = z.object({

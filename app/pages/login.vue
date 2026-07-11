@@ -29,6 +29,24 @@
                 :disabled="isSubmitting"
                 @click="login"
             >{{ isSubmitting ? 'Logging in…' : 'Login' }}</common-button>
+            <div
+                v-if="showResendVerification"
+                class="verify-prompt"
+            >
+                <p>Please verify your account to continue.</p>
+                <common-button
+                    :disabled="isSubmitting || resendSubmitting"
+                    type="secondary"
+                    @click="resendVerificationEmail"
+                >{{ resendSubmitting ? 'Sending…' : 'Resend verification email' }}</common-button>
+            </div>
+            <div class="login-links">
+                <common-button
+                    :disabled="isSubmitting"
+                    to="/reset-password"
+                    type="link"
+                >Forgot password?</common-button>
+            </div>
         </common-box>
     </form>
 </template>
@@ -48,6 +66,8 @@ const username = ref<string>();
 const password = ref<string>();
 
 const isSubmitting = ref(false);
+const resendSubmitting = ref(false);
+const showResendVerification = ref(false);
 
 const errors = reactive<{
     username: string | null;
@@ -93,6 +113,48 @@ watch(ready, isReady => {
     }
 }, { immediate: true });
 
+watch([username, password], () => {
+    if (showResendVerification.value) {
+        showResendVerification.value = false;
+    }
+});
+
+async function resendVerificationEmail() {
+    const usernameError = validateUsername(username.value);
+    if (usernameError) {
+        errors.username = usernameError;
+        usernameInputRef.value?.input?.focus();
+        return;
+    }
+
+    resendSubmitting.value = true;
+    try {
+        const response = await $fetch<{ message?: string }>('/api/v1/auth/email/resend', {
+            method: 'POST',
+            body: {
+                username: username.value?.trim(),
+            },
+        });
+
+        showToast({
+            mode: ToastMode.Success,
+            message: response.message || 'If your account is unverified, we sent a verification email.',
+            duration: 7000,
+        });
+    }
+    catch (error: any) {
+        const message = error?.data?.message || error?.statusMessage || 'Failed to resend verification email.';
+        showToast({
+            mode: ToastMode.Error,
+            message,
+            duration: 8000,
+        });
+    }
+    finally {
+        resendSubmitting.value = false;
+    }
+}
+
 async function login() {
     if (isSubmitting.value) return;
 
@@ -106,6 +168,8 @@ async function login() {
 
     isSubmitting.value = true;
     try {
+        showResendVerification.value = false;
+
         const response = await $fetch<LoginResponse>('/api/v1/auth/login', {
             method: 'POST',
             body: JSON.stringify({
@@ -130,6 +194,10 @@ async function login() {
             status = error.statusCode;
             message = error.data?.message || error.data?.statusMessage || error.statusMessage || message;
 
+            if (status === 403 && /verify\s+your\s+email/i.test(message)) {
+                showResendVerification.value = true;
+            }
+
             if (Array.isArray(error.data?.data)) {
                 message = error.data.data.map((i: any) => i.message).join('\n');
             }
@@ -149,3 +217,23 @@ async function login() {
     }
 }
 </script>
+
+<style scoped lang="scss">
+.login-links {
+    display: flex;
+    justify-content: center;
+}
+
+.verify-prompt {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: center;
+
+    p {
+        margin: 0;
+        font-size: 14px;
+        text-align: center;
+    }
+}
+</style>

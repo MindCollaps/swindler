@@ -423,7 +423,10 @@ export async function sendGame(socket: Socket<DefaultEventsMap, DefaultEventsMap
         readyToContinue: game.readyToContinue,
         imposterGuess: game.imposterGuess,
         winReason: game.winReason,
+        gameResults: game.gameResults,
         turnOrder: game.turnOrder,
+        stateVersion: game.stateVersion,
+        stateTimestamp: game.stateTimestamp,
     };
 
     socket.emit('game', lobbyGame);
