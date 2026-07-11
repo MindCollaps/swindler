@@ -302,75 +302,78 @@ onMounted(() => {
 
 <style lang="scss" scoped>
 .wordlist {
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
 
-        margin-top: 10px;
-        margin-bottom: 20px;
-        padding: 10px;
+    margin-top: 10px;
+    margin-bottom: 20px;
+    padding: 10px;
+    border-radius: 8px;
+
+    .empty {
+        color: $lightgray150;
+    }
+
+    .item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+
+        margin-bottom: 2px;
+        padding: 8px;
         border-radius: 8px;
 
-        .empty {
-            color: $lightgray150;
-        }
+        background-color: $darkgray900;
 
-        .item {
+        .actions {
             display: flex;
-            align-items: center;
-            justify-content: space-between;
-
-            margin-bottom: 2px;
-            padding: 8px;
-            border-radius: 8px;
-
-            background-color: $darkgray900;
-
-            .actions {
-                display: flex;
-                gap: 8px;
-            }
+            gap: 8px;
         }
     }
+}
 
 .input {
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
 
+    padding: 10px;
+    border-radius: 8px;
+
+    .textfield {
         padding: 10px;
         border-radius: 8px;
 
-        .textfield {
-            padding: 10px;
+        textarea {
+            resize: vertical;
+
+            width: 100%;
+            padding: 10px 12px;
+            border: 2px solid transparent;
             border-radius: 8px;
 
-            textarea {
-                width: 100%;
-                border: 2px solid transparent;
-                border-radius: 8px;
-                padding: 10px 12px;
-                color: $lightgray50;
-                background: $darkgray900;
-                resize: vertical;
-            }
+            color: $lightgray50;
 
-            textarea:focus {
-                outline: none;
-                border-color: $primary500;
-            }
+            background: $darkgray900;
         }
 
-        .checkbox {
-            display: flex;
-            flex-direction: row;
-            gap: 10px;
-            justify-content: center;
-
-            .item {
-                margin-right: 5px;
-                padding: 10px;
-            }
+        textarea:focus {
+            border-color: $primary500;
+            outline: none;
         }
     }
+
+    .checkbox {
+        display: flex;
+        flex-direction: row;
+        gap: 10px;
+        justify-content: center;
+
+        .item {
+            margin-right: 5px;
+            padding: 10px;
+        }
+    }
+}
 </style>

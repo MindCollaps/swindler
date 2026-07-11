@@ -227,6 +227,8 @@ defineExpose({
         }
 
         &_toggle {
+            cursor: pointer;
+
             display: flex;
             flex: none;
             align-items: center;
@@ -237,8 +239,6 @@ defineExpose({
             padding: 0;
             border: none;
 
-            cursor: pointer;
-
             appearance: none;
             background: none;
 
@@ -246,7 +246,6 @@ defineExpose({
                 width: 20px;
                 height: 20px;
                 fill: $lightgray400;
-
                 transition: fill 0.3s;
             }
 
@@ -263,7 +262,6 @@ defineExpose({
 
     &_error {
         margin-top: 8px;
-
         font-size: 12px;
         font-weight: 600;
         color: $error500;

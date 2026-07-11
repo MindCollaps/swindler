@@ -2,9 +2,9 @@
     <common-page title="Profile">
         <div
             v-if="!ready"
-            class="state state--loading"
             aria-busy="true"
             aria-live="polite"
+            class="state state--loading"
         >
             <common-loader/>
         </div>

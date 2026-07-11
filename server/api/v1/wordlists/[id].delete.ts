@@ -67,9 +67,8 @@ export default defineEventHandler(async event => {
     });
 
     // do it after the wordlist was deleted, because otherwise the words are still linked to it
-    let deletedWords = 0;
     if (wordIds.length > 0) {
-        deletedWords = await deleteUnusedWords(wordIds);
+        const deletedWords = await deleteUnusedWords(wordIds);
         console.log(`[Wordlist:Delete] Deleted ${ deletedWords } orphaned words from wordlist ID: ${ wordlistId }`);
     }
 

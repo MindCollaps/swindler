@@ -107,7 +107,7 @@ async function initializeWordlists(): Promise<boolean> {
     }
 
     const directoryPath = path.resolve(process.cwd(), '.config/wordlists');
-    let wordlistFiles: string[] = [];
+    let wordlistFiles: string[];
 
     try {
         const files = fs.readdirSync(directoryPath);

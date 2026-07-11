@@ -12,7 +12,7 @@
         :lobby="lobby"
         only-word
     />
-    <Transition
+    <transition
         mode="out-in"
         name="clue-fade"
     >
@@ -24,7 +24,7 @@
             <span class="cue-said">said</span>
             <div class="cue-text">{{ clue?.clue }}</div>
         </div>
-    </Transition>
+    </transition>
     <vote :spectator="spectator"/>
     <div
         class="timer"
